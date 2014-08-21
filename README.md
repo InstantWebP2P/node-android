@@ -6,6 +6,10 @@ Android native wrapper of libuvpp by porting libuv-java jni part
 third-party: libuv-java by Oracle
 
 
+Usage:
+
+  clone the code, open Android eclipse ADK and import the project.
+
 
 (The MIT License)
 
