@@ -1,6 +1,6 @@
 package com.iwebpp.libuvpp;
 
-import com.example.libuvpp.R;
+import com.iwebpp.libuvpp.R;
 
 import android.os.Bundle;
 import android.app.Activity;
