@@ -1,9 +1,7 @@
 libuvpp-android
 ===============
 
-Android native wrapper of libuvpp by porting libuv-java jni part
-
-third-party: libuv-java by Oracle
+Android native wrapper of libuvpp by JNA
 
 
 Usage:

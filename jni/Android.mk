@@ -14,43 +14,19 @@
 #
 LOCAL_PATH := $(call my-dir)
 
-### prebuilt libuvpp.a
+### prebuilt libuvpp.so
 include $(CLEAR_VARS)
 LOCAL_MODULE := libuvpp-prebuilt
-LOCAL_SRC_FILES := libuvpp/libuvpp.a
+LOCAL_SRC_FILES := libuvpp/libuvpp.so
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/libuvpp
-include $(PREBUILT_STATIC_LIBRARY)
+include $(PREBUILT_SHARED_LIBRARY)
 
 ### libuvpp-jni.so
-include $(CLEAR_VARS)
-LOCAL_MODULE           := libuvpp-jni
+#include $(CLEAR_VARS)
+#LOCAL_MODULE           := libuvpp-jni
 
-LOCAL_SRC_FILES        := \
-                        hello-jni.c \
-                        async.cpp \
-                        check.cpp \
-                        child_process.cpp \
-                        constants.cpp \
-                        context.cpp \
-                        exception.cpp \
-                        file.cpp \
-                        file_event.cpp \
-                        file_poll.cpp \
-                        handle.cpp \
-                        idle.cpp \
-                        loop.cpp \
-                        misc.cpp \
-                        os.cpp \
-                        pipe.cpp \
-                        poll.cpp \
-                        process.cpp \
-                        stats.cpp \
-                        stream.cpp \
-                        timer.cpp \
-                        tcp.cpp \
-                        tty.cpp \
-                        udp.cpp 
+#LOCAL_SRC_FILES        := libuvpp.c
 
-LOCAL_STATIC_LIBRARIES := libuvpp-prebuilt
-LOCAL_LDLIBS := -llog
-include $(BUILD_SHARED_LIBRARY)
+#LOCAL_SHARED_LIBRARIES := libuvpp-prebuilt
+#LOCAL_LDLIBS := -llog
+#include $(BUILD_SHARED_LIBRARY)
