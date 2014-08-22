@@ -8,7 +8,7 @@ third-party: libuv-java by Oracle
 
 Usage:
 
-  clone the code, open Android eclipse ADK and import the project.
+  clone the code, open Android eclipse ADT and import the project.
 
 
 (The MIT License)
