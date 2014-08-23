@@ -32,7 +32,7 @@
 #include "context.h"
 #include "stream.h"
 #include "udp.h"
-///#include "com_oracle_libuv_handles_StreamHandle.h"
+///#include "com_iwebpp_libuvpp_handles_StreamHandle.h"
 
 jstring StreamCallbacks::_IPV4 = NULL;
 jstring StreamCallbacks::_IPV6 = NULL;
@@ -354,22 +354,22 @@ static void _connection_cb(uv_stream_t* stream, int status) {
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_StreamHandle__1static_1initialize
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   StreamCallbacks::static_initialize(env, cls);
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _initialize
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_StreamHandle__1initialize
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1initialize
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -380,11 +380,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_StreamHandle__1initialize
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _read_start
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_StreamHandle__1read_1start
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read_1start
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -397,16 +397,16 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_StreamHandle__1read_1start
       ThrowException(env, handle->loop, "uv_read_start");
     }
   } else {
-    ///Java_com_oracle_libuv_handles_StreamHandle__1read2_1start(env, that, stream);
+    ///Java_com_iwebpp_libuvpp_handles_StreamHandle__1read2_1start(env, that, stream);
   }
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _read2_start
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_StreamHandle__1read2_1start
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read2_1start
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -418,11 +418,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_StreamHandle__1read2_1start
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _read_stop
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_StreamHandle__1read_1stop
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read_1stop
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -434,11 +434,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_StreamHandle__1read_1stop
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _readable
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_oracle_libuv_handles_StreamHandle__1readable
+JNIEXPORT jboolean JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1readable
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -451,11 +451,11 @@ JNIEXPORT jboolean JNICALL Java_com_oracle_libuv_handles_StreamHandle__1readable
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _writable
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_oracle_libuv_handles_StreamHandle__1writable
+JNIEXPORT jboolean JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1writable
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -468,11 +468,11 @@ JNIEXPORT jboolean JNICALL Java_com_oracle_libuv_handles_StreamHandle__1writable
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _write
  * Signature: (JLjava/nio/ByteBuffer;[BIILjava/lang/Object;)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_StreamHandle__1write
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1write
   (JNIEnv *env, jobject that, jlong stream, jobject buffer, jbyteArray data, jint offset, jint length, jobject context) {
 
   assert(stream);
@@ -509,11 +509,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_StreamHandle__1write
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _writev
  * Signature: (J[[BILjava/lang/Object;)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_StreamHandle__1writev
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1writev
   (JNIEnv *env, jobject that, jlong stream, jobjectArray buffers, jint bufcount, jobject context) {
 
   assert(stream);
@@ -554,11 +554,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_StreamHandle__1writev
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _write2
  * Signature: (JLjava/nio/ByteBuffer;[BIIJ)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_StreamHandle__1write2
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1write2
   (JNIEnv *env, jobject that, jlong stream, jobject buffer, jbyteArray data, jint offset, jint length, jlong send_stream, jobject context) {
 
   assert(stream);
@@ -601,11 +601,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_StreamHandle__1write2
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _write_queue_size
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_StreamHandle__1write_1queue_1size
+JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1write_1queue_1size
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -614,11 +614,11 @@ JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_StreamHandle__1write_1queu
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _close_write
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_StreamHandle__1close_1write
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1close_1write
   (JNIEnv *env, jobject that, jlong stream, jobject context) {
 
   assert(stream);
@@ -637,11 +637,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_StreamHandle__1close_1write
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _close
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_StreamHandle__1close
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1close
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -650,11 +650,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_StreamHandle__1close
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _listen
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_StreamHandle__1listen
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1listen
   (JNIEnv *env, jobject that, jlong ptr, jint backlog) {
 
   assert(ptr);
@@ -667,11 +667,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_StreamHandle__1listen
 }
 
 /*
- * Class:     com_oracle_libuv_handles_StreamHandle
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _accept
  * Signature: (JJ)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_StreamHandle__1accept
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1accept
   (JNIEnv *env, jobject that, jlong ptr, jlong clientPtr) {
 
   assert(ptr);

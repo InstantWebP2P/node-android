@@ -49,7 +49,8 @@ LOCAL_SRC_FILES        := \
                         timer.cpp \
                         tcp.cpp \
                         tty.cpp \
-                        udp.cpp 
+                        udp.cpp \
+                        udt.cpp 
 
 LOCAL_STATIC_LIBRARIES := libuvpp-prebuilt
 LOCAL_LDLIBS := -llog

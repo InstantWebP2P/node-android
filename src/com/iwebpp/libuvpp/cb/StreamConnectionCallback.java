@@ -23,7 +23,7 @@
  * questions.
  */
 
-package com.oracle.libuv.cb;
+package com.iwebpp.libuvpp.cb;
 
 public interface StreamConnectionCallback {
 

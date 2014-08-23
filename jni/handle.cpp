@@ -29,7 +29,7 @@
 #include "uv.h"
 #include "exception.h"
 #include "handle.h"
-///#include "com_oracle_libuv_handles_Handle.h"
+///#include "com_iwebpp_libuvpp_handles_Handle.h"
 
 const char* handle_typeof(const uv_handle_t* handle) {
     switch (handle->type) {
@@ -66,11 +66,11 @@ const char* handle_to_string(const uv_handle_t* handle) {
 }
 
 /*
- * Class:     com_oracle_libuv_handles_Handle
+ * Class:     com_iwebpp_libuvpp_handles_Handle
  * Method:    _ref
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_Handle__1ref
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_Handle__1ref
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
@@ -79,11 +79,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_Handle__1ref
 }
 
 /*
- * Class:     com_oracle_libuv_handles_Handle
+ * Class:     com_iwebpp_libuvpp_handles_Handle
  * Method:    _unref
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_Handle__1unref
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_Handle__1unref
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
@@ -92,11 +92,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_Handle__1unref
 }
 
 /*
- * Class:     com_oracle_libuv_handles_Handle
+ * Class:     com_iwebpp_libuvpp_handles_Handle
  * Method:    _closing
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_oracle_libuv_handles_Handle__1closing
+JNIEXPORT jboolean JNICALL Java_com_iwebpp_libuvpp_handles_Handle__1closing
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);

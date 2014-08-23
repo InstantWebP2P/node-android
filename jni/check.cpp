@@ -31,7 +31,7 @@
 #include "uv.h"
 #include "exception.h"
 #include "stream.h"
-///#include "com_oracle_libuv_handles_CheckHandle.h"
+///#include "com_iwebpp_libuvpp_handles_CheckHandle.h"
 
 class CheckCallbacks {
 private:
@@ -121,11 +121,11 @@ static void _close_cb(uv_handle_t* handle) {
 }
 
 /*
- * Class:     com_oracle_libuv_handles_CheckHandle
+ * Class:     com_iwebpp_libuvpp_handles_CheckHandle
  * Method:    _new
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_CheckHandle__1new
+JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1new
   (JNIEnv *env, jclass cls, jlong loop) {
 
   assert(loop);
@@ -141,22 +141,22 @@ JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_CheckHandle__1new
 }
 
 /*
- * Class:     com_oracle_libuv_handles_CheckHandle
+ * Class:     com_iwebpp_libuvpp_handles_CheckHandle
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_CheckHandle__1static_1initialize
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   CheckCallbacks::static_initialize(env, cls);
 }
 
 /*
- * Class:     com_oracle_libuv_handles_CheckHandle
+ * Class:     com_iwebpp_libuvpp_handles_CheckHandle
  * Method:    _initialize
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_CheckHandle__1initialize
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1initialize
   (JNIEnv *env, jobject that, jlong check) {
 
   assert(check);
@@ -167,11 +167,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_CheckHandle__1initialize
 }
 
 /*
- * Class:     com_oracle_libuv_handles_CheckHandle
+ * Class:     com_iwebpp_libuvpp_handles_CheckHandle
  * Method:    _start
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_CheckHandle__1start
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1start
   (JNIEnv *env, jobject that, jlong check) {
 
   assert(check);
@@ -184,11 +184,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_CheckHandle__1start
 }
 
 /*
- * Class:     com_oracle_libuv_handles_CheckHandle
+ * Class:     com_iwebpp_libuvpp_handles_CheckHandle
  * Method:    _stop
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_CheckHandle__1stop
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1stop
   (JNIEnv *env, jobject that, jlong check) {
 
   assert(check);
@@ -201,11 +201,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_CheckHandle__1stop
 }
 
 /*
- * Class:     com_oracle_libuv_handles_CheckHandle
+ * Class:     com_iwebpp_libuvpp_handles_CheckHandle
  * Method:    _close
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_CheckHandle__1close
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1close
   (JNIEnv *env, jobject that, jlong check) {
 
   assert(check);

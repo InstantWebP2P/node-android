@@ -32,7 +32,7 @@
 #include "exception.h"
 #include "stats.h"
 #include "stream.h"
-///#include "com_oracle_libuv_handles_FilePollHandle.h"
+///#include "com_iwebpp_libuvpp_handles_FilePollHandle.h"
 
 class FilePollCallbacks {
 private:
@@ -142,11 +142,11 @@ static void _stop_cb(uv_handle_t* handle) {
 }
 
 /*
- * Class:     com_oracle_libuv_handles_FilePollHandle
+ * Class:     com_iwebpp_libuvpp_handles_FilePollHandle
  * Method:    _new
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_FilePollHandle__1new
+JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1new
   (JNIEnv *env, jclass cls, jlong loop) {
 
   assert(loop);
@@ -162,11 +162,11 @@ JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_FilePollHandle__1new
 }
 
 /*
- * Class:     com_oracle_libuv_handles_FilePollHandle
+ * Class:     com_iwebpp_libuvpp_handles_FilePollHandle
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_FilePollHandle__1static_1initialize
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   FilePollCallbacks::static_initialize(env, cls);
@@ -174,11 +174,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_FilePollHandle__1static_1in
 }
 
 /*
- * Class:     com_oracle_libuv_handles_FilePollHandle
+ * Class:     com_iwebpp_libuvpp_handles_FilePollHandle
  * Method:    _initialize
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_FilePollHandle__1initialize
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1initialize
   (JNIEnv *env, jobject that, jlong fs_poll_ptr) {
 
   assert(fs_poll_ptr);
@@ -189,11 +189,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_FilePollHandle__1initialize
 }
 
 /*
- * Class:     com_oracle_libuv_handles_FilePollHandle
+ * Class:     com_iwebpp_libuvpp_handles_FilePollHandle
  * Method:    _start
  * Signature: (JLjava/lang/String;ZILcom/oracle/libuv/Stats;Lcom/oracle/libuv/Stats;)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_FilePollHandle__1start
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1start
   (JNIEnv *env, jobject that, jlong fs_poll_ptr, jstring path, jboolean persistent, jint interval, jobject previous, jobject current) {
 
   assert(fs_poll_ptr);
@@ -216,11 +216,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_FilePollHandle__1start
 }
 
 /*
- * Class:     com_oracle_libuv_handles_FilePollHandle
+ * Class:     com_iwebpp_libuvpp_handles_FilePollHandle
  * Method:    _stop
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_FilePollHandle__1stop
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1stop
   (JNIEnv *env, jobject that, jlong fs_poll_ptr) {
 
   assert(fs_poll_ptr);
@@ -233,11 +233,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_FilePollHandle__1stop
 }
 
 /*
- * Class:     com_oracle_libuv_handles_FilePollHandle
+ * Class:     com_iwebpp_libuvpp_handles_FilePollHandle
  * Method:    _close
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_FilePollHandle__1close
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1close
   (JNIEnv *env, jobject that, jlong fs_poll_ptr) {
 
   assert(fs_poll_ptr);

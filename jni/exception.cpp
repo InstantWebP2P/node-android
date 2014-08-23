@@ -31,7 +31,7 @@
 #include <string>
 
 #include "uv.h"
-///#include "com_oracle_libuv_NativeException.h"
+///#include "com_iwebpp_libuvpp_NativeException.h"
 
 const char* get_uv_errno_string(int errorno) {
   uv_err_t err;
@@ -142,11 +142,11 @@ void ThrowOutOfMemoryError(JNIEnv* env, const char* func, const char* file, cons
 }
 
 /*
- * Class:     com_oracle_libuv_NativeException
+ * Class:     com_iwebpp_libuvpp_NativeException
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_NativeException__1static_1initialize
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_NativeException__1static_1initialize
   (JNIEnv* env, jclass cls) {
 
   assert(!_oom_cid);

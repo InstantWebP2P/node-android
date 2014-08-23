@@ -29,7 +29,7 @@
 #include "exception.h"
 #include "context.h"
 #include "stream.h"
-///#include "com_oracle_libuv_handles_PipeHandle.h"
+///#include "com_iwebpp_libuvpp_handles_PipeHandle.h"
 
 static void _pipe_connect_cb(uv_connect_t* req, int status) {
   assert(req);
@@ -44,11 +44,11 @@ static void _pipe_connect_cb(uv_connect_t* req, int status) {
 }
 
 /*
- * Class:     com_oracle_libuv_handles_PipeHandle
+ * Class:     com_iwebpp_libuvpp_handles_PipeHandle
  * Method:    _new
  * Signature: (JZ)J
  */
-JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_PipeHandle__1new
+JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1new
   (JNIEnv *env, jclass cls, jlong loop, jboolean ipc) {
 
   assert(loop);
@@ -65,11 +65,11 @@ JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_PipeHandle__1new
 }
 
 /*
- * Class:     com_oracle_libuv_handles_PipeHandle
+ * Class:     com_iwebpp_libuvpp_handles_PipeHandle
  * Method:    _open
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_PipeHandle__1open
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1open
   (JNIEnv *env, jobject that, jlong pipe, jint fd) {
 
   assert(pipe);
@@ -82,11 +82,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_PipeHandle__1open
 }
 
 /*
- * Class:     com_oracle_libuv_handles_PipeHandle
+ * Class:     com_iwebpp_libuvpp_handles_PipeHandle
  * Method:    _bind
  * Signature: (JLjava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_PipeHandle__1bind
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1bind
   (JNIEnv *env, jobject that, jlong pipe, jstring name) {
 
   assert(pipe);
@@ -101,11 +101,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_PipeHandle__1bind
  }
 
 /*
- * Class:     com_oracle_libuv_handles_PipeHandle
+ * Class:     com_iwebpp_libuvpp_handles_PipeHandle
  * Method:    _connect
  * Signature: (JLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_PipeHandle__1connect
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1connect
   (JNIEnv *env, jobject that, jlong pipe, jstring name, jobject context) {
 
   assert(pipe);

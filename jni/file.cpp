@@ -30,7 +30,7 @@
 #include "uv.h"
 #include "stats.h"
 #include "exception.h"
-///#include "com_oracle_libuv_Files.h"
+///#include "com_iwebpp_libuvpp_Files.h"
 
 #ifdef __MACOS__
 #include <sys/fcntl.h>
@@ -580,11 +580,11 @@ static void _fs_cb(uv_fs_t* req) {
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_Files__1static_1initialize
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_Files__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   FileCallback::static_initialize(env, cls);
@@ -592,11 +592,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_Files__1static_1initialize
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _new
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_com_oracle_libuv_Files__1new
+JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_Files__1new
   (JNIEnv *env, jclass cls) {
 
   FileCallback* cb = new FileCallback();
@@ -604,11 +604,11 @@ JNIEXPORT jlong JNICALL Java_com_oracle_libuv_Files__1new
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _initialize
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_Files__1initialize
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_Files__1initialize
   (JNIEnv *env, jobject that, jlong ptr, jlong loop_ptr) {
 
   assert(ptr);
@@ -619,11 +619,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_Files__1initialize
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _close
 * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1close__J
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1close__J
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
@@ -633,11 +633,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1close__J
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _close
 * Signature: (JILjava/lang/Object;)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1close__JILjava_lang_Object_2Ljava_lang_Object_2
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1close__JILjava_lang_Object_2Ljava_lang_Object_2
   (JNIEnv *env, jobject that, jlong ptr, jint fd, jobject callback, jobject context) {
 
   assert(ptr);
@@ -660,11 +660,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1close__JILjava_lang_Object_
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _open
  * Signature: (JLjava/lang/String;III)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1open
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1open
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jint flags, jint mode, jobject callback, jobject context) {
 
   assert(ptr);
@@ -689,11 +689,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1open
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _read
  * Signature: (JILjava/nio/ByteBuffer;[BJJJLjava/lang/Object;)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1read
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1read
   (JNIEnv *env, jobject that, jlong ptr, jint fd, jobject buffer, jbyteArray data, jlong length, jlong offset, jlong position, jobject callback, jobject context) {
 
   assert(ptr);
@@ -727,11 +727,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1read
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _unlink
  * Signature: (JLjava/lang/String;I)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1unlink
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1unlink
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jobject callback, jobject context) {
 
   assert(ptr);
@@ -756,11 +756,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1unlink
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _write
  * Signature: (JILjava/nio/ByteBuffer;[BJJJLjava/lang/Object;)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1write
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1write
   (JNIEnv *env, jobject that, jlong ptr, jint fd, jobject buffer, jbyteArray data, jlong length, jlong offset, jlong position, jobject callback, jobject context) {
 
   assert(ptr);
@@ -799,11 +799,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1write
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _mkdir
  * Signature: (JLjava/lang/String;II)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1mkdir
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1mkdir
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jint mode, jobject callback, jobject context) {
 
   assert(ptr);
@@ -828,11 +828,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1mkdir
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _rmdir
  * Signature: (JLjava/lang/String;I)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1rmdir
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1rmdir
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jobject callback, jobject context) {
 
   assert(ptr);
@@ -857,11 +857,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1rmdir
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _readdir
  * Signature: (JLjava/lang/String;II)[Ljava/lang/String;
  */
-JNIEXPORT jobjectArray JNICALL Java_com_oracle_libuv_Files__1readdir
+JNIEXPORT jobjectArray JNICALL Java_com_iwebpp_libuvpp_Files__1readdir
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jint flags, jobject callback, jobject context) {
 
   assert(ptr);
@@ -905,11 +905,11 @@ JNIEXPORT jobjectArray JNICALL Java_com_oracle_libuv_Files__1readdir
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _stat
  * Signature: (JLjava/lang/String;I)Lcom/oracle/libuv/Stats;
  */
-JNIEXPORT jobject JNICALL Java_com_oracle_libuv_Files__1stat
+JNIEXPORT jobject JNICALL Java_com_iwebpp_libuvpp_Files__1stat
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jobject callback, jobject context) {
   assert(ptr);
   FileCallback* cb = reinterpret_cast<FileCallback*>(ptr);
@@ -934,11 +934,11 @@ JNIEXPORT jobject JNICALL Java_com_oracle_libuv_Files__1stat
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _fstat
  * Signature: (JII)Lcom/oracle/libuv/Stats;
  */
-JNIEXPORT jobject JNICALL Java_com_oracle_libuv_Files__1fstat
+JNIEXPORT jobject JNICALL Java_com_iwebpp_libuvpp_Files__1fstat
   (JNIEnv *env, jobject that, jlong ptr, jint fd, jobject callback, jobject context) {
 
   assert(ptr);
@@ -962,11 +962,11 @@ JNIEXPORT jobject JNICALL Java_com_oracle_libuv_Files__1fstat
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _rename
  * Signature: (JLjava/lang/String;Ljava/lang/String;I)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1rename
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1rename
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jstring new_path, jobject callback, jobject context) {
 
   assert(ptr);
@@ -999,11 +999,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1rename
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _fsync
  * Signature: (JII)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1fsync
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1fsync
   (JNIEnv *env, jobject that, jlong ptr, jint fd, jobject callback, jobject context) {
 
   assert(ptr);
@@ -1026,11 +1026,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1fsync
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _fdatasync
  * Signature: (JII)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1fdatasync
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1fdatasync
   (JNIEnv *env, jobject that, jlong ptr, jint fd, jobject callback, jobject context) {
 
   assert(ptr);
@@ -1053,11 +1053,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1fdatasync
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _ftruncate
  * Signature: (JIJI)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1ftruncate
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1ftruncate
   (JNIEnv *env, jobject that, jlong ptr, jint fd, jlong offset, jobject callback, jobject context) {
 
   assert(ptr);
@@ -1080,11 +1080,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1ftruncate
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _sendfile
  * Signature: (JIIJJI)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1sendfile
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1sendfile
   (JNIEnv *env, jobject that, jlong ptr, jint out_fd, jint in_fd, jlong offset, jlong length, jobject callback, jobject context) {
 
   assert(ptr);
@@ -1107,11 +1107,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1sendfile
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _chmod
  * Signature: (JLjava/lang/String;II)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1chmod
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1chmod
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jint mode, jobject callback, jobject context) {
 
   assert(ptr);
@@ -1136,11 +1136,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1chmod
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _utime
  * Signature: (JLjava/lang/String;DDI)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1utime
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1utime
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jdouble atime, jdouble mtime, jobject callback, jobject context) {
 
   assert(ptr);
@@ -1165,11 +1165,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1utime
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _futime
  * Signature: (JIDDI)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1futime
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1futime
   (JNIEnv *env, jobject that, jlong ptr, jint fd, jdouble atime, jdouble mtime, jobject callback, jobject context) {
 
   assert(ptr);
@@ -1192,11 +1192,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1futime
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _lstat
  * Signature: (JLjava/lang/String;I)Lcom/oracle/libuv/Stats;
  */
-JNIEXPORT jobject JNICALL Java_com_oracle_libuv_Files__1lstat
+JNIEXPORT jobject JNICALL Java_com_iwebpp_libuvpp_Files__1lstat
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jobject callback, jobject context) {
 
   assert(ptr);
@@ -1222,11 +1222,11 @@ JNIEXPORT jobject JNICALL Java_com_oracle_libuv_Files__1lstat
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _link
  * Signature: (JLjava/lang/String;Ljava/lang/String;I)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1link
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1link
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jstring new_path, jobject callback, jobject context) {
 
   assert(ptr);
@@ -1259,11 +1259,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1link
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _symlink
  * Signature: (JLjava/lang/String;Ljava/lang/String;II)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1symlink
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1symlink
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jstring new_path, jint flags, jobject callback, jobject context) {
 
   assert(ptr);
@@ -1290,11 +1290,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1symlink
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _readlink
  * Signature: (JLjava/lang/String;I)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_com_oracle_libuv_Files__1readlink
+JNIEXPORT jstring JNICALL Java_com_iwebpp_libuvpp_Files__1readlink
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jobject callback, jobject context) {
 
   assert(ptr);
@@ -1320,11 +1320,11 @@ JNIEXPORT jstring JNICALL Java_com_oracle_libuv_Files__1readlink
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _fchmod
  * Signature: (JIII)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1fchmod
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1fchmod
   (JNIEnv *env, jobject that, jlong ptr, jint fd, jint mode, jobject callback, jobject context) {
 
   assert(ptr);
@@ -1347,11 +1347,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1fchmod
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _chown
  * Signature: (JLjava/lang/String;III)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1chown
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1chown
   (JNIEnv *env, jobject that, jlong ptr, jstring path, jint uid, jint gid, jobject callback, jobject context) {
 
   assert(ptr);
@@ -1376,11 +1376,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1chown
 }
 
 /*
- * Class:     com_oracle_libuv_Files
+ * Class:     com_iwebpp_libuvpp_Files
  * Method:    _fchown
  * Signature: (JIIII)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_Files__1fchown
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_Files__1fchown
   (JNIEnv *env, jobject that, jlong ptr, jint fd, jint uid, jint gid, jobject callback, jobject context) {
 
   assert(ptr);

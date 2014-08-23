@@ -96,11 +96,11 @@ public class DefaultHandleFactory implements HandleFactory {
         return new ProcessHandle(loop);
     }
 
-    @Override
+    /*@Override
     public SignalHandle newSignalHandle() {
         assert loop != null;
         return new SignalHandle(loop);
-    }
+    }*/
 
     @Override
     public TCPHandle newTCPHandle() {
@@ -114,12 +114,30 @@ public class DefaultHandleFactory implements HandleFactory {
         return new TCPHandle(loop, pointer, true);
     }
 
-    @Override
+    /*@Override
     public TCPHandle openTCPHandle(final long socket) {
         assert loop != null;
         return new TCPHandle(loop, socket);
+    }*/
+    
+    @Override
+    public UDTHandle newUDTHandle() {
+        assert loop != null;
+        return new UDTHandle(loop);
     }
 
+    @Override
+    public UDTHandle newUDTHandle(final long pointer) {
+        assert loop != null;
+        return new UDTHandle(loop, pointer, true);
+    }
+
+    /*@Override
+    public UDTHandle openUDTHandle(final long socket) {
+        assert loop != null;
+        return new UDTHandle(loop, socket);
+    }*/
+    
     @Override
     public TimerHandle newTimerHandle() {
         assert loop != null;

@@ -50,14 +50,20 @@ public interface HandleFactory {
 
     ProcessHandle newProcessHandle();
 
-    SignalHandle newSignalHandle();
+    ///SignalHandle newSignalHandle();
 
     TCPHandle newTCPHandle();
 
     TCPHandle newTCPHandle(long pointer);
 
-    TCPHandle openTCPHandle(long socket);
+    ///TCPHandle openTCPHandle(long socket);
+    
+    UDTHandle newUDTHandle();
 
+    UDTHandle newUDTHandle(long pointer);
+
+    ///UDTHandle openUDTHandle(long socket);
+    
     TimerHandle newTimerHandle();
 
     TTYHandle newTTYHandle(int fd, boolean readable);

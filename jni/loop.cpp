@@ -31,7 +31,7 @@
 #include "uv.h"
 #include "exception.h"
 #include "handle.h"
-///#include "com_oracle_libuv_handles_LoopHandle.h"
+///#include "com_iwebpp_libuvpp_handles_LoopHandle.h"
 
 static jclass _string_cid = NULL;
 
@@ -51,11 +51,11 @@ static void _list_cb(uv_handle_t* handle, void* arg) {
 }
 
 /*
- * Class:     com_oracle_libuv_handles_LoopHandle
+ * Class:     com_iwebpp_libuvpp_handles_LoopHandle
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_LoopHandle__1static_1initialize
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   _string_cid = env->FindClass("java/lang/String");
@@ -65,11 +65,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_LoopHandle__1static_1initia
 }
 
 /*
- * Class:     com_oracle_libuv_handles_LoopHandle
+ * Class:     com_iwebpp_libuvpp_handles_LoopHandle
  * Method:    _new
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_LoopHandle__1new
+JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1new
   (JNIEnv *env, jclass cls) {
 
   uv_loop_t* ptr = uv_loop_new();
@@ -78,11 +78,11 @@ JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_LoopHandle__1new
 }
 
 /*
- * Class:     com_oracle_libuv_handles_LoopHandle
+ * Class:     com_iwebpp_libuvpp_handles_LoopHandle
  * Method:    _run
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_LoopHandle__1run
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1run
   (JNIEnv *env, jobject that, jlong ptr, jint mode) {
 
   assert(ptr);
@@ -91,11 +91,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_LoopHandle__1run
 }
 
 /*
- * Class:     com_oracle_libuv_handles_LoopHandle
+ * Class:     com_iwebpp_libuvpp_handles_LoopHandle
  * Method:    _stop
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_LoopHandle__1stop
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1stop
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
@@ -103,11 +103,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_LoopHandle__1stop
 }
 
 /*
- * Class:     com_oracle_libuv_handles_LoopHandle
+ * Class:     com_iwebpp_libuvpp_handles_LoopHandle
  * Method:    _destroy
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_LoopHandle__1destroy
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1destroy
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
@@ -116,11 +116,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_LoopHandle__1destroy
 }
 
 /*
- * Class:     com_oracle_libuv_handles_LoopHandle
+ * Class:     com_iwebpp_libuvpp_handles_LoopHandle
  * Method:    _close_all
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_LoopHandle__1close_1all
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1close_1all
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
@@ -129,11 +129,11 @@ JNIEXPORT void JNICALL Java_com_oracle_libuv_handles_LoopHandle__1close_1all
 }
 
 /*
- * Class:     com_oracle_libuv_handles_LoopHandle
+ * Class:     com_iwebpp_libuvpp_handles_LoopHandle
  * Method:    _list
  * Signature: (J)[Ljava/lang/String
  */
-JNIEXPORT jobjectArray JNICALL Java_com_oracle_libuv_handles_LoopHandle__1list
+JNIEXPORT jobjectArray JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1list
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
@@ -154,11 +154,11 @@ JNIEXPORT jobjectArray JNICALL Java_com_oracle_libuv_handles_LoopHandle__1list
 }
 
 /*
- * Class:     com_oracle_libuv_handles_LoopHandle
+ * Class:     com_iwebpp_libuvpp_handles_LoopHandle
  * Method:    _get_last_error
  * Signature: (J)Lcom/oracle/libuv/NativeException;
  */
-JNIEXPORT jthrowable JNICALL Java_com_oracle_libuv_handles_LoopHandle__1get_1last_1error
+JNIEXPORT jthrowable JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1get_1last_1error
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);

@@ -25,14 +25,14 @@
 
 #include "uv.h"
 #include "jni.h"
-///#include "com_oracle_libuv_LibUV.h"
+///#include "com_iwebpp_libuvpp_LibUV.h"
 
 /*
- * Class:     com_oracle_libuv_LibUV
+ * Class:     com_iwebpp_libuvpp_LibUV
  * Method:    _version
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_com_oracle_libuv_LibUV__1version
+JNIEXPORT jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1version
   (JNIEnv *env, jclass cls) {
 
   const char* version = "libuvpp v0.8.x";///uv_version_string();
@@ -43,11 +43,11 @@ JNIEXPORT jstring JNICALL Java_com_oracle_libuv_LibUV__1version
 }
 
 /*
- * Class:     com_oracle_libuv_LibUV
+ * Class:     com_iwebpp_libuvpp_LibUV
  * Method:    _disable_stdio_inheritance
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_oracle_libuv_LibUV__1disable_1stdio_1inheritance
+JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_LibUV__1disable_1stdio_1inheritance
   (JNIEnv *env, jclass cls) {
 
   // Make inherited handles noninheritable.

@@ -29,7 +29,7 @@
 #include "exception.h"
 #include "stream.h"
 #include "context.h"
-///#include "com_oracle_libuv_handles_TCPHandle.h"
+///#include "com_iwebpp_libuvpp_handles_TCPHandle.h"
 
 static void _tcp_connect_cb(uv_connect_t* req, int status) {
   assert(req);
@@ -44,11 +44,11 @@ static void _tcp_connect_cb(uv_connect_t* req, int status) {
 }
 
 /*
- * Class:     com_oracle_libuv_handles_TCPHandle
+ * Class:     com_iwebpp_libuvpp_handles_TCPHandle
  * Method:    _new
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_TCPHandle__1new__J
+JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_TCPHandle__1new__J
   (JNIEnv *env, jclass cls, jlong loop) {
 
   assert(loop);
@@ -65,11 +65,11 @@ JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_TCPHandle__1new__J
 }
 
 /*
- * Class:     com_oracle_libuv_handles_TCPHandle
+ * Class:     com_iwebpp_libuvpp_handles_TCPHandle
  * Method:    _new
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_TCPHandle__1new__JJ
+JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_TCPHandle__1new__JJ
   (JNIEnv *env, jclass cls, jlong loop, jlong socket) {
 
   assert(loop);
@@ -91,11 +91,11 @@ JNIEXPORT jlong JNICALL Java_com_oracle_libuv_handles_TCPHandle__1new__JJ
 }
 
 /*
- * Class:     com_oracle_libuv_handles_TCPHandle
+ * Class:     com_iwebpp_libuvpp_handles_TCPHandle
  * Method:    _bind
  * Signature: (JLjava/lang/String;I)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1bind
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_TCPHandle__1bind
   (JNIEnv *env, jobject that, jlong tcp, jstring host, jint port) {
 
   assert(tcp);
@@ -111,11 +111,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1bind
 }
 
 /*
- * Class:     com_oracle_libuv_handles_TCPHandle
+ * Class:     com_iwebpp_libuvpp_handles_TCPHandle
  * Method:    _bind6
  * Signature: (JLjava/lang/String;I)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1bind6
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_TCPHandle__1bind6
   (JNIEnv *env, jobject that, jlong tcp, jstring host, jint port) {
 
   assert(tcp);
@@ -131,11 +131,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1bind6
 }
 
 /*
- * Class:     com_oracle_libuv_handles_TCPHandle
+ * Class:     com_iwebpp_libuvpp_handles_TCPHandle
  * Method:    _connect
  * Signature: (JLjava/lang/String;I)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1connect
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_TCPHandle__1connect
   (JNIEnv *env, jobject that, jlong tcp, jstring host, jint port, jobject context) {
 
   assert(tcp);
@@ -157,11 +157,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1connect
 }
 
 /*
- * Class:     com_oracle_libuv_handles_TCPHandle
+ * Class:     com_iwebpp_libuvpp_handles_TCPHandle
  * Method:    _connect6
  * Signature: (JLjava/lang/String;I)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1connect6
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_TCPHandle__1connect6
   (JNIEnv *env, jobject that, jlong tcp, jstring host, jint port, jobject context) {
 
   assert(tcp);
@@ -183,11 +183,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1connect6
 }
 
 /*
- * Class:     com_oracle_libuv_handles_TCPHandle
+ * Class:     com_iwebpp_libuvpp_handles_TCPHandle
  * Method:    _open
  * Signature: (JJ)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1open
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_TCPHandle__1open
   (JNIEnv *env, jobject that, jlong tcp, jlong socket) {
 
   assert(tcp);
@@ -200,11 +200,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1open
 }
 
 /*
- * Class:     com_oracle_libuv_handles_TCPHandle
+ * Class:     com_iwebpp_libuvpp_handles_TCPHandle
  * Method:    _socket_name
  * Signature: (J)Lcom/oracle/libuv/Address;
  */
-JNIEXPORT jobject JNICALL Java_com_oracle_libuv_handles_TCPHandle__1socket_1name
+JNIEXPORT jobject JNICALL Java_com_iwebpp_libuvpp_handles_TCPHandle__1socket_1name
   (JNIEnv *env, jobject that, jlong tcp) {
 
   assert(tcp);
@@ -224,11 +224,11 @@ JNIEXPORT jobject JNICALL Java_com_oracle_libuv_handles_TCPHandle__1socket_1name
 }
 
 /*
- * Class:     com_oracle_libuv_handles_TCPHandle
+ * Class:     com_iwebpp_libuvpp_handles_TCPHandle
  * Method:    _peer_name
  * Signature: (J)Lcom/oracle/libuv/Address;
  */
-JNIEXPORT jobject JNICALL Java_com_oracle_libuv_handles_TCPHandle__1peer_1name
+JNIEXPORT jobject JNICALL Java_com_iwebpp_libuvpp_handles_TCPHandle__1peer_1name
   (JNIEnv *env, jobject that, jlong tcp) {
 
   assert(tcp);
@@ -248,11 +248,11 @@ JNIEXPORT jobject JNICALL Java_com_oracle_libuv_handles_TCPHandle__1peer_1name
 }
 
 /*
- * Class:     com_oracle_libuv_handles_TCPHandle
+ * Class:     com_iwebpp_libuvpp_handles_TCPHandle
  * Method:    _no_delay
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1no_1delay
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_TCPHandle__1no_1delay
   (JNIEnv *env, jobject that, jlong tcp, jint enable) {
 
   assert(tcp);
@@ -266,11 +266,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1no_1delay
 }
 
 /*
- * Class:     com_oracle_libuv_handles_TCPHandle
+ * Class:     com_iwebpp_libuvpp_handles_TCPHandle
  * Method:    _keep_alive
  * Signature: (JII)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1keep_1alive
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_TCPHandle__1keep_1alive
   (JNIEnv *env, jobject that, jlong tcp, jint enable, jint delay) {
 
   assert(tcp);
@@ -284,11 +284,11 @@ JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1keep_1alive
 }
 
 /*
- * Class:     com_oracle_libuv_handles_TCPHandle
+ * Class:     com_iwebpp_libuvpp_handles_TCPHandle
  * Method:    _simultaneous_accepts
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_oracle_libuv_handles_TCPHandle__1simultaneous_1accepts
+JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_TCPHandle__1simultaneous_1accepts
   (JNIEnv *env, jobject that, jlong tcp, jint enable) {
 
   assert(tcp);
