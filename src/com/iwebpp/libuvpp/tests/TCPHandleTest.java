@@ -274,6 +274,8 @@ public class TCPHandleTest extends TestBase {
 
     ///public static void main(final String[] args) throws Throwable {
     public void run() {
+		Log.d(TAG, "start test");
+
         final TCPHandleTest test = new TCPHandleTest();
         try {
 			test.testConnection();

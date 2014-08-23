@@ -274,6 +274,8 @@ public class UDTHandleTest extends TestBase {
 
     ///public static void main(final String[] args) throws Throwable {
     public void run() {
+		Log.d(TAG, "start test");
+
         final UDTHandleTest test = new UDTHandleTest();
         try {
 			test.testConnection();

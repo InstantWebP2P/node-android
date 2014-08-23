@@ -29,6 +29,8 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import android.util.Log;
+
 import com.iwebpp.libuvpp.Address;
 import com.iwebpp.libuvpp.cb.UDPRecvCallback;
 import com.iwebpp.libuvpp.cb.UDPSendCallback;
@@ -161,6 +163,8 @@ public class UDPHandleTest extends TestBase {
 
     ///public static void main(final String[] args) throws Throwable {
     public void run() {
+		Log.d(TAG, "start test");
+
         final UDPHandleTest test = new UDPHandleTest();
         try {
 			test.testConnection();

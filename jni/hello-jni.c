@@ -18,6 +18,7 @@
 #include <jni.h>
 #include <uv.h>
 
+
 /* This is a trivial JNI example where we use a native method
  * to return a new VM String. See the corresponding Java source
  * file located at:
