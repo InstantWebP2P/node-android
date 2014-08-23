@@ -21,12 +21,18 @@ LOCAL_SRC_FILES := libuvpp/libuvpp.so
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/libuvpp
 include $(PREBUILT_SHARED_LIBRARY)
 
+### prebuilt libjnidispatch.so
+include $(CLEAR_VARS)
+LOCAL_MODULE := jna-prebuilt
+LOCAL_SRC_FILES := jna/libjnidispatch.so
+include $(PREBUILT_SHARED_LIBRARY)
+
 ### libuvpp-jni.so
-#include $(CLEAR_VARS)
-#LOCAL_MODULE           := libuvpp-jni
+include $(CLEAR_VARS)
+LOCAL_MODULE           := libuvpp-jni
 
-#LOCAL_SRC_FILES        := libuvpp.c
+LOCAL_SRC_FILES        := libuvpp.c
 
-#LOCAL_SHARED_LIBRARIES := libuvpp-prebuilt
-#LOCAL_LDLIBS := -llog
-#include $(BUILD_SHARED_LIBRARY)
+LOCAL_SHARED_LIBRARIES := libuvpp-prebuilt jna-prebuilt
+LOCAL_LDLIBS := -llog
+include $(BUILD_SHARED_LIBRARY)

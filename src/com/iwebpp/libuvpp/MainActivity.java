@@ -1,6 +1,7 @@
 package com.iwebpp.libuvpp;
 
 import com.iwebpp.libuvpp.R;
+import com.iwebpp.libuvpp.libUVPP;
 
 import android.os.Bundle;
 import android.app.Activity;
@@ -12,6 +13,10 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
+		libUVPP lib = new libUVPP();
+		///lib.ares_library_init(0);
+		lib.addSum(6, 8);
 	}
 
 	@Override
