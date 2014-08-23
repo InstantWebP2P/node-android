@@ -125,7 +125,7 @@ static void _close_cb(uv_handle_t* handle) {
  * Method:    _new
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1new
+extern "C" JNIEXPORT  jlong JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1new
   (JNIEnv *env, jclass cls, jlong loop) {
 
   assert(loop);
@@ -145,7 +145,7 @@ JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1new
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1static_1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   CheckCallbacks::static_initialize(env, cls);
@@ -156,7 +156,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1static_1ini
  * Method:    _initialize
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1initialize
   (JNIEnv *env, jobject that, jlong check) {
 
   assert(check);
@@ -171,7 +171,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1initialize
  * Method:    _start
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1start
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1start
   (JNIEnv *env, jobject that, jlong check) {
 
   assert(check);
@@ -188,7 +188,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1start
  * Method:    _stop
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1stop
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1stop
   (JNIEnv *env, jobject that, jlong check) {
 
   assert(check);
@@ -205,7 +205,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1stop
  * Method:    _close
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1close
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_CheckHandle__1close
   (JNIEnv *env, jobject that, jlong check) {
 
   assert(check);

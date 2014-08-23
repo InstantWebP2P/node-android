@@ -85,7 +85,7 @@ void StreamCallbacks::static_initialize(JNIEnv* env, jclass cls) {
 
 void StreamCallbacks::static_initialize_address(JNIEnv* env) {
   if (!_address_cid) {
-      _address_cid = env->FindClass("com/oracle/libuv/Address");
+      _address_cid = env->FindClass("com/iwebpp/libuvpp/Address");
       assert(_address_cid);
       _address_cid = (jclass) env->NewGlobalRef(_address_cid);
       assert(_address_cid);
@@ -358,7 +358,7 @@ static void _connection_cb(uv_stream_t* stream, int status) {
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1static_1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   StreamCallbacks::static_initialize(env, cls);
@@ -369,7 +369,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1static_1in
  * Method:    _initialize
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1initialize
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -384,7 +384,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1initialize
  * Method:    _read_start
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read_1start
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read_1start
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -406,7 +406,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read_1star
  * Method:    _read2_start
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read2_1start
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read2_1start
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -422,7 +422,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read2_1sta
  * Method:    _read_stop
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read_1stop
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read_1stop
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -438,7 +438,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read_1stop
  * Method:    _readable
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1readable
+extern "C" JNIEXPORT  jboolean JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1readable
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -455,7 +455,7 @@ JNIEXPORT jboolean JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1readab
  * Method:    _writable
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1writable
+extern "C" JNIEXPORT  jboolean JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1writable
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -472,7 +472,7 @@ JNIEXPORT jboolean JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1writab
  * Method:    _write
  * Signature: (JLjava/nio/ByteBuffer;[BIILjava/lang/Object;)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1write
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1write
   (JNIEnv *env, jobject that, jlong stream, jobject buffer, jbyteArray data, jint offset, jint length, jobject context) {
 
   assert(stream);
@@ -513,7 +513,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1write
  * Method:    _writev
  * Signature: (J[[BILjava/lang/Object;)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1writev
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1writev
   (JNIEnv *env, jobject that, jlong stream, jobjectArray buffers, jint bufcount, jobject context) {
 
   assert(stream);
@@ -558,7 +558,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1writev
  * Method:    _write2
  * Signature: (JLjava/nio/ByteBuffer;[BIIJ)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1write2
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1write2
   (JNIEnv *env, jobject that, jlong stream, jobject buffer, jbyteArray data, jint offset, jint length, jlong send_stream, jobject context) {
 
   assert(stream);
@@ -605,7 +605,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1write2
  * Method:    _write_queue_size
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1write_1queue_1size
+extern "C" JNIEXPORT  jlong JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1write_1queue_1size
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -618,7 +618,7 @@ JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1write_1qu
  * Method:    _close_write
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1close_1write
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1close_1write
   (JNIEnv *env, jobject that, jlong stream, jobject context) {
 
   assert(stream);
@@ -641,7 +641,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1close_1wri
  * Method:    _close
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1close
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1close
   (JNIEnv *env, jobject that, jlong stream) {
 
   assert(stream);
@@ -654,7 +654,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1close
  * Method:    _listen
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1listen
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1listen
   (JNIEnv *env, jobject that, jlong ptr, jint backlog) {
 
   assert(ptr);
@@ -671,7 +671,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1listen
  * Method:    _accept
  * Signature: (JJ)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1accept
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1accept
   (JNIEnv *env, jobject that, jlong ptr, jlong clientPtr) {
 
   assert(ptr);

@@ -85,74 +85,84 @@ public final class LibUVPermission extends BasicPermission {
     }
 
     public static void checkPermission(final String name) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (System.getSecurityManager() != null) {
             final LibUVPermission perm = new LibUVPermission(name);
             sm.checkPermission(perm);
-        }
+        }*/
     }
 
     public static void checkHandle() {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (System.getSecurityManager() != null) {
             sm.checkPermission(HANDLE);
-        }
+        }*/
     }
 
     public static void checkNewLoop(final int count) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (count > 1 && System.getSecurityManager() != null) {
             sm.checkPermission(MULTI_LOOP);
-        }
+        }*/
     }
 
     public static void checkSpawn(final String cmd) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (System.getSecurityManager() != null) {
             sm.checkExec(cmd);
-        }
+        }*/
     }
 
     public static void checkBind(final String host, final int port) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             // Side effect is to check permission to resolve host.
             new InetSocketAddress(host, port);
-        }
+        }*/
     }
 
     public static void checkConnect(final String host, final int port) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkConnect(host, port);
-        }
+        }*/
     }
 
     public static void checkListen(final int port) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkListen(port);
-        }
+        }*/
     }
 
     public static void checkAccept(final AddressResolver resolver) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             final Address addr = resolver.resolve();
 
             sm.checkAccept(addr.getIp(), addr.getPort());
-        }
+        }*/
     }
 
     public static void checkUDPBind(final String host, final int port) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             checkBind(host, port);
             sm.checkListen(port);
-        }
+        }*/
     }
 
     public static void checkUDPSend(final String host, final int port) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             try {
@@ -164,7 +174,7 @@ public final class LibUVPermission extends BasicPermission {
                 throw new RuntimeException(ex);
             }
             sm.checkConnect(host, port);
-        }
+        }*/
     }
 
     /*
@@ -175,6 +185,7 @@ public final class LibUVPermission extends BasicPermission {
     }
 
     public static void checkOpenFile(final String path, final int mask) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             // write
@@ -190,24 +201,27 @@ public final class LibUVPermission extends BasicPermission {
                 isFlag(mask, Constants.O_RDWR)) {
                 sm.checkRead(path);
             }
-        }
+        }*/
     }
 
     public static void checkReadFile(final String path) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkRead(path);
-        }
+        }*/
     }
 
     public static void checkWriteFile(final String path) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkWrite(path);
-        }
+        }*/
     }
 
     public static void checkReadFile(final int fd, final String path) {
+    	/*
         // stdin, stdout, and stderr does not need to be checked as they are provided by the underlying platform.
         // Needed to support command line redirection.
         if (fd == 0 || fd == 1 || fd == 2) {
@@ -216,10 +230,11 @@ public final class LibUVPermission extends BasicPermission {
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkRead(path);
-        }
+        }*/
     }
 
     public static void checkWriteFile(final int fd, final String path) {
+    	/*
         // stdin, stdout, and stderr does not need to be checked as they are provided by the underlying platform.
         // Needed to support command line redirection.
         if (fd == 0 || fd == 1 || fd == 2) {
@@ -228,31 +243,34 @@ public final class LibUVPermission extends BasicPermission {
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkWrite(path);
-        }
+        }*/
     }
 
     public static void checkDeleteFile(final String path) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkDelete(path);
-        }
+        }*/
     }
 
     public static void checkHardLink(final String existing, final String link) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             ///sm.checkPermission(new LinkPermission("hard"));
             sm.checkWrite(existing);
             sm.checkWrite(link);
-        }
+        }*/
     }
 
     public static void checkSymbolicLink(final String existing, final String link) {
+    	/*
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             ///sm.checkPermission(new LinkPermission("symbolic"));
             sm.checkWrite(existing);
             sm.checkWrite(link);
-        }
+        }*/
     }
 }

@@ -70,7 +70,7 @@ const char* handle_to_string(const uv_handle_t* handle) {
  * Method:    _ref
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_Handle__1ref
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_Handle__1ref
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
@@ -83,7 +83,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_Handle__1ref
  * Method:    _unref
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_Handle__1unref
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_Handle__1unref
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
@@ -96,7 +96,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_Handle__1unref
  * Method:    _closing
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_iwebpp_libuvpp_handles_Handle__1closing
+extern "C" JNIEXPORT  jboolean JNICALL Java_com_iwebpp_libuvpp_handles_Handle__1closing
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);

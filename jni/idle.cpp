@@ -125,7 +125,7 @@ static void _close_cb(uv_handle_t* handle) {
  * Method:    _new
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1new
+extern "C" JNIEXPORT  jlong JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1new
   (JNIEnv *env, jclass cls, jlong loop) {
 
   assert(loop);
@@ -145,7 +145,7 @@ JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1new
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1static_1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   IdleCallbacks::static_initialize(env, cls);
@@ -156,7 +156,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1static_1init
  * Method:    _initialize
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1initialize
   (JNIEnv *env, jobject that, jlong idle) {
 
   assert(idle);
@@ -171,7 +171,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1initialize
  * Method:    _start
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1start
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1start
   (JNIEnv *env, jobject that, jlong idle) {
 
   assert(idle);
@@ -188,7 +188,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1start
  * Method:    _stop
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1stop
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1stop
   (JNIEnv *env, jobject that, jlong idle) {
 
   assert(idle);
@@ -205,7 +205,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1stop
  * Method:    _close
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1close
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_IdleHandle__1close
   (JNIEnv *env, jobject that, jlong idle) {
 
   assert(idle);

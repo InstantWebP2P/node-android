@@ -44,7 +44,7 @@ extern "C" void uv__set_process_title(const char* title);
  * Method:    _exe_path
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1exe_1path
+extern "C" JNIEXPORT  jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1exe_1path
   (JNIEnv *env, jclass cls) {
 
 #ifdef _WIN32
@@ -68,7 +68,7 @@ JNIEXPORT jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1exe_1path
  * Method:    _cwd
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1cwd
+extern "C" JNIEXPORT  jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1cwd
   (JNIEnv *env, jclass cls) {
 
 #ifdef _WIN32
@@ -92,7 +92,7 @@ JNIEXPORT jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1cwd
  * Method:    _chdir
  * Signature: (Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_LibUV__1chdir
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_LibUV__1chdir
   (JNIEnv *env, jclass cls, jstring arg) {
 
   const char* dir = env->GetStringUTFChars(arg, 0);
@@ -110,7 +110,7 @@ static char* process_title = NULL; // last set value
  * Method:    _getTitle
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1getTitle
+extern "C" JNIEXPORT  jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1getTitle
   (JNIEnv *env, jclass cls) {
 
   return env->NewStringUTF(process_title ? process_title : "");
@@ -121,7 +121,7 @@ JNIEXPORT jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1getTitle
  * Method:    _setTitle
  * Signature: (Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_LibUV__1setTitle
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_LibUV__1setTitle
   (JNIEnv *env, jclass cls, jstring title) {
 
   const char* t = env->GetStringUTFChars(title, JNI_FALSE);
@@ -140,7 +140,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_LibUV__1setTitle
  * Method:    _kill
  * Signature: (II)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_LibUV__1kill
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_LibUV__1kill
   (JNIEnv *env, jclass cls, jint pid, jint signal) {
 
   uv_err_t err = uv_kill(pid, signal);
@@ -157,7 +157,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_LibUV__1kill
  * Method:    _rss
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_LibUV__1rss
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_LibUV__1rss
   (JNIEnv *env, jclass cls) {
 
   size_t rss;

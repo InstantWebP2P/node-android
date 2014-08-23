@@ -30,7 +30,7 @@ import java.util.Objects;
 public final class LibUV {
 
     static {
-        System.loadLibrary("uvpp-jni");
+    	System.loadLibrary("uvpp-jni");
     }
 
     private LibUV() {

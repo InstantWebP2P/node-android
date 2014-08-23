@@ -66,7 +66,7 @@ jthrowable NewException(JNIEnv* env, int errorno, const char *syscall, const cha
   std::string cons1 = errno_string + ", ";
   std::string cons2 = cons1 + message;
 
-  jclass nativeExceptionClassID = env->FindClass("com/oracle/libuv/NativeException");
+  jclass nativeExceptionClassID = env->FindClass("com/iwebpp/libuvpp/NativeException");
   assert(nativeExceptionClassID);
   jmethodID nativeExceptionConstructorMID = env->GetMethodID(
       nativeExceptionClassID,
@@ -146,7 +146,7 @@ void ThrowOutOfMemoryError(JNIEnv* env, const char* func, const char* file, cons
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_NativeException__1static_1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_NativeException__1static_1initialize
   (JNIEnv* env, jclass cls) {
 
   assert(!_oom_cid);

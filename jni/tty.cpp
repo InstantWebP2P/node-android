@@ -42,7 +42,7 @@ static jstring _UNKNOWN = NULL;
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1static_1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   _FILE = env->NewStringUTF("FILE");
@@ -69,7 +69,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1static_1initi
  * Method:    _new
  * Signature: (JIZ)J
  */
-JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1new
+extern "C" JNIEXPORT  jlong JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1new
   (JNIEnv *env, jclass cls, jlong loop, jint fd, jboolean readable) {
 
   uv_tty_t* tty = new uv_tty_t();
@@ -88,7 +88,7 @@ JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1new
  * Method:    _set_mode
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1set_1mode
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1set_1mode
   (JNIEnv *env, jobject that, jlong tty, jint mode) {
 
   assert(tty);
@@ -105,7 +105,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1set_1mode
  * Method:    _reset_mode
  * Signature: (J)
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1reset_1mode
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1reset_1mode
   (JNIEnv *env, jobject that, jlong tty) {
 
   assert(tty);
@@ -117,7 +117,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1reset_1mode
  * Method:    _get_window_size
  * Signature: (J)[I
  */
-JNIEXPORT jintArray JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1get_1window_1size
+extern "C" JNIEXPORT  jintArray JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1get_1window_1size
   (JNIEnv *env, jobject that, jlong tty) {
 
   assert(tty);
@@ -141,7 +141,7 @@ JNIEXPORT jintArray JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1get_1win
  * Method:    _is_tty
  * Signature: (I)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1is_1tty
+extern "C" JNIEXPORT  jboolean JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1is_1tty
   (JNIEnv *env, jclass cls, jint fd) {
 
   return uv_guess_handle(fd) == UV_TTY ? JNI_TRUE : JNI_FALSE;
@@ -152,7 +152,7 @@ JNIEXPORT jboolean JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1is_1tty
  * Method:    _guess_handle_type
  * Signature: (I)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1guess_1handle_1type
+extern "C" JNIEXPORT  jstring JNICALL Java_com_iwebpp_libuvpp_handles_TTYHandle__1guess_1handle_1type
   (JNIEnv *env, jclass cls, jint fd) {
 
   uv_handle_type type = uv_guess_handle(fd);

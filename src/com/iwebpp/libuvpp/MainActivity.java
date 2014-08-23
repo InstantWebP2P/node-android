@@ -1,6 +1,7 @@
 package com.iwebpp.libuvpp;
 
 import com.iwebpp.libuvpp.R;
+import com.iwebpp.libuvpp.tests.*;
 
 import android.os.Bundle;
 import android.app.Activity;
@@ -12,6 +13,17 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
+		// Unit tests 
+		new VersionTest().start();
+		new TCPHandleTest().start();
+		new UDTHandleTest().start();
+		new UDPHandleTest().start();
+		new LoopHandleTest().start();
+		new IdleHandleTest().start();
+		new TimerHandleTest().start();
+		///new FileEventHandleTest().start();
+
 	}
 
 	@Override

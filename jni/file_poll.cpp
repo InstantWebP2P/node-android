@@ -146,7 +146,7 @@ static void _stop_cb(uv_handle_t* handle) {
  * Method:    _new
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1new
+extern "C" JNIEXPORT  jlong JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1new
   (JNIEnv *env, jclass cls, jlong loop) {
 
   assert(loop);
@@ -166,7 +166,7 @@ JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1new
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1static_1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   FilePollCallbacks::static_initialize(env, cls);
@@ -178,7 +178,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1static_1
  * Method:    _initialize
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1initialize
   (JNIEnv *env, jobject that, jlong fs_poll_ptr) {
 
   assert(fs_poll_ptr);
@@ -191,9 +191,9 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1initiali
 /*
  * Class:     com_iwebpp_libuvpp_handles_FilePollHandle
  * Method:    _start
- * Signature: (JLjava/lang/String;ZILcom/oracle/libuv/Stats;Lcom/oracle/libuv/Stats;)I
+ * Signature: (JLjava/lang/String;ZILcom/iwebpp/libuvpp/Stats;Lcom/iwebpp/libuvpp/Stats;)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1start
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1start
   (JNIEnv *env, jobject that, jlong fs_poll_ptr, jstring path, jboolean persistent, jint interval, jobject previous, jobject current) {
 
   assert(fs_poll_ptr);
@@ -220,7 +220,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1start
  * Method:    _stop
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1stop
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1stop
   (JNIEnv *env, jobject that, jlong fs_poll_ptr) {
 
   assert(fs_poll_ptr);
@@ -237,7 +237,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1stop
  * Method:    _close
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1close
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_FilePollHandle__1close
   (JNIEnv *env, jobject that, jlong fs_poll_ptr) {
 
   assert(fs_poll_ptr);

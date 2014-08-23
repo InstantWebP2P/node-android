@@ -55,7 +55,7 @@ static void _list_cb(uv_handle_t* handle, void* arg) {
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1static_1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   _string_cid = env->FindClass("java/lang/String");
@@ -69,7 +69,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1static_1init
  * Method:    _new
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1new
+extern "C" JNIEXPORT  jlong JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1new
   (JNIEnv *env, jclass cls) {
 
   uv_loop_t* ptr = uv_loop_new();
@@ -82,7 +82,7 @@ JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1new
  * Method:    _run
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1run
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1run
   (JNIEnv *env, jobject that, jlong ptr, jint mode) {
 
   assert(ptr);
@@ -95,7 +95,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1run
  * Method:    _stop
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1stop
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1stop
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
@@ -107,7 +107,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1stop
  * Method:    _destroy
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1destroy
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1destroy
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
@@ -120,7 +120,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1destroy
  * Method:    _close_all
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1close_1all
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1close_1all
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
@@ -133,7 +133,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1close_1all
  * Method:    _list
  * Signature: (J)[Ljava/lang/String
  */
-JNIEXPORT jobjectArray JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1list
+extern "C" JNIEXPORT  jobjectArray JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1list
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
@@ -156,9 +156,9 @@ JNIEXPORT jobjectArray JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1list
 /*
  * Class:     com_iwebpp_libuvpp_handles_LoopHandle
  * Method:    _get_last_error
- * Signature: (J)Lcom/oracle/libuv/NativeException;
+ * Signature: (J)Lcom/iwebpp/libuvpp/NativeException;
  */
-JNIEXPORT jthrowable JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1get_1last_1error
+extern "C" JNIEXPORT  jthrowable JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1get_1last_1error
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);

@@ -50,7 +50,7 @@ void UDPCallbacks::static_initialize(JNIEnv* env, jclass cls) {
   _udp_handle_cid = (jclass) env->NewGlobalRef(cls);
   assert(_udp_handle_cid);
 
-  _recv_callback_mid = env->GetMethodID(_udp_handle_cid, "callRecv", "(ILjava/nio/ByteBuffer;Lcom/oracle/libuv/Address;)V");
+  _recv_callback_mid = env->GetMethodID(_udp_handle_cid, "callRecv", "(ILjava/nio/ByteBuffer;Lcom/iwebpp/libuvpp/Address;)V");
   assert(_recv_callback_mid);
   _send_callback_mid = env->GetMethodID(_udp_handle_cid, "callSend", "(ILjava/lang/Exception;Ljava/lang/Object;)V");
   assert(_send_callback_mid);
@@ -149,7 +149,7 @@ static void _send_cb(uv_udp_send_t* req, int status) {
  * Method:    _new
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1new__J
+extern "C" JNIEXPORT  jlong JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1new__J
   (JNIEnv *env, jclass cls, jlong loop) {
 
   assert(loop);
@@ -169,7 +169,7 @@ JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1new__J
  * Method:    _new
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1new__JJ
+extern "C" JNIEXPORT  jlong JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1new__JJ
   (JNIEnv *env, jclass cls, jlong loop, jlong socket) {
 
   assert(loop);
@@ -195,7 +195,7 @@ JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1new__JJ
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1static_1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   UDPCallbacks::static_initialize(env, cls);
@@ -206,7 +206,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1static_1initi
  * Method:    _initialize
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1initialize
   (JNIEnv *env, jobject that, jlong udp) {
 
   assert(udp);
@@ -219,9 +219,9 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1initialize
 /*
  * Class:     com_iwebpp_libuvpp_handles_UDPHandle
  * Method:    _address
- * Signature: (J)Lcom/oracle/libuv/Address;
+ * Signature: (J)Lcom/iwebpp/libuvpp/Address;
  */
-JNIEXPORT jobject JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1address
+extern "C" JNIEXPORT  jobject JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1address
   (JNIEnv *env, jobject that, jlong udp) {
 
   assert(udp);
@@ -243,7 +243,7 @@ JNIEXPORT jobject JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1address
  * Method:    _bind
  * Signature: (JILjava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1bind
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1bind
   (JNIEnv *env, jobject that, jlong udp, jint port, jstring host) {
 
   assert(udp);
@@ -264,7 +264,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1bind
  * Method:    _bind6
  * Signature: (JILjava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1bind6
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1bind6
   (JNIEnv *env, jobject that, jlong udp, jint port, jstring host) {
 
   assert(udp);
@@ -285,7 +285,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1bind6
  * Method:    _send
  * Signature: (JLjava/nio/ByteBuffer;[BIIILjava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1send
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1send
   (JNIEnv *env, jobject that, jlong udp, jobject buffer, jbyteArray data, jint offset, jint length, jint port, jstring host, jobject context) {
 
   assert(udp);
@@ -329,7 +329,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1send
  * Method:    _send6
  * Signature: (JLjava/nio/ByteBuffer;[BIIILjava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1send6
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1send6
   (JNIEnv *env, jobject that, jlong udp, jobject buffer, jbyteArray data, jint offset, jint length, jint port, jstring host, jobject context) {
 
   assert(udp);
@@ -363,7 +363,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1send6
  * Method:    _recv_start
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1recv_1start
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1recv_1start
   (JNIEnv *env, jobject that, jlong udp) {
 
   assert(udp);
@@ -381,7 +381,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1recv_1start
  * Method:    _recv_stop
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1recv_1stop
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1recv_1stop
   (JNIEnv *env, jobject that, jlong udp) {
 
   assert(udp);
@@ -398,7 +398,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1recv_1stop
  * Method:    _set_ttl
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1ttl
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1ttl
   (JNIEnv *env, jobject that, jlong udp, jint ttl) {
 
   assert(udp);
@@ -415,7 +415,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1ttl
  * Method:    _set_membership
  * Signature: (JLjava/lang/String;Ljava/lang/String;I)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1membership
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1membership
   (JNIEnv *env, jobject that, jlong udp, jstring multicastAddress, jstring interfaceAddress, jint membership) {
 
   assert(udp);
@@ -436,7 +436,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1membersh
  * Method:    _set_multicast_loop
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1multicast_1loop
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1multicast_1loop
   (JNIEnv *env, jobject that, jlong udp, jint on) {
 
   assert(udp);
@@ -453,7 +453,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1multicas
  * Method:    _set_multicast_ttl
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1multicast_1ttl
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1multicast_1ttl
   (JNIEnv *env, jobject that, jlong udp, jint ttl) {
 
   assert(udp);
@@ -470,7 +470,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1multicas
  * Method:    _set_broadcast
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1broadcast
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1broadcast
   (JNIEnv *env, jobject that, jlong udp, jint on) {
 
   assert(udp);
@@ -487,7 +487,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1set_1broadcas
  * Method:    _close
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1close
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_UDPHandle__1close
   (JNIEnv *env, jobject that, jlong udp) {
 
   assert(udp);

@@ -16,14 +16,14 @@ LOCAL_PATH := $(call my-dir)
 
 ### prebuilt libuvpp.a
 include $(CLEAR_VARS)
-LOCAL_MODULE := libuvpp-prebuilt
+LOCAL_MODULE := uvpp-prebuilt
 LOCAL_SRC_FILES := libuvpp/libuvpp.a
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/libuvpp
 include $(PREBUILT_STATIC_LIBRARY)
 
 ### libuvpp-jni.so
 include $(CLEAR_VARS)
-LOCAL_MODULE           := libuvpp-jni
+LOCAL_MODULE           := uvpp-jni
 
 LOCAL_SRC_FILES        := \
                         hello-jni.c \
@@ -52,6 +52,6 @@ LOCAL_SRC_FILES        := \
                         udp.cpp \
                         udt.cpp 
 
-LOCAL_STATIC_LIBRARIES := libuvpp-prebuilt
+LOCAL_STATIC_LIBRARIES := uvpp-prebuilt
 LOCAL_LDLIBS := -llog
 include $(BUILD_SHARED_LIBRARY)

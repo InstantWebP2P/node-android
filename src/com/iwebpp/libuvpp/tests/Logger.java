@@ -23,33 +23,48 @@
  * questions.
  */
 
-#include "uv.h"
-#include "jni.h"
-///#include "com_iwebpp_libuvpp_LibUV.h"
+package com.iwebpp.libuvpp.tests;
 
-/*
- * Class:     com_iwebpp_libuvpp_LibUV
- * Method:    _version
- * Signature: ()Ljava/lang/String;
- */
-extern "C" JNIEXPORT jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1version
-  (JNIEnv *env, jclass cls) {
+import java.nio.ByteBuffer;
 
-  const char* version = "libuvpp v0.8.x";///uv_version_string();
-  if (version) {
-    return env->NewStringUTF(version);
-  }
-  return NULL;
-}
+public final class Logger {
 
-/*
- * Class:     com_iwebpp_libuvpp_LibUV
- * Method:    _disable_stdio_inheritance
- * Signature: ()V
- */
-extern "C" JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_LibUV__1disable_1stdio_1inheritance
-  (JNIEnv *env, jclass cls) {
+	private final String prefix;
 
-  // Make inherited handles noninheritable.
-  uv_disable_stdio_inheritance();
+    public Logger() {
+        this.prefix = null;
+    }
+
+    public Logger(final String prefix) {
+        this.prefix = prefix;
+    }
+
+    public byte[] array(final ByteBuffer byteBuffer) {
+        if (byteBuffer.hasArray()) {
+            return byteBuffer.array();
+        } else {
+            final ByteBuffer dup = byteBuffer.duplicate();
+            final byte[] data = new byte[dup.capacity()];
+            dup.clear();
+            dup.get(data);
+            return data;
+        }
+    }
+
+    public void log(final Object... args) throws Exception {
+        System.out.print(prefix == null ? "" : prefix);
+        if (args != null) {
+            for (final Object arg : args) {
+                if (arg instanceof ByteBuffer) {
+                    final byte[] bytes = array(((ByteBuffer) arg));
+                    System.out.print(new String(bytes, "utf-8"));
+                } else {
+                    System.out.print(arg);
+                }
+                System.out.print(" ");
+            }
+        }
+        System.out.println();
+    }
+
 }

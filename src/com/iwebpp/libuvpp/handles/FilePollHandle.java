@@ -54,7 +54,7 @@ public class FilePollHandle extends Handle {
         onStop = callback;
     }
 
-    protected FilePollHandle(final LoopHandle loop) {
+    public FilePollHandle(final LoopHandle loop) {
         super(_new(loop.pointer()), loop);
         _initialize(pointer);
         previous = new Stats();

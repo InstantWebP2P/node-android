@@ -40,7 +40,7 @@ Stats::~Stats() {
 
 void Stats::static_initialize(JNIEnv* env) {
   if (!_stats_cid) {
-      _stats_cid = env->FindClass("com/oracle/libuv/Stats");
+      _stats_cid = env->FindClass("com/iwebpp/libuvpp/Stats");
       assert(_stats_cid);
       _stats_cid = (jclass) env->NewGlobalRef(_stats_cid);
       assert(_stats_cid);

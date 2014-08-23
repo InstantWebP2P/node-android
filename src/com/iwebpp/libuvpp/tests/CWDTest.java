@@ -23,33 +23,31 @@
  * questions.
  */
 
-#include "uv.h"
-#include "jni.h"
-///#include "com_iwebpp_libuvpp_LibUV.h"
+package com.iwebpp.libuvpp.tests;
 
-/*
- * Class:     com_iwebpp_libuvpp_LibUV
- * Method:    _version
- * Signature: ()Ljava/lang/String;
- */
-extern "C" JNIEXPORT jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1version
-  (JNIEnv *env, jclass cls) {
 
-  const char* version = "libuvpp v0.8.x";///uv_version_string();
-  if (version) {
-    return env->NewStringUTF(version);
-  }
-  return NULL;
-}
+import com.iwebpp.libuvpp.LibUV;
 
-/*
- * Class:     com_iwebpp_libuvpp_LibUV
- * Method:    _disable_stdio_inheritance
- * Signature: ()V
- */
-extern "C" JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_LibUV__1disable_1stdio_1inheritance
-  (JNIEnv *env, jclass cls) {
 
-  // Make inherited handles noninheritable.
-  uv_disable_stdio_inheritance();
+public class CWDTest extends TestBase {
+
+    private String cwd;
+
+
+    ///@Test
+    public void testCWD() {
+        System.out.println("user.dir is " + cwd);
+        ///Assert.assertEquals(System.getProperty("user.dir"), cwd);
+
+        final String home = System.getProperty("user.home");
+        System.out.println("user.home is " + home);
+        LibUV.chdir(home);
+        ///Assert.assertEquals(home, LibUV.cwd());
+
+        final String java = System.getProperty("java.home");
+        System.out.println("java.home is " + java);
+        LibUV.chdir(java);
+        ///Assert.assertEquals(java, LibUV.cwd());
+    }
+
 }

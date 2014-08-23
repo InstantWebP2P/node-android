@@ -23,33 +23,38 @@
  * questions.
  */
 
-#include "uv.h"
-#include "jni.h"
-///#include "com_iwebpp_libuvpp_LibUV.h"
+package com.iwebpp.libuvpp.tests;
 
-/*
- * Class:     com_iwebpp_libuvpp_LibUV
- * Method:    _version
- * Signature: ()Ljava/lang/String;
- */
-extern "C" JNIEXPORT jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1version
-  (JNIEnv *env, jclass cls) {
+import com.iwebpp.libuvpp.LibUV;
+import android.util.Log;
 
-  const char* version = "libuvpp v0.8.x";///uv_version_string();
-  if (version) {
-    return env->NewStringUTF(version);
-  }
-  return NULL;
-}
+public class VersionTest extends TestBase {
 
-/*
- * Class:     com_iwebpp_libuvpp_LibUV
- * Method:    _disable_stdio_inheritance
- * Signature: ()V
- */
-extern "C" JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_LibUV__1disable_1stdio_1inheritance
-  (JNIEnv *env, jclass cls) {
+	private static final String TAG = "VersionTest";
 
-  // Make inherited handles noninheritable.
-  uv_disable_stdio_inheritance();
+    ///@Test
+    public void testVersion() {
+        final String version = LibUV.version();
+        Log.d(TAG, "libuv version is " + version);
+        
+        System.out.println("libuv version is " + version);
+        ///junit.framework.///Assert.assertEquals(version, "0.10.27");
+    }
+
+    ///@Test
+    public void testExePath() {
+        final String exe = LibUV.exePath();
+        Log.d(TAG, "exe is " + exe);
+
+        System.out.println("exe is " + exe);
+        ///junit.framework.///Assert.assertNotNull(exe);
+    }
+
+    public void run() {
+		Log.d(TAG, "start test");
+
+		testVersion();
+		testExePath();
+    }
+    
 }

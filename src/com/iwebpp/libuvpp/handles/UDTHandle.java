@@ -12,15 +12,15 @@ public class UDTHandle extends StreamHandle {
 
     private int bindPort = 0;
 
-    protected UDTHandle(final LoopHandle loop) {
+    public UDTHandle(final LoopHandle loop) {
         super(_new(loop.pointer()), loop);
     }
 
-    protected UDTHandle(final LoopHandle loop, final long socket) {
+    public UDTHandle(final LoopHandle loop, final long socket) {
         super(_new(loop.pointer(), socket), loop);
     }
 
-    protected UDTHandle(final LoopHandle loop, final long pointer, boolean dummy) {
+    public UDTHandle(final LoopHandle loop, final long pointer, boolean dummy) {
         super(pointer, loop);
     }
 

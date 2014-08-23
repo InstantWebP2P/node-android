@@ -23,33 +23,32 @@
  * questions.
  */
 
-#include "uv.h"
-#include "jni.h"
-///#include "com_iwebpp_libuvpp_LibUV.h"
+package com.iwebpp.libuvpp.tests;
 
-/*
- * Class:     com_iwebpp_libuvpp_LibUV
- * Method:    _version
- * Signature: ()Ljava/lang/String;
- */
-extern "C" JNIEXPORT jstring JNICALL Java_com_iwebpp_libuvpp_LibUV__1version
-  (JNIEnv *env, jclass cls) {
+import java.nio.ByteBuffer;
+import com.iwebpp.libuvpp.*;
+import java.util.Arrays;
 
-  const char* version = "libuvpp v0.8.x";///uv_version_string();
-  if (version) {
-    return env->NewStringUTF(version);
-  }
-  return NULL;
-}
+public class TestBase extends Thread {
 
-/*
- * Class:     com_iwebpp_libuvpp_LibUV
- * Method:    _disable_stdio_inheritance
- * Signature: ()V
- */
-extern "C" JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_LibUV__1disable_1stdio_1inheritance
-  (JNIEnv *env, jclass cls) {
+    static {
+        // call an idempotent LibUV method just to ensure that the native lib is loaded
+        LibUV.cwd();
+    }
 
-  // Make inherited handles noninheritable.
-  uv_disable_stdio_inheritance();
+    protected static final String TMPDIR = System.getProperty("java.io.tmpdir");
+    protected static final int TIMEOUT = 5000;
+    protected static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
+
+    protected static void fill(final ByteBuffer buffer, byte b) {
+        if (buffer.hasArray()) {
+            Arrays.fill(buffer.array(), b);
+        } else {
+            final byte[] data = new byte[buffer.capacity()];
+            Arrays.fill(data, b);
+            buffer.clear();
+            buffer.put(data);
+        }
+    }
+
 }

@@ -109,7 +109,7 @@ static void _close_cb(uv_handle_t* handle) {
  * Method:    _new
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1new__JI
+extern "C" JNIEXPORT  jlong JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1new__JI
   (JNIEnv *env, jclass cls, jlong loop, jint fd) {
 
   assert(loop);
@@ -129,7 +129,7 @@ JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1new__JI
  * Method:    _new
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1new__JJ
+extern "C" JNIEXPORT  jlong JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1new__JJ
   (JNIEnv *env, jclass cls, jlong loop, jlong socket) {
 
   assert(loop);
@@ -149,7 +149,7 @@ JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1new__JJ
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1static_1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   PollCallbacks::static_initialize(env, cls);
@@ -160,7 +160,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1static_1init
  * Method:    _initialize
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1initialize
   (JNIEnv *env, jobject that, jlong poll) {
 
   assert(poll);
@@ -175,7 +175,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1initialize
  * Method:    _start
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1start
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1start
   (JNIEnv *env, jobject that, jlong poll, jint events) {
 
   assert(poll);
@@ -192,7 +192,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1start
  * Method:    _stop
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1stop
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1stop
   (JNIEnv *env, jobject that, jlong poll) {
 
   assert(poll);
@@ -209,7 +209,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1stop
  * Method:    _close
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1close
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_PollHandle__1close
   (JNIEnv *env, jobject that, jlong poll) {
 
   assert(poll);

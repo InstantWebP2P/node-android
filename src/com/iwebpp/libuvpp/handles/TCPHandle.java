@@ -35,15 +35,15 @@ public class TCPHandle extends StreamHandle {
 
     private int bindPort = 0;
 
-    protected TCPHandle(final LoopHandle loop) {
+    public TCPHandle(final LoopHandle loop) {
         super(_new(loop.pointer()), loop);
     }
 
-    protected TCPHandle(final LoopHandle loop, final long socket) {
+    public TCPHandle(final LoopHandle loop, final long socket) {
         super(_new(loop.pointer(), socket), loop);
     }
 
-    protected TCPHandle(final LoopHandle loop, final long pointer, boolean dummy) {
+    public TCPHandle(final LoopHandle loop, final long pointer, boolean dummy) {
         super(pointer, loop);
     }
 

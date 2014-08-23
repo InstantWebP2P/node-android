@@ -108,7 +108,7 @@ static void _close_cb(uv_handle_t* handle) {
  * Method:    _new
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1new
+extern "C" JNIEXPORT  jlong JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1new
   (JNIEnv *env, jclass cls, jlong loop) {
 
   assert(loop);
@@ -128,7 +128,7 @@ JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1new
  * Method:    _static_initialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1static_1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1static_1initialize
   (JNIEnv *env, jclass cls) {
 
   AsyncCallbacks::static_initialize(env, cls);
@@ -139,7 +139,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1static_1ini
  * Method:    _initialize
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1initialize
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1initialize
   (JNIEnv *env, jobject that, jlong async) {
 
   assert(async);
@@ -154,7 +154,7 @@ JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1initialize
  * Method:    _send
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1send
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1send
   (JNIEnv *env, jobject that, jlong async) {
 
   assert(async);
@@ -171,7 +171,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1send
  * Method:    _close
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1close
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_AsyncHandle__1close
   (JNIEnv *env, jobject that, jlong async) {
 
   assert(async);

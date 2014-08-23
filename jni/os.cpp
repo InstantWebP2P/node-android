@@ -39,7 +39,7 @@
  * Method:    _getUptime
  * Signature: ()D
  */
-JNIEXPORT jdouble JNICALL Java_com_iwebpp_libuvpp_LibUV__1getUptime
+extern "C" JNIEXPORT  jdouble JNICALL Java_com_iwebpp_libuvpp_LibUV__1getUptime
   (JNIEnv *env, jclass cls) {
 
   double uptime;
@@ -58,7 +58,7 @@ JNIEXPORT jdouble JNICALL Java_com_iwebpp_libuvpp_LibUV__1getUptime
  * Method:    _getLoadAvg
  * Signature: ()[D
  */
-JNIEXPORT jdoubleArray JNICALL Java_com_iwebpp_libuvpp_LibUV__1getLoadAvg
+extern "C" JNIEXPORT  jdoubleArray JNICALL Java_com_iwebpp_libuvpp_LibUV__1getLoadAvg
   (JNIEnv *env, jclass cls) {
 
   double loadavg[3];
@@ -77,7 +77,7 @@ JNIEXPORT jdoubleArray JNICALL Java_com_iwebpp_libuvpp_LibUV__1getLoadAvg
  * Method:    _getTotalMem
  * Signature: ()D
  */
-JNIEXPORT jdouble JNICALL Java_com_iwebpp_libuvpp_LibUV__1getTotalMem
+extern "C" JNIEXPORT  jdouble JNICALL Java_com_iwebpp_libuvpp_LibUV__1getTotalMem
   (JNIEnv *env, jclass cls) {
 
   return (jdouble) uv_get_total_memory();
@@ -88,7 +88,7 @@ JNIEXPORT jdouble JNICALL Java_com_iwebpp_libuvpp_LibUV__1getTotalMem
  * Method:    _getFreeMem
  * Signature: ()D
  */
-JNIEXPORT jdouble JNICALL Java_com_iwebpp_libuvpp_LibUV__1getFreeMem
+extern "C" JNIEXPORT  jdouble JNICALL Java_com_iwebpp_libuvpp_LibUV__1getFreeMem
   (JNIEnv *env, jclass cls) {
 
   return (jdouble) uv_get_free_memory();
@@ -99,7 +99,7 @@ JNIEXPORT jdouble JNICALL Java_com_iwebpp_libuvpp_LibUV__1getFreeMem
  * Method:    _getCPUs
  * Signature: ()[Ljava/lang/Object;
  */
-JNIEXPORT jobjectArray JNICALL Java_com_iwebpp_libuvpp_LibUV__1getCPUs
+extern "C" JNIEXPORT  jobjectArray JNICALL Java_com_iwebpp_libuvpp_LibUV__1getCPUs
   (JNIEnv *env, jclass cls) {
 
   uv_cpu_info_t* cpu_infos;
@@ -167,7 +167,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_iwebpp_libuvpp_LibUV__1getCPUs
  * Method:    _isIPv6
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_iwebpp_libuvpp_LibUV__1isIPv6
+extern "C" JNIEXPORT  jboolean JNICALL Java_com_iwebpp_libuvpp_LibUV__1isIPv6
   (JNIEnv *env, jclass cls, jstring ip) {
 
   const char *address = env->GetStringUTFChars(ip, JNI_FALSE);

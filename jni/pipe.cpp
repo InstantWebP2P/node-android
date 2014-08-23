@@ -48,7 +48,7 @@ static void _pipe_connect_cb(uv_connect_t* req, int status) {
  * Method:    _new
  * Signature: (JZ)J
  */
-JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1new
+extern "C" JNIEXPORT  jlong JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1new
   (JNIEnv *env, jclass cls, jlong loop, jboolean ipc) {
 
   assert(loop);
@@ -69,7 +69,7 @@ JNIEXPORT jlong JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1new
  * Method:    _open
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1open
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1open
   (JNIEnv *env, jobject that, jlong pipe, jint fd) {
 
   assert(pipe);
@@ -86,7 +86,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1open
  * Method:    _bind
  * Signature: (JLjava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1bind
+extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1bind
   (JNIEnv *env, jobject that, jlong pipe, jstring name) {
 
   assert(pipe);
@@ -105,7 +105,7 @@ JNIEXPORT jint JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1bind
  * Method:    _connect
  * Signature: (JLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1connect
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_PipeHandle__1connect
   (JNIEnv *env, jobject that, jlong pipe, jstring name, jobject context) {
 
   assert(pipe);

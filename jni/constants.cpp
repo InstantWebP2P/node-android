@@ -133,7 +133,7 @@
  * Method:    _getFieldValues
  * Signature: ([I)V
  */
-JNIEXPORT void JNICALL Java_com_iwebpp_libuvpp_Constants__1get_1field_1values
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_Constants__1get_1field_1values
   (JNIEnv *env, jclass cls, jintArray array) {
 
   jint* values = env->GetIntArrayElements(array, 0);

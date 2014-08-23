@@ -112,7 +112,7 @@ public class Files {
     private boolean closed;
 
     // should be private but used by unit tests.
-    static final class OpenedFile {
+    public static final class OpenedFile {
         private final int flags;
         private final String path;
         private OpenedFile(final String path, final int flags) {
@@ -120,7 +120,7 @@ public class Files {
             this.flags = flags;
         }
         int getFlags() { return flags; }
-        String getPath() { return path; }
+        public String getPath() { return path; }
     }
 
     protected Files(final LoopHandle loop) {
@@ -652,7 +652,7 @@ public class Files {
     }
 
     // should be private but used by unit tests.
-    OpenedFile getOpenedFile(final int fd) {
+    public OpenedFile getOpenedFile(final int fd) {
         // No security check, can retrieve path of an opened fd.
         return openedFiles.get(fd);
     }

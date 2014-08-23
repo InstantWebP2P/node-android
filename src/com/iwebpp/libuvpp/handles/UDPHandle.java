@@ -71,19 +71,19 @@ public class UDPHandle extends Handle {
         onClose = callback;
     }
 
-    protected UDPHandle(final LoopHandle loop) {
+    public UDPHandle(final LoopHandle loop) {
         super(_new(loop.pointer()), loop);
         this.closed = false;
         _initialize(pointer);
     }
 
-    protected UDPHandle(final LoopHandle loop, final long socket) {
+    public UDPHandle(final LoopHandle loop, final long socket) {
         super(_new(loop.pointer(), socket), loop);
         this.closed = false;
         _initialize(pointer);
     }
 
-    protected UDPHandle(final LoopHandle loop, final long pointer, boolean dummy) {
+    public UDPHandle(final LoopHandle loop, final long pointer, boolean dummy) {
         super(pointer, loop);
         this.closed = false;
         _initialize(pointer);
