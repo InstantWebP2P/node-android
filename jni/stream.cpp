@@ -381,6 +381,22 @@ extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle_
 
 /*
  * Class:     com_iwebpp_libuvpp_handles_StreamHandle
+ * Method:    _read2_start
+ * Signature: (J)V
+ */
+extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read2_1start
+  (JNIEnv *env, jobject that, jlong stream) {
+
+  assert(stream);
+  uv_stream_t* handle = reinterpret_cast<uv_stream_t*>(stream);
+  int r = uv_read2_start(handle, _alloc_cb, _read2_cb);
+  if (r) {
+    ThrowException(env, handle->loop, "uv_read2_start");
+  }
+}
+
+/*
+ * Class:     com_iwebpp_libuvpp_handles_StreamHandle
  * Method:    _read_start
  * Signature: (J)V
  */
@@ -397,23 +413,7 @@ extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle_
       ThrowException(env, handle->loop, "uv_read_start");
     }
   } else {
-    ///Java_com_iwebpp_libuvpp_handles_StreamHandle__1read2_1start(env, that, stream);
-  }
-}
-
-/*
- * Class:     com_iwebpp_libuvpp_handles_StreamHandle
- * Method:    _read2_start
- * Signature: (J)V
- */
-extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_StreamHandle__1read2_1start
-  (JNIEnv *env, jobject that, jlong stream) {
-
-  assert(stream);
-  uv_stream_t* handle = reinterpret_cast<uv_stream_t*>(stream);
-  int r = uv_read2_start(handle, _alloc_cb, _read2_cb);
-  if (r) {
-    ThrowException(env, handle->loop, "uv_read2_start");
+    Java_com_iwebpp_libuvpp_handles_StreamHandle__1read2_1start(env, that, stream);
   }
 }
 

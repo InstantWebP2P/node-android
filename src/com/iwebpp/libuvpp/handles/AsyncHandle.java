@@ -43,7 +43,7 @@ public class AsyncHandle extends Handle {
         onSend = callback;
     }
 
-    protected AsyncHandle(final LoopHandle loop) {
+    public AsyncHandle(final LoopHandle loop) {
         super(_new(loop.pointer()), loop);
         _initialize(pointer);
     }

@@ -26,10 +26,13 @@
 package com.iwebpp.libuvpp.tests;
 
 
+import android.util.Log;
+
 import com.iwebpp.libuvpp.LibUV;
 
 
 public class CWDTest extends TestBase {
+	private static final String TAG = "CWDTest";
 
     private String cwd;
 
@@ -48,6 +51,12 @@ public class CWDTest extends TestBase {
         System.out.println("java.home is " + java);
         LibUV.chdir(java);
         ///Assert.assertEquals(java, LibUV.cwd());
+    }
+    
+    public void run() {
+		Log.d(TAG, "start test");
+		
+		testCWD();    
     }
 
 }

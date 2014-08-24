@@ -16,12 +16,17 @@ public class MainActivity extends Activity {
 		
 		// Unit tests 
 		new VersionTest().start();
+		new CWDTest().start();
 		new TCPHandleTest().start();
 		new UDTHandleTest().start();
 		new UDPHandleTest().start();
 		new LoopHandleTest().start();
 		new IdleHandleTest().start();
 		new TimerHandleTest().start();
+		new AsyncHandleTest().start();
+		///new PipeHandleTest().start();
+		///new ProcessHandleTest().start();
+
 		///new FileEventHandleTest().start();
 
 	}

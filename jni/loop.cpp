@@ -87,7 +87,11 @@ extern "C" JNIEXPORT  jint JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1
 
   assert(ptr);
   ///return uv_run(reinterpret_cast<uv_loop_t*>(ptr), (uv_run_mode) mode);
-  return uv_run(reinterpret_cast<uv_loop_t*>(ptr));
+  // TBD... porting libuvpp 0.10.x
+  if (mode == 1)
+    return uv_run_once(reinterpret_cast<uv_loop_t*>(ptr));
+  else
+    return uv_run(reinterpret_cast<uv_loop_t*>(ptr));
 }
 
 /*
@@ -99,6 +103,7 @@ extern "C" JNIEXPORT  void JNICALL Java_com_iwebpp_libuvpp_handles_LoopHandle__1
   (JNIEnv *env, jobject that, jlong ptr) {
 
   assert(ptr);
+  // TBD... porting libuvpp 0.10.x
   ///uv_stop(reinterpret_cast<uv_loop_t*>(ptr));
 }
 
