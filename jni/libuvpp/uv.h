@@ -3687,7 +3687,7 @@ struct uv_tcp_s {
  
 };
 
-__attribute__((visibility("default"))) int uv_tcp_init(uv_loop_t*, uv_tcp_t* handle);
+extern __attribute__((visibility("default"))) int uv_tcp_init(uv_loop_t*, uv_tcp_t* handle);
 
 
 __attribute__((visibility("default"))) int uv_tcp_nodelay(uv_tcp_t* handle, int enable);
