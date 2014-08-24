@@ -1,3 +1,7 @@
+#ifndef __UV_H__
+#define __UV_H__
+
+
 ///# 1 "../include/uv.h"
 ///# 1 "/auto/node_modules/libuvpp/out//"
 ///# 1 "<built-in>"
@@ -4639,3 +4643,8 @@ struct uv_loop_s {
 
   void* data;
 };
+
+#endif // __UV_H__
+
+
+
