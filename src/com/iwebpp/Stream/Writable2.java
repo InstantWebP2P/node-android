@@ -41,45 +41,45 @@ public abstract class Writable2 implements Writable {
 	}
 
 	@Override
-	public boolean end() {
+	public void end() {
 		// TODO Auto-generated method stub
-		return false;
+		return;
 	}
 
 	@Override
-	public boolean end(ByteBuffer chunk) {
+	public void end(ByteBuffer chunk) {
 		// TODO Auto-generated method stub
-		return false;
+		return;
 	}
 
 	@Override
-	public boolean end(ByteBuffer chunk, writeCB cb) {
+	public void end(ByteBuffer chunk, writeCB cb) {
 		// TODO Auto-generated method stub
-		return false;
+		return;
 	}
 
 	@Override
-	public boolean end(String chunk) {
+	public void end(String chunk) {
 		// TODO Auto-generated method stub
-		return false;
+		return;
 	}
 
 	@Override
-	public boolean end(String chunk, writeCB cb) {
+	public void end(String chunk, writeCB cb) {
 		// TODO Auto-generated method stub
-		return false;
+		return;
 	}
 
 	@Override
-	public boolean end(String chunk, String encoding) {
+	public void end(String chunk, String encoding) {
 		// TODO Auto-generated method stub
-		return false;
+		return;
 	}
 
 	@Override
-	public boolean end(String chunk, String encoding, writeCB cb) {
+	public void end(String chunk, String encoding, writeCB cb) {
 		// TODO Auto-generated method stub
-		return false;
+		return;
 	}
 	
 	// _write(chunk, encoding, callback)

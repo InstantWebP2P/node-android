@@ -5,13 +5,13 @@ import java.nio.ByteBuffer;
 public abstract class Readable2 implements Readable {
 
 	@Override
-	public int read() {
+	public Object read() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public int read(int size) {
+	public Object read(int size) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

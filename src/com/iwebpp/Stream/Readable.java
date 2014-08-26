@@ -3,8 +3,8 @@ package com.iwebpp.Stream;
 import java.nio.ByteBuffer;
 
 public interface Readable {
-	public int read();
-	public int read(int size);
+	public Object read();
+	public Object read(int size);
 	public boolean setEncoding(String encoding);
     public boolean pause();
     public boolean resume();

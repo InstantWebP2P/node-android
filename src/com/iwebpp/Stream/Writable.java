@@ -14,13 +14,13 @@ public interface Writable {
     public boolean write(String chunk, String encoding);
     public boolean write(String chunk, String encoding, writeCB cb);
     
-    public boolean end();
+    public void end();
 
-    public boolean end(ByteBuffer chunk);
-    public boolean end(ByteBuffer chunk, writeCB cb);
+    public void end(ByteBuffer chunk);
+    public void end(ByteBuffer chunk, writeCB cb);
 
-    public boolean end(String chunk);
-    public boolean end(String chunk, writeCB cb);
-    public boolean end(String chunk, String encoding);
-    public boolean end(String chunk, String encoding, writeCB cb);
+    public void end(String chunk);
+    public void end(String chunk, writeCB cb);
+    public void end(String chunk, String encoding);
+    public void end(String chunk, String encoding, writeCB cb);
 }
