@@ -1,4 +1,4 @@
-package com.iwebpp.Event;
+package com.iwebpp.node;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -9,12 +9,12 @@ import java.util.Map;
 import android.util.Log;
 
 
-public class eventEmitter2 implements eventEmitter {
-	private final static String TAG = "eventEmitter2";
+public class EventEmitter2 implements EventEmitter {
+	private final static String TAG = "EventEmitter2";
     private Map<String, List<Listener>> events;
     private Map<String, Integer> maxEvents;
     
-    protected eventEmitter2() {
+    protected EventEmitter2() {
     	this.events = new Hashtable<String, List<Listener>>();
     	this.maxEvents = new Hashtable<String, Integer>();
     }

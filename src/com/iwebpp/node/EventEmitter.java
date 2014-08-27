@@ -1,12 +1,12 @@
-package com.iwebpp.Event;
+package com.iwebpp.node;
 
 import java.util.List;
 
-public interface eventEmitter {
+public interface EventEmitter {
 	public boolean emit(final String event);
 	public boolean emit(final String event, final Object data);
 
-	public static interface Listener {
+	public interface Listener {
 		void invoke(final Object data);
 	};
 
