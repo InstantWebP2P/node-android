@@ -2,7 +2,11 @@ package com.iwebpp.Stream;
 
 import java.nio.ByteBuffer;
 
-public abstract class Writable2 implements Writable {
+import com.iwebpp.Event.eventEmitter2;
+
+public abstract class Writable2 
+extends eventEmitter2 
+implements Writable {
 
 	@Override
 	public boolean write(ByteBuffer chunk) {

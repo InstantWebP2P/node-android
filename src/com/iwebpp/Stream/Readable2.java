@@ -2,7 +2,16 @@ package com.iwebpp.Stream;
 
 import java.nio.ByteBuffer;
 
-public abstract class Readable2 implements Readable {
+import com.iwebpp.Event.eventEmitter2;
+
+public abstract class Readable2 
+extends eventEmitter2 
+implements Readable {
+
+	Readable2() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	public Object read() {
