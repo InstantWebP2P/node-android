@@ -2,7 +2,7 @@ package com.iwebpp.node;
 
 import java.nio.ByteBuffer;
 
-public interface Writable {
+public interface Writable extends EventEmitter {
 	public interface writeCB {
 		void invoke(final String error);
 	}

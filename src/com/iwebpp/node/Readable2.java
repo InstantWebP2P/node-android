@@ -44,7 +44,7 @@ implements Readable {
 		return false;
 	}
 
-	public Writable2 pipe(final Writable2 dest, boolean end) {
+	public Writable pipe(final Writable dest, boolean end) {
 		final Readable2 source = this;
 
 		final EventEmitter.Listener ondata = new EventEmitter.Listener() {
@@ -67,7 +67,7 @@ implements Readable {
 				}
 			}
 		};
-		((EventEmitter2) dest).on("drain", ondrain);
+		dest.on("drain", ondrain);
 
 		final EventEmitter.Listener onend = new EventEmitter.Listener() {
 			@Override
@@ -106,9 +106,9 @@ implements Readable {
 					source.removeListener("close");
 					source.removeListener("error");
 					
-					((EventEmitter2) dest).removeListener("drain");
-					((EventEmitter2) dest).removeListener("error");
-					((EventEmitter2) dest).removeListener("close");
+					dest.removeListener("drain");
+					dest.removeListener("error");
+					dest.removeListener("close");
 				}
 				
 			    try {
@@ -131,21 +131,20 @@ implements Readable {
 				source.removeListener("close");
 				source.removeListener("error");
 				
-				((EventEmitter2) dest).removeListener("drain");
-				((EventEmitter2) dest).removeListener("error");
-				((EventEmitter2) dest).removeListener("close");
+				dest.removeListener("drain");
+				dest.removeListener("error");
+				dest.removeListener("close");
 			}
 		};
 
 		source.on("error", onerror);
-		((EventEmitter2) dest).on("error", onerror);
+		dest.on("error", onerror);
 
 		source.on("end", cleanup);
 		source.on("close", cleanup);
 
-		((EventEmitter2) dest).on("close", cleanup);
-
-		((EventEmitter2) dest).emit("pipe", source);
+		dest.on("close", cleanup);
+		dest.emit("pipe", source);
 
 		// Allow for unix-like usage: A.pipe(B).pipe(C)
 		return dest;
