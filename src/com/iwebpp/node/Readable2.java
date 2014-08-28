@@ -2,6 +2,7 @@ package com.iwebpp.node;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -11,13 +12,15 @@ extends EventEmitter2
 implements Readable {
 	private final static String TAG = "Readable2";
 	private List<Object> dataBuffer;
+	private List<Writable> pipeBuffer;
 	private boolean didOnEnd = false;
 	private volatile boolean isReadable = false;
 
 	Readable2() {
 		super();
 		// TODO Auto-generated constructor stub
-		dataBuffer = new ArrayList<Object>();
+		dataBuffer = new LinkedList<Object>();
+		pipeBuffer = new LinkedList<Writable>();
 	}
 
 	@Override
@@ -45,7 +48,7 @@ implements Readable {
 	}
 
 	public Writable pipe(final Writable dest, boolean end) {
-		final Readable2 source = this;
+		final Readable source = this;
 
 		final EventEmitter.Listener ondata = new EventEmitter.Listener() {
 			@Override
@@ -105,21 +108,21 @@ implements Readable {
 					source.removeListener("end");
 					source.removeListener("close");
 					source.removeListener("error");
-					
+
 					dest.removeListener("drain");
 					dest.removeListener("error");
 					dest.removeListener("close");
 				}
-				
-			    try {
+
+				try {
 					if (listenerCount("error") == 0) {
-					  throw new Exception("Unhandled error"); // Unhandled stream error in pipe.
+						throw new Exception("Unhandled error"); // Unhandled stream error in pipe.
 					}
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			  }
+			}
 		};
 
 		// remove all the event listeners that were added.
@@ -130,7 +133,7 @@ implements Readable {
 				source.removeListener("end");
 				source.removeListener("close");
 				source.removeListener("error");
-				
+
 				dest.removeListener("drain");
 				dest.removeListener("error");
 				dest.removeListener("close");
@@ -141,9 +144,10 @@ implements Readable {
 		dest.on("error", onerror);
 
 		source.on("end", cleanup);
-		source.on("close", cleanup);
 
+		source.on("close", cleanup);
 		dest.on("close", cleanup);
+
 		dest.emit("pipe", source);
 
 		// Allow for unix-like usage: A.pipe(B).pipe(C)
@@ -162,9 +166,9 @@ implements Readable {
 		return false;
 	}
 
-    public boolean readable() {
-    	return isReadable;
-    }
+	public boolean readable() {
+		return isReadable;
+	}
 
 	// _read(size)
 	public abstract void _read(int size);
