@@ -154,6 +154,8 @@ implements Writable {
 	private boolean writable;
 	
     public Writable2(Options options) {
+    	super();
+    	
 	  // Writable ctor is applied to Duplexes, though they're not
 	  // instanceof Writable, they're instanceof Readable.
 	  ///if (!(this instanceof Writable) && !(this instanceof Stream.Duplex))
@@ -316,7 +318,7 @@ implements Writable {
     	if (chunk instanceof ByteBuffer)
     		encoding = "buffer";
     	int len = state.objectMode ? 1 : (chunk instanceof ByteBuffer) ? 
-				((ByteBuffer)chunk).position()+1 : ((String)chunk).length();
+				((ByteBuffer)chunk).position() : ((String)chunk).length();
 
     	state.length += len;
 
