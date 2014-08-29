@@ -3,13 +3,13 @@ package com.iwebpp.node;
 import java.nio.ByteBuffer;
 
 public interface Readable extends EventEmitter {
-	public Object read(int size);
-	public boolean push(Object chunk, String encoding);
+	public Object read(int size) throws Throwable;
+	public boolean push(Object chunk, String encoding) throws Throwable;
 	public boolean setEncoding(String encoding);
-    public boolean pause();
-    public boolean resume();
-    public Writable pipe(Writable dest);
-    public boolean unpipe(Writable dest);
-    public boolean unshift(ByteBuffer chunk);
+    public Readable pause();
+    public Readable resume();
+    public Writable pipe(Writable dest, boolean end);
+    public Readable unpipe(Writable dest);
+    public boolean unshift(Object chunk) throws Throwable;
     public boolean readable();
 }

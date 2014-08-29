@@ -22,8 +22,8 @@ public class EventEmitter2 implements EventEmitter {
 	@Override
 	public boolean emit(String event) {
 		if (events.containsKey(event)) {
-			while (events.get(event).iterator().hasNext())
-				events.get(event).iterator().next().invoke(null);
+			for (Listener cb : events.get(event))
+				cb.invoke(null);
 		} else {
 			Log.d(TAG, "unknown event "+event);
 			return false;
@@ -34,15 +34,15 @@ public class EventEmitter2 implements EventEmitter {
 	@Override
 	public boolean emit(String event, Object data) {
 		if (events.containsKey(event)) {
-			while (events.get(event).iterator().hasNext())
-				events.get(event).iterator().next().invoke(data);
+			for (Listener cb : events.get(event))
+				cb.invoke(data);
 		} else {
-			Log.d(TAG, "unknown event "+event);
+			Log.d(TAG, "unknown event "+event+" data "+data.toString());
 			return false;
 		}
 		return true;
 	}
-
+		
 	@Override
 	public boolean addListener(String event, Listener cb) {
 		// check maxListens

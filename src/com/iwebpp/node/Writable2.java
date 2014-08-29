@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
-
 public abstract class Writable2 
 extends EventEmitter2 
 implements Writable {
@@ -153,7 +152,7 @@ implements Writable {
 	private State _writableState;
 	private boolean writable;
 	
-    public Writable2(Options options) {
+    protected Writable2(Options options) {
     	super();
     	
 	  // Writable ctor is applied to Duplexes, though they're not
@@ -168,7 +167,11 @@ implements Writable {
     }
     private Writable2() {
 	}
-
+    
+    public boolean writable() { 
+    	return writable;
+    }
+    
     // Helpers functions
     private void writeAfterEnd(Writable2 stream, State state, WriteCB cb) {
     	///var er = new Error('write after end');
@@ -187,12 +190,9 @@ implements Writable {
     // how many bytes or characters.
     private boolean validChunk(Writable2 stream, State state, Object chunk, WriteCB cb) {
     	boolean valid = true;
-    	if (/*!util.isBuffer(chunk) &&
-    		!util.isString(chunk) &&
-    		!util.isNullOrUndefined(chunk) &&*/
-    		!(chunk instanceof ByteBuffer) && 
-    		!(chunk instanceof String) &&
-    		!(chunk == null) &&
+    	if (!Util.isBuffer(chunk) &&
+    		!Util.isString(chunk) &&
+    		!Util.isNullOrUndefined(chunk) &&
     		!state.objectMode) {
     		///var er = new TypeError('Invalid non-string/buffer chunk');
     		String er = "Invalid non-string/buffer chunk";
@@ -215,16 +215,16 @@ implements Writable {
     	    encoding = null;
     	  }*/
 
-    	///if (util.isBuffer(chunk))
-    	if (chunk instanceof ByteBuffer)
+    	if (Util.isBuffer(chunk))
     		encoding = "buffer";
-    	else if (null == encoding || "" == encoding)
+    	else if (Util.zeroString(encoding))
     		encoding = state.defaultEncoding;
 
     	///if (!util.isFunction(cb))
     	///	cb = function() {};
     	if (cb == null)
-    		cb = new WriteCB(){
+    		cb = new WriteCB()
+    	{
     		@Override
     		public void invoke(String error) {
     			// TODO Auto-generated method stub
@@ -314,11 +314,9 @@ implements Writable {
     private boolean writeOrBuffer(Writable2 stream, State state,
     		Object chunk, String encoding, WriteCB cb) {
     	chunk = decodeChunk(state, chunk, encoding);
-    	///if (util.isBuffer(chunk))
-    	if (chunk instanceof ByteBuffer)
+    	if (Util.isBuffer(chunk))
     		encoding = "buffer";
-    	int len = state.objectMode ? 1 : (chunk instanceof ByteBuffer) ? 
-				((ByteBuffer)chunk).position() : ((String)chunk).length();
+    	int len = state.objectMode ? 1 : Util.chunkLength(chunk);
 
     	state.length += len;
 
@@ -338,8 +336,7 @@ implements Writable {
     private Object decodeChunk(State state, Object chunk, String encoding) {
     	if (!state.objectMode &&
     		 state.decodeStrings != false &&
-    		 (chunk instanceof String)
-    		 /*util.isString(chunk)*/) {
+    		 Util.isString(chunk)) {
     		try {
 				chunk = ByteBuffer.wrap(((String)chunk).getBytes(encoding));
 			} catch (UnsupportedEncodingException e) {
@@ -412,8 +409,7 @@ implements Writable {
 				Object chunk = entry.chunk;
 				String encoding = entry.encoding;
 				WriteCB cb = entry.callback;
-				int len = state.objectMode ? 1 : (chunk instanceof ByteBuffer) ? 
-						((ByteBuffer)chunk).position() : ((String)chunk).length();
+				int len = state.objectMode ? 1 : Util.chunkLength(chunk);
 
 					doWrite(stream, state, false, len, chunk, encoding, cb);
 

@@ -7,7 +7,7 @@ public interface EventEmitter {
 	public boolean emit(final String event, final Object data);
 
 	public interface Listener {
-		void invoke(final Object data);
+		void invoke(final Object data) throws Throwable;
 	};
 
 	public boolean addListener(final String event, final Listener cb);
