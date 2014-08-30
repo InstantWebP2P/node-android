@@ -500,30 +500,45 @@ this._readableState.encoding = enc;
 		boolean stringMode = state.getDecoder() != null;
 		boolean objectMode = !!state.isObjectMode();
 		Object ret;
+		
+		
+		Log.d(TAG, "fromList n="+n);
 
 		// nothing in the list, definitely empty.
 		if (list.size() == 0)
 			return null;
 
-		if (length == 0)
+		if (length == 0) {
+			Log.d(TAG, "length == 0");
+			
 			ret = null;
-		else if (objectMode)
+		} else if (objectMode) {
+			Log.d(TAG, "objectMode");
+
 			///ret = list.shift();
 			ret = list.get(0);
-		else if (n==0 || n >= length) {
+		} else if (n==0 || n >= length) {	
+			Log.d(TAG, "n==0 || n >= length");
+
 			// read it all, truncate the array.
-			if (stringMode)
+			if (stringMode) {
 				///ret = list.join('');
 				ret = TextUtils.join("", list);
-			else
+				
+				Log.d(TAG, "join.string:"+ret.toString());
+			} else {
 				///ret = Buffer.concat(list, length);
 				ret = Util.concatByteBuffer(list, length);
+			}
+			
 			///list.length = 0;
 			list.clear();
-		} else {
+		} else {			
 			// read just some of it.
 			///if (n < list[0].length) {
 			if (n < Util.chunkLength(list.get(0))) {
+				Log.d(TAG, "n < Util.chunkLength(list.get(0))");
+
 				// just take a part of the first list item.
 				// slice is the same for buffers and strings.
 				Object buf = list.get(0);
@@ -532,17 +547,24 @@ this._readableState.encoding = enc;
 				///list[0] = buf.slice(n);
 				list.set(0, Util.chunkSlice(buf, n));
 			} else if (n == Util.chunkLength(list.get(0))) {
+				Log.d(TAG, "n == Util.chunkLength(list.get(0))");
+
 				// first list is a perfect match
 				///ret = list.shift();
 				ret = list.remove(0);
 			} else {
+				Log.d(TAG, "complex case");
+
 				// complex case.
 				// we have enough to cover it, but it spans past the first buffer.
-				if (stringMode)
+				if (stringMode) {
+					Log.d(TAG, "stringMode");
+
 					ret = "";
-				else
+				} else {
 					///ret = new Buffer(n);
 					ret = ByteBuffer.allocate(n);
+				}
 
 				int c = 0;
 				for (int i = 0, l = list.size(); i < l && c < n; i++) {
@@ -965,6 +987,7 @@ this._readableState.encoding = enc;
 
 	// set up data events if they are asked for
 	// Ensure readable listeners eventually get something
+	@Override
 	public boolean on(final String ev, final Listener fn) throws Throwable {
 		boolean res = super.on(ev, fn);
 
@@ -985,20 +1008,10 @@ this._readableState.encoding = enc;
 					///TBD...
 					///process.nextTick(function() {
 					Log.d(TAG, "readable nexttick read 0");
-					try {
-						self.read(0);
-					} catch (Throwable e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					self.read(0);
 					///});
 				} else if (state.length > 0) {
-					try {
-						emitReadable(this);
-					} catch (Throwable e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					emitReadable(this);
 				}
 			}
 		}

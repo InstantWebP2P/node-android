@@ -1,13 +1,16 @@
 package com.iwebpp.node;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
 import java.util.List;
+
+import android.util.Log;
 
 public final class Util {
 	// Buffer
     public static boolean isBuffer(Object chunk) {
-    	return chunk instanceof Buffer;
+    	return chunk instanceof ByteBuffer;
     } 
     
     public static boolean isString(Object chunk) {
@@ -84,16 +87,38 @@ public final class Util {
     	if (length <= 0) {
     		length = 0;
     		
-    		for (Object b : list) length += ((Buffer) b).position();
+    		for (Object b : list) length += ((ByteBuffer) b).capacity();
     	}
     		
     	if (length > 0) {
     		ByteBuffer bb = ByteBuffer.allocate(length);
 
-    		for (Object b : list) bb.put((ByteBuffer)b);
-
+    		for (Object b : list) {
+    			bb.put((ByteBuffer)b);
+    			
+    			((ByteBuffer)b).flip();
+    		}
+    		bb.flip();
+    		
     		return bb;
     	} else 
     		return null;
     }
+    
+    public static String chunkToString(Object chunk, String encoding) {
+    	if (isString(chunk)) {			
+    		return (String) chunk;			
+    	} else if (isBuffer(chunk)) {
+    		// decode chunk to string
+    		try {
+				return Charset.forName(encoding).newDecoder().decode((ByteBuffer)chunk).toString();
+			} catch (CharacterCodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    	
+		return "invalid chunk";
+    }
+    
 }

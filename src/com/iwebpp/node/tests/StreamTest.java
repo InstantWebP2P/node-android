@@ -17,15 +17,24 @@ import com.iwebpp.node.Writable2;
 public final class StreamTest {
 	private static final String TAG = "StreamTest";
 
-    private class Counting extends Readable2 {
+	private static String burst;
 
-    	 private int _max = 68;
-    	 private int _index = 1;
-    	
-    	Counting() {
-			super(new Options(-1, "utf8", false, "utf8"));
+	static {
+		burst = "";
+
+		for (int i = 0; i < 6; i++)
+			burst += i + " ";
+	}
+	
+	private class Counting extends Readable2 {
+
+		private int _max = 60;
+		private int _index = 1;
+		
+		Counting() {
+			super(new Options(16, "", false, "utf8"));
 			// TODO Auto-generated constructor stub
-			
+
 			_index = 1;
 		}
 
@@ -36,14 +45,17 @@ public final class StreamTest {
 			if (i > this._max)
 				this.push(null, null);
 			else {
-				String str = " " + i;
-				ByteBuffer buf = ByteBuffer.wrap(str.getBytes("utf8"));
-				this.push(buf, null);
-				///this.push(str, "utf8");
+				for (int c = 0; c < 3; c ++) {
+					String str = burst + "@" + i+"/"+c+"\n";
+
+					ByteBuffer buf = ByteBuffer.wrap(str.getBytes("utf8"));
+					this.push(buf, null);
+					///this.push(str, "utf8");
+				}
 			}
 		}
-    	
-    }
+
+	}
     
     private class DummyWritable extends Writable2 {
 
@@ -73,6 +85,33 @@ public final class StreamTest {
 			return true;
 		}
     	
+    }
+
+    private boolean testRead_0() {    	
+    	final Readable rs = new Counting();
+
+    	try {
+    		rs.on("readable", new Listener(){
+
+    			@Override
+    			public void invoke(Object data) throws Throwable {
+    				Object chunk;
+
+    				Log.d(TAG+"/testRead_0", "start...");
+    				///while (null != (chunk = rs.read(-1))) {
+    				chunk = rs.read(32);
+    				Log.d(TAG+"/testRead_0", Util.chunkToString(chunk, "utf8"));
+    				///}    				
+    				Log.d(TAG+"/testRead_0", "...end");
+    			}
+
+    		});
+    	} catch (Throwable e) {
+    		// TODO Auto-generated catch block
+    		e.printStackTrace();
+    	}
+
+    	return true;
     }
     
     private boolean testPipe() {    	
@@ -147,8 +186,9 @@ public final class StreamTest {
 
 				final StreamTest test = new StreamTest();
 
-				test.testPipe();
+				///test.testPipe();
 				///test.testFinish();
+				test.testRead_0();
 			}
 		})).start();
 
