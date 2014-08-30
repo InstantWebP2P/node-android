@@ -5,7 +5,6 @@ import java.nio.charset.Charset;
 
 import android.util.Log;
 
-import com.iwebpp.node.EventEmitter;
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.Readable;
 import com.iwebpp.node.Readable2;
@@ -20,19 +19,19 @@ public final class StreamTest {
 	private static String burst;
 
 	static {
-		burst = "";
+		burst = "你好";
 
 		for (int i = 0; i < 6; i++)
-			burst += i + " ";
+			burst += i;
 	}
 	
 	private class Counting extends Readable2 {
 
-		private int _max = 60;
+		private int _max = 10;
 		private int _index = 1;
 		
 		Counting() {
-			super(new Options(16, "", false, "utf8"));
+			super(new Options(16, "utf8", false, "utf8"));
 			// TODO Auto-generated constructor stub
 
 			_index = 1;
@@ -46,7 +45,7 @@ public final class StreamTest {
 				this.push(null, null);
 			else {
 				for (int c = 0; c < 3; c ++) {
-					String str = burst + "@" + i+"/"+c+"\n";
+					String str = burst + "@大家好" + i+"/"+c+"$";
 
 					ByteBuffer buf = ByteBuffer.wrap(str.getBytes("utf8"));
 					this.push(buf, null);
@@ -68,18 +67,18 @@ public final class StreamTest {
 		public boolean _write(Object chunk, String encoding, WriteCB cb) throws Throwable {
 			// TODO Auto-generated method stub
 			if (Util.isString(chunk)) {
-				Log.d(TAG, "encdoing "+encoding+":"+chunk.toString());
+				Log.d(TAG, "DummyWritable: encdoing "+encoding+":"+chunk.toString());
 				
 				if (cb != null) cb.invoke(null);
 				
 			} else {
-				Log.d(TAG, "binary data "+chunk.toString());
+				Log.d(TAG, "DummyWritable: binary data "+chunk.toString());
 				
 				if (cb != null) cb.invoke(null);
 
 				// decode chunk to string
 				String result = Charset.forName("utf8").newDecoder().decode((ByteBuffer)chunk).toString();
-				Log.d(TAG, "decoded string "+result);
+				Log.d(TAG, "DummyWritable: decoded string "+result);
 			}
 			
 			return true;
@@ -87,7 +86,7 @@ public final class StreamTest {
     	
     }
 
-    private boolean testRead_0() {    	
+    private boolean testRead_less() {    	
     	final Readable rs = new Counting();
 
     	try {
@@ -97,12 +96,71 @@ public final class StreamTest {
     			public void invoke(Object data) throws Throwable {
     				Object chunk;
 
-    				Log.d(TAG+"/testRead_0", "start...");
-    				///while (null != (chunk = rs.read(-1))) {
-    				chunk = rs.read(32);
-    				Log.d(TAG+"/testRead_0", Util.chunkToString(chunk, "utf8"));
-    				///}    				
-    				Log.d(TAG+"/testRead_0", "...end");
+    				Log.d(TAG, "testRead_less: start...");
+    				
+					///chunk = rs.read(3);
+    				while (null != (chunk = rs.read(3))) {
+    					Log.d(TAG, "testRead_less:"+Util.chunkToString(chunk, "utf8"));
+    				}
+    				
+    				Log.d(TAG, "testRead_less: ...end");
+    			}
+
+    		});
+    	} catch (Throwable e) {
+    		// TODO Auto-generated catch block
+    		e.printStackTrace();
+    	}
+
+    	return true;
+    }
+    
+    private boolean testRead_more() {    	
+    	final Readable rs = new Counting();
+
+    	try {
+    		rs.on("readable", new Listener(){
+
+    			@Override
+    			public void invoke(Object data) throws Throwable {
+    				Object chunk;
+
+    				Log.d(TAG, "testRead_more: start...");
+    				
+    				///chunk = rs.read(33);
+    				while (null != (chunk = rs.read(28))) {
+    					Log.d(TAG, "testRead_more: "+Util.chunkToString(chunk, "utf8"));
+    				}
+    				
+    				Log.d(TAG, "testRead_more: ...end");
+    			}
+
+    		});
+    	} catch (Throwable e) {
+    		// TODO Auto-generated catch block
+    		e.printStackTrace();
+    	}
+
+    	return true;
+    }
+    
+    private boolean testRead_forever() {    	
+    	final Readable rs = new Counting();
+
+    	try {
+    		rs.on("readable", new Listener(){
+
+    			@Override
+    			public void invoke(Object data) throws Throwable {
+    				Object chunk;
+
+    				Log.d(TAG, "testRead_forever: start...");
+
+    				while (null != (chunk = rs.read(-1))) {
+    					Log.d(TAG, "testRead_forever: "+Util.chunkToString(chunk, "utf8"));
+    				}
+
+    				Log.d(TAG, "testRead_forever: ...end");
     			}
 
     		});
@@ -123,7 +181,7 @@ public final class StreamTest {
 			ws.on("pipe", new Listener () {
 				@Override
 				public void invoke(Object src) throws Throwable {
-					Log.d(TAG, "something is piping into the writer");
+					Log.d(TAG, "testPipe: something is piping into the writer");
 					assert(rs.equals(src));
 				}
 
@@ -131,14 +189,14 @@ public final class StreamTest {
 			ws.on("unpipe", new Listener () {
 				@Override
 				public void invoke(Object src) throws Throwable {
-					Log.d(TAG, "something has stopped piping into the writer");
+					Log.d(TAG, "testPipe: something has stopped piping into the writer");
 					assert(rs.equals(src));
 				}
 
 			});
 			
 			rs.pipe(ws, true);
-			///rs.unpipe(ws);
+			rs.unpipe(ws);
 		} catch (Throwable e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -154,7 +212,7 @@ public final class StreamTest {
     		ws.on("finish", new Listener() {
     			@Override
     			public void invoke(Object src) throws Throwable {
-    				Log.d(TAG, "all writes are now complete.");
+    				Log.d(TAG, "testFinish: all writes are now complete.");
     			}
     		});
     		
@@ -164,7 +222,7 @@ public final class StreamTest {
     				@Override
     				public void invoke(String error) throws Throwable {
     					// TODO Auto-generated method stub
-    					Log.d(TAG, "write done");
+    					Log.d(TAG, "testFinish: write done");
     				}
 
     			});
@@ -186,9 +244,12 @@ public final class StreamTest {
 
 				final StreamTest test = new StreamTest();
 
-				///test.testPipe();
-				///test.testFinish();
-				test.testRead_0();
+				test.testPipe();
+				test.testFinish();
+				test.testRead_less();
+				test.testRead_more();
+				test.testRead_forever();
+
 			}
 		})).start();
 

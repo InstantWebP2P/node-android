@@ -575,7 +575,10 @@ this._readableState.encoding = enc;
 						///ret += buf.slice(0, cpy);
 						String rs = (String)ret;
 						rs += (String)(Util.chunkSlice(buf, 0, cpy));
-						///ret = rs;
+						ret = rs;
+						
+						Log.d(TAG, "string mode complex buf:"+buf.toString());
+						Log.d(TAG, "string mode ret buf:"+ret.toString());
 					} else {
 						///buf.copy(ret, c, 0, cpy);
 						ByteBuffer rb = (ByteBuffer)ret;
@@ -586,13 +589,17 @@ this._readableState.encoding = enc;
 					///if (cpy < buf.length)
 					if (cpy < Util.chunkLength(buf))
 						///list[0] = buf.slice(cpy);
-						list.set(0, (ByteBuffer)Util.chunkSlice(buf, cpy));
+						list.set(0, Util.chunkSlice(buf, cpy));
 					else
 						///list.shift();
 						list.remove(0);
 
 					c += cpy;
 				}
+				
+				// flip ByteBuffer
+				if (!stringMode) 
+					((ByteBuffer)ret).flip();
 			}
 		}
 

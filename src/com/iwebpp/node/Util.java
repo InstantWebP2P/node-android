@@ -48,9 +48,9 @@ public final class Util {
     	}
     	
     	if (isString(chunk)) {
-    		String ss = (String)chunk;
+    		String s = (String)chunk;
     		
-    		return ss.substring(start, end);
+    		return s.substring(start, end);
     	}
     	
     	return null;
@@ -68,9 +68,9 @@ public final class Util {
     	}
     	
     	if (isString(chunk)) {
-    		String ss = (String)chunk;
+    		String s = (String)chunk;
     		
-    		return ss.substring(start, ss.length());
+    		return s.substring(start, s.length());
     	}
     	
     	return null;
