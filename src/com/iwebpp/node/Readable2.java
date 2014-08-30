@@ -29,12 +29,48 @@ implements Readable {
 
 	public static class Options {
 
-		public int highWaterMark;
-		public boolean objectMode;
-		public String defaultEncoding;
-		public String encoding;
+		private int highWaterMark;
+		private boolean objectMode;
+		private String defaultEncoding;
+		private String encoding;
 
+		public Options(
+				int highWaterMark, 
+				String encoding,
+				boolean objectMode, 
+				String defaultEncoding) {
+			this.highWaterMark = highWaterMark;
+			this.encoding = encoding;
+			this.objectMode = objectMode;
+			this.defaultEncoding = defaultEncoding;
+		}
+		/**
+		 * @return the highWaterMark
+		 */
+		public int getHighWaterMark() {
+			return highWaterMark;
+		}
+		/**
+		 * @return the objectMode
+		 */
+		public boolean isObjectMode() {
+			return objectMode;
+		}
+		/**
+		 * @return the defaultEncoding
+		 */
+		public String getDefaultEncoding() {
+			return defaultEncoding;
+		}
+		/**
+		 * @return the encoding
+		 */
+		public String getEncoding() {
+			return encoding;
+		}
+		private Options() {}
 	}
+	
 	public static class State {
 		private boolean objectMode;
 		private int highWaterMark;
@@ -57,16 +93,17 @@ implements Readable {
 		private CharsetDecoder decoder;
 		private CharsetEncoder encoder;
 		private String encoding;
-		public boolean resumeScheduled;
+		private boolean resumeScheduled;
 
 
-		public State(Options options, final Readable2 stream) {
+		protected State(Options options, final Readable2 stream) {
 			///options = options || {};
 
 			// object stream flag. Used to make read(n) ignore n and to
 			// make all the buffer merging and length checks go away
-			this.setObjectMode(!!options.objectMode);
+			this.setObjectMode(options.objectMode);
 
+			// TBD...
 			///if (stream instanceof Stream.Duplex)
 			///	this.objectMode = this.objectMode || !!options.readableObjectMode;
 
@@ -103,7 +140,8 @@ implements Readable {
 			// Crypto is kind of old and crusty.  Historically, its default string
 			// encoding is 'binary' so we have to make this configurable.
 			// Everything else in the universe uses 'utf8', though.
-			this.defaultEncoding = options.defaultEncoding != null ? options.defaultEncoding : "UTF-8";
+			this.defaultEncoding = options.defaultEncoding != null ? 
+					options.defaultEncoding : "UTF-8";
 
 			// when piping, we only care about 'readable' events that happen
 			// after read()ing all the bytes and not getting any pushback.
@@ -221,8 +259,10 @@ implements Readable {
 				String e = "stream.unshift() after end event";
 				stream.emit("error", e);
 			} else {
-				if (state.getDecoder()!=null && !addToFront && !Util.zeroString(encoding))
-						chunk = state.getDecoder().decode((ByteBuffer) chunk);
+				if (state.getDecoder()!=null && !addToFront && Util.zeroString(encoding)) {
+					chunk = state.getDecoder().decode((ByteBuffer) chunk).toString();
+					Log.d(TAG, "decoded chunk "+chunk);
+				}
 
 				if (!addToFront)
 					state.reading = false;
@@ -349,7 +389,7 @@ this._readableState.encoding = enc;
 		if (n == 0 &&
 				state.needReadable &&
 				(state.length >= state.highWaterMark || state.isEnded())) {
-			Log.d(TAG, "read: emitReadable" + state.length + state.isEnded());
+			Log.d(TAG, "read: emitReadable" + state.length + "" + state.isEnded());
 			if (state.length == 0 && state.isEnded())
 				endReadable(this);
 			else
@@ -628,6 +668,9 @@ this._readableState.encoding = enc;
 	private static void onEofChunk(Readable2 stream, State state) throws Throwable {
 		if (state.getDecoder()!=null && !state.isEnded()) {
 			///Object chunk = state.decoder.end();
+			
+			// Reset decoder anyway
+			/*
 			CharBuffer cbuf = CharBuffer.allocate(1024 * 1024);
 			state.getDecoder().flush(cbuf);
 			String chunk = cbuf.toString();
@@ -636,6 +679,8 @@ this._readableState.encoding = enc;
 				state.buffer.add(chunk);
 				state.length += state.isObjectMode() ? 1 : Util.chunkLength(chunk);
 			}
+			*/
+			state.getDecoder().reset();
 		}
 		state.setEnded(true);
 
@@ -659,117 +704,208 @@ this._readableState.encoding = enc;
 		return er;
 	}
 
-	public Writable pipe(final Writable dest, boolean end) {
-		final Readable source = this;
+	public Writable pipe(final Writable dest, boolean pipeOpts) throws Throwable {
+		  final Readable2 src = this;
+		  final State state = this._readableState;
 
-		final EventEmitter.Listener ondata = new EventEmitter.Listener() {
+		  /*switch (state.pipesCount) {
+		    case 0:
+		      state.pipes = dest;
+		      break;
+		    case 1:
+		      state.pipes = [state.pipes, dest];
+		      break;
+		    default:
+		      state.pipes.push(dest);
+		      break;
+		  }*/
+		  state.pipes.add(dest);
+		  state.pipesCount += 1;
+		  Log.d(TAG, "pipe count=" + state.pipesCount + "opts=" + pipeOpts);
+
+		  /*
+		  boolean doEnd = (!pipeOpts || pipeOpts.end !== false) &&
+		              dest !== process.stdout &&
+		              dest !== process.stderr;
+*/
+		  boolean doEnd = pipeOpts;
+		  
+		  final Listener onend = new Listener() {
+
+			  @Override
+			  public void invoke(Object readable) throws Throwable {
+				  Log.d(TAG, "onend");
+				  dest.end(null, null, null);
+			  }
+
+		  };
+
+		  // when the dest drains, it reduces the awaitDrain counter
+		  // on the source.  This would be more elegant with a .once()
+		  // handler in flow(), but adding and removing repeatedly is
+		  // too slow.
+		  final Listener ondrain = pipeOnDrain(src);
+		  dest.on("drain", ondrain);  
+		  
+          final Listener ondata = new Listener() {
+
 			@Override
-			public void invoke(Object chunk) {
-				if (dest.writable()) {
-					if (false == dest.write(chunk, null, null)) {
-						source.pause();
-					}
+			public void invoke(Object chunk) throws Throwable {
+			    Log.d(TAG, "ondata");
+			    boolean ret = dest.write(chunk, null, null);
+			    if (false == ret) {
+			      Log.d(TAG, "false write response, pause " + src._readableState.awaitDrain);
+			      src._readableState.awaitDrain++;
+			      src.pause();
+			    }
+			  }
+        	  
+          };	
+          src.on("data", ondata);
+
+          // if the dest has an error, then stop piping into it.
+          // however, don't suppress the throwing behavior for this.
+          final Listener onerror = new Listener() {
+
+        	  @Override
+        	  public void invoke(Object er) throws Throwable {
+        		  Log.d(TAG, "onerror " + er);
+        		  unpipe(src, (Writable2) dest);
+        		  dest.removeListener("error", this);
+        		  if (dest.listenerCount("error") == 0)
+        			  dest.emit("error", er);
+        	  }
+
+          };
+		  
+		  // This is a brutally ugly hack to make sure that our error handler
+		  // is attached before any userland ones.  NEVER DO THIS.
+		  /*if (!dest._events || !dest._events.error)
+		    dest.on("error", onerror);
+		  else if (Array.isArray(dest._events.error))
+		    dest._events.error.unshift(onerror);
+		  else
+		    dest._events.error = [onerror, dest._events.error];
+          */
+          // TBD...
+          dest.addListener("error", onerror, 0);
+
+		  // Both close and finish should trigger unpipe, but only once.
+		  final Listener onclose = new Listener() {
+
+        	  @Override
+        	  public void invoke(Object er) throws Throwable {
+      		    ///dest.removeListener("finish", onfinish);
+        		dest.removeListener("finish");
+    		    unpipe(src, (Writable2) dest);
+    		  }
+
+          };
+		  dest.once("close", onclose);
+		  
+		  final Listener onfinish = new Listener() {
+
+        	  @Override
+        	  public void invoke(Object er) throws Throwable {
+      		    Log.d(TAG, "onfinish");
+    		    dest.removeListener("close", onclose);
+    		    unpipe(src, (Writable2) dest);
+    		  }
+
+          };
+		  dest.once("finish", onfinish);
+
+		  // tell the dest that it's being piped to
+		  dest.emit("pipe", src);
+
+		  // start the flow if it hasn't been started already.
+		  if (!state.flowing) {
+		    Log.d(TAG, "pipe resume");
+		    src.resume();
+		  }
+		  		  
+		  final Listener cleanup = new Listener() {
+
+			  @Override
+			  public void invoke(Object data) throws Throwable {
+				  Log.d(TAG, "cleanup");
+
+				  // cleanup event handlers once the pipe is broken
+				  dest.removeListener("close", onclose);
+				  dest.removeListener("finish", onfinish);
+				  dest.removeListener("drain", ondrain);
+				  dest.removeListener("error", onerror);
+				  ///dest.removeListener("unpipe", onunpipe);
+				  src.removeListener("end", onend);
+				  src.removeListener("end", this);
+				  src.removeListener("data", ondata);
+
+				  // if the reader is waiting for a drain event from this
+				  // specific writer, then it would cause it to never start
+				  // flowing again.
+				  // So, if this is awaiting a drain, then we just call it now.
+				  // If we don't know, then assume that we are waiting for one.
+				  Writable2 wdest = (Writable2)dest;
+				  ///if (state.awaitDrain &&
+				  ///(!dest._writableState || dest._writableState.needDrain))
+				  if (state.awaitDrain>0 && wdest.isNeedDrain())
+					  ondrain.invoke(null);
+			  }
+
+		  };
+		  
+		  final Listener onunpipe = new Listener() {
+
+			  @Override
+			  public void invoke(Object readable) throws Throwable {
+				  Log.d(TAG, "onunpipe");
+				  if (readable.equals(src)) {
+					  cleanup.invoke(null);
+				  }
+			  }
+
+		  };
+		  dest.once("unpipe", onunpipe);
+		  
+		  Listener endFn = doEnd ? onend : cleanup;
+		  if (state.endEmitted)
+			  // TBD...
+		    ///process.nextTick(endFn);
+			  endFn.invoke(null);
+		  else
+		    src.once("end", endFn);
+		  
+		  return dest;
+}
+
+	private static void unpipe(Readable2 src, Writable2 dest) throws Throwable {
+		Log.d(TAG, "unpipe");
+		src.unpipe(dest);
+	}
+
+	private static Listener pipeOnDrain(final Readable2 src) {
+		return new Listener () {
+			@Override
+			public void invoke(Object data) throws Throwable {
+				State state = src._readableState;
+
+				Log.d(TAG, "pipeOnDrain "+state.awaitDrain);
+				if (state.awaitDrain > 0)
+					state.awaitDrain--;
+				if (state.awaitDrain == 0 && src.listenerCount("data")>0) {
+					state.flowing = true;
+					flow(src);
 				}
 			}
 		};
-		source.on("data", ondata);
-
-		final EventEmitter.Listener ondrain = new EventEmitter.Listener() {
-			@Override
-			public void invoke(Object data) {
-				if (source.readable()) {
-					source.resume();
-				}
-			}
-		};
-		dest.on("drain", ondrain);
-
-		final EventEmitter.Listener onend = new EventEmitter.Listener() {
-			@Override
-			public void invoke(Object data) {
-				if (didOnEnd) return;
-				didOnEnd = true;
-
-				dest.end(null, null, null);
-			}
-		};
-
-		final EventEmitter.Listener onclose = new EventEmitter.Listener() {
-			@Override
-			public void invoke(Object data) {
-				if (didOnEnd) return;
-				didOnEnd = true;
-
-				///if (util.isFunction(dest.destroy)) dest.destroy();
-			}
-		};
-
-		// If the 'end' option is not supplied, dest.end() will be called when
-		// source gets the 'end' or 'close' events.  Only dest.end() once.
-		if (end != false) {
-			source.on("end", onend);
-			source.on("close", onclose);
-		}
-
-		// don't leave dangling pipes when there are errors.
-		final EventEmitter.Listener onerror = new EventEmitter.Listener() {
-			@Override
-			public void invoke(Object data) {
-				{
-					source.removeListener("data");
-					source.removeListener("end");
-					source.removeListener("close");
-					source.removeListener("error");
-
-					dest.removeListener("drain");
-					dest.removeListener("error");
-					dest.removeListener("close");
-				}
-
-				try {
-					if (listenerCount("error") == 0) {
-						throw new Exception("Unhandled error"); // Unhandled stream error in pipe.
-					}
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		};
-
-		// remove all the event listeners that were added.
-		final EventEmitter.Listener cleanup = new EventEmitter.Listener() {
-			@Override
-			public void invoke(Object data) {
-				source.removeListener("data");
-				source.removeListener("end");
-				source.removeListener("close");
-				source.removeListener("error");
-
-				dest.removeListener("drain");
-				dest.removeListener("error");
-				dest.removeListener("close");
-			}
-		};
-
-		source.on("error", onerror);
-		dest.on("error", onerror);
-
-		source.on("end", cleanup);
-
-		source.on("close", cleanup);
-		dest.on("close", cleanup);
-
-		dest.emit("pipe", source);
-
-		// Allow for unix-like usage: A.pipe(B).pipe(C)
-		return dest;
 	}
 
 	@Override
-	public Readable unpipe(Writable dest) {
+	public Readable unpipe(Writable dest) throws Throwable {
 		State state = this._readableState;
 
+		Log.d(TAG, "pipesCount "+state.pipesCount);
+		
 		// if we're not piping anywhere, then do nothing.
 		if (state.pipesCount == 0)
 			return this;
@@ -796,7 +932,6 @@ this._readableState.encoding = enc;
 		}
 
 		// slow case. multiple pipe destinations.
-
 		if (dest == null) {
 			// remove all.
 			List<Writable> dests = state.pipes;
@@ -830,7 +965,7 @@ this._readableState.encoding = enc;
 
 	// set up data events if they are asked for
 	// Ensure readable listeners eventually get something
-	public boolean on(final String ev, final Listener fn) {
+	public boolean on(final String ev, final Listener fn) throws Throwable {
 		boolean res = super.on(ev, fn);
 
 		// If listening to data, and it has not explicitly been paused,
@@ -873,7 +1008,7 @@ this._readableState.encoding = enc;
 
 	// pause() and resume() are remnants of the legacy readable stream API
 	// If the user uses them, then switch into old mode.
-	public Readable resume() {
+	public Readable resume() throws Throwable {
 		State state = this._readableState;
 		if (!state.flowing) {
 			Log.d(TAG, "resume");
@@ -883,7 +1018,7 @@ this._readableState.encoding = enc;
 		return this;
 	}
 
-	private static void resume(Readable2 stream, State state) {
+	private static void resume(Readable2 stream, State state) throws Throwable {
 		if (!state.resumeScheduled) {
 			state.resumeScheduled = true;
 			// TBD...
@@ -893,7 +1028,7 @@ this._readableState.encoding = enc;
 		}
 	}
 
-	private static void resume_(Readable2 stream, State state) {
+	private static void resume_(Readable2 stream, State state) throws Throwable {
 		if (!state.reading) {
 			Log.d(TAG, "resume read 0");
 			try {
@@ -905,23 +1040,15 @@ this._readableState.encoding = enc;
 		}
 
 		state.resumeScheduled = false;
+
 		stream.emit("resume");
-		try {
-			flow(stream);
-		} catch (Throwable e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		flow(stream);
+
 		if (state.flowing && !state.reading)
-			try {
-				stream.read(0);
-			} catch (Throwable e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			stream.read(0);
 	}
 
-	public Readable pause() {
+	public Readable pause() throws Throwable {
 		Log.d(TAG, "call pause flowing=" + this._readableState.flowing);
 		if (false != this._readableState.flowing) {
 			Log.d(TAG, "pause");
@@ -938,7 +1065,7 @@ this._readableState.encoding = enc;
 	// wrap an old-style stream as the async data source.
 	// This is *not* part of the readable stream interface.
 	// It is an ugly unfortunate mess of history.
-	public static Readable2 wrap(final Readable stream, Options options) {		  
+	public static Readable2 wrap(final Readable stream, Options options) throws Throwable {		  
 		return new WrapReadable2(options, stream);
 	}
 	
@@ -947,5 +1074,5 @@ this._readableState.encoding = enc;
 	// call cb(er, data) where data is <= n in length.
 	// for virtual (non-string, non-buffer) streams, "length" is somewhat
 	// arbitrary, and perhaps not very meaningful.
-	public abstract void _read(int size);
+	public abstract void _read(int size) throws Throwable;
 }

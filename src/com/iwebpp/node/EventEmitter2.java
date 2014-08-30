@@ -1,7 +1,7 @@
 package com.iwebpp.node;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +20,7 @@ public class EventEmitter2 implements EventEmitter {
     }
     
 	@Override
-	public boolean emit(String event) {
+	public boolean emit(String event) throws Throwable {
 		if (events.containsKey(event)) {
 			for (Listener cb : events.get(event))
 				cb.invoke(null);
@@ -32,7 +32,7 @@ public class EventEmitter2 implements EventEmitter {
 	}
 
 	@Override
-	public boolean emit(String event, Object data) {
+	public boolean emit(String event, Object data) throws Throwable {
 		if (events.containsKey(event)) {
 			for (Listener cb : events.get(event))
 				cb.invoke(data);
@@ -54,13 +54,33 @@ public class EventEmitter2 implements EventEmitter {
 		}
 		
 		if (!events.containsKey(event)) {
-			events.put(event, new ArrayList<Listener>());
+			events.put(event, new LinkedList<Listener>());
 		}
+		
 		return events.get(event).add(cb);
+	}
+	
+	@Override
+	public boolean addListener(String event, Listener cb, int priority) {
+		// check maxListens
+		if (maxEvents.containsKey(event) && 
+			maxEvents.get(event) < listenerCount(event)) {
+			Log.d(TAG, "exceed maxListeners@"+event);
+
+			return false;
+		}
+		
+		if (!events.containsKey(event)) {
+			events.put(event, new LinkedList<Listener>());
+		}
+		
+		events.get(event).add(priority, cb);
+		
+		return true;
 	}
 
 	@Override
-	public boolean on(String event, Listener cb) {
+	public boolean on(String event, Listener cb) throws Throwable {
 		return addListener(event, cb);
 	}
 
@@ -69,7 +89,7 @@ public class EventEmitter2 implements EventEmitter {
 		return addListener(event, new Listener(){
 
 			@Override
-			public void invoke(final Object data) {
+			public void invoke(final Object data) throws Throwable {
 				// TODO Auto-generated method stub
 				ocb.invoke(data);
 

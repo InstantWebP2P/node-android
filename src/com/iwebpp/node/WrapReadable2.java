@@ -16,7 +16,7 @@ public final class WrapReadable2 extends Readable2 {
 	private State state;
 	boolean paused;
 
-	public WrapReadable2(Options options, Readable oldstream) {
+	public WrapReadable2(Options options, Readable oldstream) throws Throwable {
 		super(options);
 		// TODO Auto-generated constructor stub
 		stream = oldstream;
@@ -34,13 +34,17 @@ public final class WrapReadable2 extends Readable2 {
 			      if (chunk && chunk.length)
 			        self.push(chunk);
 					 */
+					
+					// Reset decoder anyway
+					/*
 					CharBuffer cbuf = CharBuffer.allocate(1024 * 1024);
 					state.getDecoder().flush(cbuf);
 					String chunk = cbuf.toString();
 
 					if (chunk!=null && Util.chunkLength(chunk)>0) {
 						self.push(chunk, null);
-					}
+					}*/
+					state.getDecoder().reset();
 				}
 
 				self.push(null, null);
@@ -54,7 +58,7 @@ public final class WrapReadable2 extends Readable2 {
 				Log.d(TAG, "wrapped data");
 				if (state.getDecoder() != null)
 					///chunk = state.decoder.write(chunk);
-					chunk = state.getDecoder().decode((ByteBuffer) chunk);
+					chunk = state.getDecoder().decode((ByteBuffer) chunk).toString();
 
 				if (chunk==null || !state.isObjectMode() && Util.chunkLength(chunk)==0)
 					return;
@@ -123,7 +127,7 @@ public final class WrapReadable2 extends Readable2 {
 	// when we try to consume some more bytes, simply unpause the
 	// underlying stream.
 	@Override
-	public void _read(int n) {
+	public void _read(int n) throws Throwable {
 		Log.d(TAG, "wrapped _read "+n);
 		if (paused) {
 			paused = false;

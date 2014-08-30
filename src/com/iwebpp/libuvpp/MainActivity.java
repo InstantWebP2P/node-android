@@ -3,6 +3,7 @@ package com.iwebpp.libuvpp;
 import com.iwebpp.libuvpp.R;
 import com.iwebpp.libuvpp.tests.*;
 import com.iwebpp.node.tests.EE2Test;
+import com.iwebpp.node.tests.StreamTest;
 
 import android.os.Bundle;
 import android.app.Activity;
@@ -32,6 +33,7 @@ public class MainActivity extends Activity {
 		
 		// Node Unit tests
 		new EE2Test().start();
+		new StreamTest().start();
 
 	}
 
