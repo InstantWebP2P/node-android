@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 
 import android.util.Log;
 
+import com.iwebpp.node.Duplex;
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.Readable;
 import com.iwebpp.node.Readable2;
@@ -79,6 +80,60 @@ public final class StreamTest {
 				// decode chunk to string
 				String result = Charset.forName("utf8").newDecoder().decode((ByteBuffer)chunk).toString();
 				Log.d(TAG, "DummyWritable: decoded string "+result);
+			}
+			
+			return true;
+		}
+    	
+    }
+    
+    private class DummyDuplex extends Duplex {
+		private int _max = 20;
+		private int _index = 1;
+		
+		public DummyDuplex() {
+			super(new Options(-1, "utf8", false, "utf8"), 
+				  new Writable2.Options(-1, true, "utf8", false));
+			// TODO Auto-generated constructor stub
+			
+			_index = 1;
+		}
+
+		@Override
+		public void _read(int size) throws Throwable {
+			// TODO Auto-generated method stub
+			int i = this._index++;
+			if (i > this._max)
+				this.push(null, null);
+			else {
+				for (int c = 0; c < 3; c ++) {
+					String str = burst + "@大家好" + i+"/"+c+"$";
+
+					ByteBuffer buf = ByteBuffer.wrap(str.getBytes("utf8"));
+					if (!this.push(buf, null)) break;
+					///if (!this.push(str, "utf8")) break;
+					
+					Log.d(TAG, "DummyDuplex: _read "+str);
+				}
+			}
+		}
+
+		@Override
+		public boolean _write(Object chunk, String encoding, WriteCB cb) throws Throwable {
+			// TODO Auto-generated method stub
+			if (Util.isString(chunk)) {
+				Log.d(TAG, "DummyDuplex: encdoing "+encoding+":"+chunk.toString());
+				
+				if (cb != null) cb.invoke(null);
+				
+			} else {
+				Log.d(TAG, "DummyDuplex: binary data "+chunk.toString());
+				
+				if (cb != null) cb.invoke(null);
+
+				// decode chunk to string
+				String result = Charset.forName("utf8").newDecoder().decode((ByteBuffer)chunk).toString();
+				Log.d(TAG, "DummyDuplex: decoded string "+result);
 			}
 			
 			return true;
@@ -205,6 +260,19 @@ public final class StreamTest {
 		return true;
 	}
     
+    private boolean testDuplex() {    	
+ 		final Duplex du = new DummyDuplex();
+     	
+ 		try {
+			du.pipe(du, true);
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+ 		
+ 		return true;
+ 	}
+    
     private boolean testFinish() {
     	final Writable ws = new DummyWritable();
 
@@ -249,6 +317,7 @@ public final class StreamTest {
 				test.testRead_less();
 				test.testRead_more();
 				test.testRead_forever();
+				test.testDuplex();
 
 			}
 		})).start();

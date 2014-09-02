@@ -1,12 +1,7 @@
 package com.iwebpp.node;
 
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Vector;
 
 public abstract class Writable2 
 extends EventEmitter2 
@@ -41,6 +36,7 @@ implements Writable {
 			this.encoding = encoding;
 			this.callback = cb;
 		}
+		@SuppressWarnings("unused")
 		private WriteReq() {
 		}
 	}
@@ -85,6 +81,7 @@ implements Writable {
 			this.decodeStrings = decodeStrings;
 			this.defaultEncoding = defaultEncoding;
 		}
+		@SuppressWarnings("unused")
 		private Options(){}
 	}
 
@@ -107,7 +104,6 @@ implements Writable {
 		protected WriteCB writecb;
 		protected int writelen;
 		protected int pendingcb;
-		protected boolean errorEmitted;
 		private boolean prefinished;
 
 
@@ -196,9 +192,6 @@ implements Writable {
 			// emit prefinish if the only thing we're waiting for is _write cbs
 			// This is relevant for synchronous Transform streams
 			this.prefinished = false;
-
-			// True if the error was already emitted and should not be thrown again
-			this.errorEmitted = false;
 		}
 	}
 
@@ -226,7 +219,8 @@ implements Writable {
 	  // legacy.
 	  this.writable = true;
     }
-    private Writable2() {
+    @SuppressWarnings("unused")
+	private Writable2() {
 	}
     
     public boolean writable() { 
@@ -566,7 +560,6 @@ implements Writable {
 			cb.invoke(error);
 		}
 
-		stream._writableState.errorEmitted = true;
 		stream.emit("error", error);
 	}
 

@@ -2,7 +2,7 @@ package com.iwebpp.node;
 
 public abstract class Duplex extends Readable2 
 implements Writable {
-	private final static String TAG = "WrapReadable2";
+	private final static String TAG = "Duplex";
 
 	private Writable2 _writable;
 	
@@ -17,7 +17,7 @@ implements Writable {
 		private DuplexWritable() {super(null);}
 
 		@Override
-		public boolean _write(Object chunk, String encoding, WriteCB cb) {
+		public boolean _write(Object chunk, String encoding, WriteCB cb) throws Throwable {
 			// TODO Auto-generated method stub
 			return hold._write(chunk, encoding, cb);
 		}
@@ -51,8 +51,8 @@ implements Writable {
 	}
 	
 	@Override
-	public abstract void _read(int size);
+	public abstract void _read(int size) throws Throwable;
 	
-	public abstract boolean _write(Object chunk, String encoding, WriteCB cb);
+	public abstract boolean _write(Object chunk, String encoding, WriteCB cb) throws Throwable;
 	
 }

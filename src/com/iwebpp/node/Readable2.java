@@ -1,29 +1,18 @@
 package com.iwebpp.node;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-
 import android.text.TextUtils;
 import android.util.Log;
-
-import com.iwebpp.node.EventEmitter.Listener;
-import com.iwebpp.node.Writable2.Options;
 
 
 public abstract class Readable2 
 extends EventEmitter2 
 implements Readable {
 	private final static String TAG = "Readable2";
-	private boolean didOnEnd = false;
 	protected State _readableState;
 	private boolean readable;
 
@@ -68,6 +57,7 @@ implements Readable {
 		public String getEncoding() {
 			return encoding;
 		}
+		@SuppressWarnings("unused")
 		private Options() {}
 	}
 	
@@ -87,11 +77,9 @@ implements Readable {
 		private boolean emittedReadable;
 		private boolean readableListening;
 		private String defaultEncoding;
-		private boolean ranOut;
 		private int awaitDrain;
 		private boolean readingMore;
 		private CharsetDecoder decoder;
-		private CharsetEncoder encoder;
 		private String encoding;
 		private boolean resumeScheduled;
 
@@ -143,10 +131,6 @@ implements Readable {
 			this.defaultEncoding = options.defaultEncoding != null ? 
 					options.defaultEncoding : "UTF-8";
 
-			// when piping, we only care about 'readable' events that happen
-			// after read()ing all the bytes and not getting any pushback.
-			this.ranOut = false;
-
 			// the number of writers that are awaiting a drain event in .pipe()s
 			this.awaitDrain = 0;
 
@@ -163,6 +147,7 @@ implements Readable {
 				this.encoding = options.encoding;
 			}
 		}
+		@SuppressWarnings("unused")
 		private State() {}
 		/**
 		 * @return the decoder
@@ -213,26 +198,8 @@ implements Readable {
 		// legacy
 		this.readable = true;
 	}
+	@SuppressWarnings("unused")
 	private Readable2() {}
-
-	// Manually shove something into the read() buffer.
-	// This returns true if the highWaterMark has not been hit yet,
-	// similar to how Writable.write() returns true if you should
-	// write() some more.
-	public boolean push(Object chunk, String encoding) throws Throwable {
-		State state = this._readableState;
-
-		if (Util.isString(chunk) && !state.isObjectMode()) {
-			encoding = encoding != null ?  encoding : state.defaultEncoding;
-			if (encoding != state.encoding) {
-				///chunk = new Buffer(chunk, encoding);
-				chunk = ByteBuffer.wrap(((String)chunk).getBytes(encoding));
-				encoding = "";
-			}
-		}
-
-		return readableAddChunk(this, state, chunk, encoding, false);
-	}
 
 	// Unshift should *always* be something directly out of read()
 	public boolean unshift(Object chunk) throws Throwable {
@@ -302,6 +269,10 @@ implements Readable {
 	//needReadable was set, then we ought to push more, so that another
 	//'readable' event will be triggered.
 	private static boolean needMoreData(State state) {
+		Log.d(TAG, "needMoreData: state.length:"+
+				state.length+",state.highWaterMark:"+
+				state.highWaterMark);
+
 		return !state.isEnded() &&
 				(state.needReadable ||
 						state.length < state.highWaterMark ||
@@ -1089,6 +1060,25 @@ this._readableState.encoding = enc;
 		return new WrapReadable2(options, stream);
 	}
 	
+	// Manually shove something into the read() buffer.
+	// This returns true if the highWaterMark has not been hit yet,
+	// similar to how Writable.write() returns true if you should
+	// write() some more.
+	protected boolean push(Object chunk, String encoding) throws Throwable {
+		State state = this._readableState;
+
+		if (Util.isString(chunk) && !state.isObjectMode()) {
+			encoding = encoding != null ?  encoding : state.defaultEncoding;
+			if (encoding != state.encoding) {
+				///chunk = new Buffer(chunk, encoding);
+				chunk = ByteBuffer.wrap(((String)chunk).getBytes(encoding));
+				encoding = "";
+			}
+		}
+
+		return readableAddChunk(this, state, chunk, encoding, false);
+	}
+
 	// _read(size)
 	// abstract method.  to be overridden in specific implementation classes.
 	// call cb(er, data) where data is <= n in length.
