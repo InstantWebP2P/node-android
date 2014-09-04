@@ -85,26 +85,26 @@ implements Writable {
 		private Options(){}
 	}
 
-	private class State {
-		private ArrayList<WriteReq> buffer;
-		private boolean objectMode;
-		private int highWaterMark;
-		private boolean needDrain;
-		private boolean ending;
-		private boolean ended;
-		private boolean finished;
-		private boolean decodeStrings;
-		private String defaultEncoding;
-		private int length;
-		private boolean writing;
-		private int corked;
-		private boolean sync;
-		private boolean bufferProcessing;
-		private WriteCB onwrite;
-		protected WriteCB writecb;
-		protected int writelen;
-		protected int pendingcb;
-		private boolean prefinished;
+	public class State {
+		ArrayList<WriteReq> buffer;
+		boolean objectMode;
+		int highWaterMark;
+		boolean needDrain;
+		boolean ending;
+		boolean ended;
+		boolean finished;
+		boolean decodeStrings;
+		String defaultEncoding;
+		int length;
+		boolean writing;
+		int corked;
+		boolean sync;
+		boolean bufferProcessing;
+		WriteCB onwrite;
+		WriteCB writecb;
+		int writelen;
+		int pendingcb;
+		boolean prefinished;
 
 
 		public State(Options options, final Writable2 stream) {
@@ -171,7 +171,7 @@ implements Writable {
 			// the callback that's passed to _write(chunk,cb)
 			this.onwrite = new WriteCB() {
 				@Override
-				public void invoke(String error) throws Throwable {
+				public void invoke(String error) throws Exception {
 					onwrite(stream, error);
 				}
 			};
@@ -196,7 +196,7 @@ implements Writable {
 	}
 
 	// _write(chunk, encoding, callback)
-	public abstract boolean _write(Object chunk, String encoding, WriteCB cb) throws Throwable;
+	public abstract boolean _write(Object chunk, String encoding, WriteCB cb) throws Exception;
 
 	protected State _writableState;
 	
@@ -228,7 +228,7 @@ implements Writable {
     }
     
     // Helpers functions
-    private static void writeAfterEnd(Writable2 stream, State state, WriteCB cb) throws Throwable {
+    private static void writeAfterEnd(Writable2 stream, State state, WriteCB cb) throws Exception {
     	///var er = new Error('write after end');
     	// TODO: defer error events consistently everywhere, not just the cb
     	stream.emit("error", "write after end");
@@ -243,7 +243,7 @@ implements Writable {
     // Otherwise stream chunks are all considered to be of length=1, and the
     // watermarks determine how many objects to keep in the buffer, rather than
     // how many bytes or characters.
-    private static boolean validChunk(Writable2 stream, State state, Object chunk, WriteCB cb) throws Throwable {
+    private static boolean validChunk(Writable2 stream, State state, Object chunk, WriteCB cb) throws Exception {
     	boolean valid = true;
     	if (!Util.isBuffer(chunk) &&
     		!Util.isString(chunk) &&
@@ -261,7 +261,7 @@ implements Writable {
     	return valid;
     }
 
-    public boolean write(Object chunk, String encoding, WriteCB cb) throws Throwable {
+    public boolean write(Object chunk, String encoding, WriteCB cb) throws Exception {
     	State state = this._writableState;
     	boolean ret = false;
 
@@ -296,7 +296,7 @@ implements Writable {
     	return ret;
     }
 
-    public void end(Object chunk, String encoding, WriteCB cb) throws Throwable {
+    public void end(Object chunk, String encoding, WriteCB cb) throws Exception {
     	State state = this._writableState;
 
     	/*if (util.isFunction(chunk)) {
@@ -328,7 +328,7 @@ implements Writable {
     		endWritable(this, state, cb);
     }
 
-    private void endWritable(Writable2 stream, State state, final WriteCB cb) throws Throwable {
+    private void endWritable(Writable2 stream, State state, final WriteCB cb) throws Exception {
     	state.ending = true;
     	finishMaybe(stream, state);
     	if (cb != null) {
@@ -338,7 +338,7 @@ implements Writable {
     		else
     			stream.once("finish", new EventEmitter.Listener() {
     				@Override
-    				public void invoke(Object data) throws Throwable {
+    				public void invoke(Object data) throws Exception {
     					// TODO Auto-generated method stub
     					cb.invoke(null);
     				}
@@ -353,7 +353,7 @@ implements Writable {
     	state.corked++;
     }
 
-    protected void uncork() throws Throwable {
+    protected void uncork() throws Exception {
     	State state = this._writableState;
 
     	if (state.corked > 0) {
@@ -372,7 +372,7 @@ implements Writable {
     // in the queue, and wait our turn.  Otherwise, call _write
     // If we return false, then we need a drain event, so set that flag.
     private static boolean writeOrBuffer(Writable2 stream, State state,
-    		Object chunk, String encoding, WriteCB cb) throws Throwable {
+    		Object chunk, String encoding, WriteCB cb) throws Exception {
     	chunk = decodeChunk(state, chunk, encoding);
     	if (Util.isBuffer(chunk))
     		encoding = "buffer";
@@ -393,7 +393,7 @@ implements Writable {
     	return ret;
     }
 
-    private static Object decodeChunk(State state, Object chunk, String encoding) throws Throwable {
+    private static Object decodeChunk(State state, Object chunk, String encoding) throws Exception {
     	if (!state.objectMode &&
     		 state.decodeStrings != false &&
     		 Util.isString(chunk)) {
@@ -402,7 +402,7 @@ implements Writable {
     	return chunk;
     }
 
-	private static void onwrite(Writable2 stream, String error) throws Throwable {
+	private static void onwrite(Writable2 stream, String error) throws Exception {
 		State state = stream._writableState;
 		boolean sync = state.sync;
 		WriteCB cb = state.writecb;
@@ -434,7 +434,7 @@ implements Writable {
 	}
 
 	// if there's something in the buffer waiting, then process it
-	private static void clearBuffer(Writable2 stream, State state) throws Throwable {
+	private static void clearBuffer(Writable2 stream, State state) throws Exception {
 		state.bufferProcessing = true;
 
 		/*if (stream._writev && state.buffer.length > 1) {
@@ -488,7 +488,7 @@ implements Writable {
 	}
 
 	private static void doWrite(Writable2 stream, State state, boolean b,
-			int len, Object chunk, String encoding, WriteCB cb) throws Throwable {
+			int len, Object chunk, String encoding, WriteCB cb) throws Exception {
 		state.writelen = len;
 		state.writecb = cb;
 		state.writing = true;
@@ -501,7 +501,7 @@ implements Writable {
 	}
 
 	private static void afterWrite(Writable2 stream, State state,
-			boolean finished, WriteCB cb) throws Throwable {
+			boolean finished, WriteCB cb) throws Exception {
 		if (!finished)
 			onwriteDrain(stream, state);
 		state.pendingcb--;
@@ -509,7 +509,7 @@ implements Writable {
 		finishMaybe(stream, state);
 	}
 
-	private static boolean finishMaybe(Writable2 stream, State state) throws Throwable {
+	private static boolean finishMaybe(Writable2 stream, State state) throws Exception {
 		boolean need = needFinish(stream, state);
 		if (need) {
 			if (state.pendingcb == 0) {
@@ -522,7 +522,7 @@ implements Writable {
 		return need;
 	}
 
-	private static void prefinish(Writable2 stream, State state) throws Throwable {
+	private static void prefinish(Writable2 stream, State state) throws Exception {
 		if (!state.prefinished) {
 			state.prefinished = true;
 			stream.emit("prefinish");
@@ -532,7 +532,7 @@ implements Writable {
 	// Must force callback to be called on nextTick, so that we don't
 	// emit 'drain' before the write() consumer gets the 'false' return
 	// value, and has a chance to attach a 'drain' listener.
-	private static void onwriteDrain(Writable2 stream, State state) throws Throwable {
+	private static void onwriteDrain(Writable2 stream, State state) throws Exception {
 		if (state.length == 0 && state.needDrain) {
 			state.needDrain = false;
 			stream.emit("drain");
@@ -548,7 +548,7 @@ implements Writable {
 	}
 
 	private static void onwriteError(Writable2 stream, State state,
-			boolean sync, String error, WriteCB cb) throws Throwable {
+			boolean sync, String error, WriteCB cb) throws Exception {
 		if (sync) {
 			/// TBD
 			///process.nextTick(function() {

@@ -20,6 +20,10 @@ public final class Util {
     public static boolean isNullOrUndefined(Object chunk) {
     	return chunk == null;
     }
+
+    public static boolean isUndefined(Object chunk) {
+    	return chunk == null;
+    }
     
     public static int chunkLength(Object chunk) {
     	if (isBuffer(chunk)) {

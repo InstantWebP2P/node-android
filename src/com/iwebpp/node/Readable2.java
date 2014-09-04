@@ -62,26 +62,26 @@ implements Readable {
 	}
 	
 	public static class State {
-		private boolean objectMode;
-		private int highWaterMark;
-		private List<Object> buffer; // ByteBuffer or String
-		private int length;
-		private List<Writable> pipes;
-		private int pipesCount;
-		private boolean flowing;
-		private boolean ended;
-		private boolean endEmitted;
-		private boolean reading;
-		private boolean sync;
-		private boolean needReadable;
-		private boolean emittedReadable;
-		private boolean readableListening;
-		private String defaultEncoding;
-		private int awaitDrain;
-		private boolean readingMore;
-		private CharsetDecoder decoder;
-		private String encoding;
-		private boolean resumeScheduled;
+		boolean objectMode;
+		int highWaterMark;
+		List<Object> buffer; // ByteBuffer or String
+		int length;
+		List<Writable> pipes;
+		int pipesCount;
+		boolean flowing;
+		boolean ended;
+		boolean endEmitted;
+		boolean reading;
+		boolean sync;
+		boolean needReadable;
+		boolean emittedReadable;
+		boolean readableListening;
+		String defaultEncoding;
+		int awaitDrain;
+		boolean readingMore;
+		CharsetDecoder decoder;
+		String encoding;
+		boolean resumeScheduled;
 
 
 		protected State(Options options, final Readable2 stream) {
@@ -92,8 +92,8 @@ implements Readable {
 			this.setObjectMode(options.objectMode);
 
 			// TBD...
-			///if (stream instanceof Stream.Duplex)
-			///	this.objectMode = this.objectMode || !!options.readableObjectMode;
+			///if (stream instanceof Duplex)
+			///    this.objectMode = this.objectMode || !!options.readableObjectMode;
 
 			// the point at which it stops calling _read() to fill the buffer
 			// Note: 0 is a valid value, means "don't call _read preemptively ever"
@@ -202,13 +202,13 @@ implements Readable {
 	private Readable2() {}
 
 	// Unshift should *always* be something directly out of read()
-	public boolean unshift(Object chunk) throws Throwable {
+	public boolean unshift(Object chunk) throws Exception {
 		State state = this._readableState;
 		return readableAddChunk(this, state, chunk, "", true);
 	}
 
 	private static boolean readableAddChunk(Readable2 stream, State state, 
-			Object chunk, String encoding, boolean addToFront) throws Throwable {
+			Object chunk, String encoding, boolean addToFront) throws Exception {
 		String er = chunkInvalid(state, chunk);
 		if (er != null) {
 			stream.emit("error", er);
@@ -345,7 +345,7 @@ this._readableState.encoding = enc;
 	}
 
 	//you can override either this method, or the async _read(n) below.
-	public Object read(int n) throws Throwable {
+	public Object read(int n) throws Exception {
 		Log.d(TAG, "read " + n);
 		State state = this._readableState;
 		int nOrig = n;
@@ -577,7 +577,7 @@ this._readableState.encoding = enc;
 		return ret;
 	}
 
-	private static void endReadable(Readable2 stream) throws Throwable {
+	private static void endReadable(Readable2 stream) throws Exception {
 		State state = stream._readableState;
 
 		// If we get here before consuming all the bytes, then that is a
@@ -605,7 +605,7 @@ this._readableState.encoding = enc;
 	//it's in progress.
 	//However, if we're not ended, or reading, and the length < hwm,
 	//then go ahead and try to read some more preemptively.
-	private static void maybeReadMore(Readable2 stream, State state) throws Throwable {
+	private static void maybeReadMore(Readable2 stream, State state) throws Exception {
 		if (!state.readingMore) {
 			state.readingMore = true;
 			//TBD...
@@ -614,7 +614,7 @@ this._readableState.encoding = enc;
 			///});
 		}
 	}
-	private static void maybeReadMore_(Readable2 stream, State state) throws Throwable {
+	private static void maybeReadMore_(Readable2 stream, State state) throws Exception {
 		int len = state.length;
 		while (!state.reading && !state.flowing && !state.isEnded() &&
 				state.length < state.highWaterMark) {
@@ -632,7 +632,7 @@ this._readableState.encoding = enc;
 	//Don't emit readable right away in sync mode, because this can trigger
 	//another read() call => stack overflow.  This way, it might trigger
 	//a nextTick recursion warning, but that's not so bad.
-	private static void emitReadable(Readable2 stream) throws Throwable {
+	private static void emitReadable(Readable2 stream) throws Exception {
 		State state = stream._readableState;
 		state.needReadable = false;
 		if (!state.emittedReadable) {
@@ -647,13 +647,13 @@ this._readableState.encoding = enc;
 				emitReadable_(stream);
 		}
 	}
-	private static void emitReadable_(Readable2 stream) throws Throwable {
+	private static void emitReadable_(Readable2 stream) throws Exception {
 		Log.d(TAG, "emit readable");
 		stream.emit("readable");
 		flow(stream);
 	}
 
-	private static void flow(Readable2 stream) throws Throwable {
+	private static void flow(Readable2 stream) throws Exception {
 		State state = stream._readableState;
 		Log.d(TAG, "flow " + state.flowing);
 		if (state.flowing) {
@@ -665,7 +665,7 @@ this._readableState.encoding = enc;
 		}
 	}
 
-	private static void onEofChunk(Readable2 stream, State state) throws Throwable {
+	private static void onEofChunk(Readable2 stream, State state) throws Exception {
 		if (state.getDecoder()!=null && !state.isEnded()) {
 			///Object chunk = state.decoder.end();
 			
@@ -704,7 +704,7 @@ this._readableState.encoding = enc;
 		return er;
 	}
 
-	public Writable pipe(final Writable dest, boolean pipeOpts) throws Throwable {
+	public Writable pipe(final Writable dest, boolean pipeOpts) throws Exception {
 		  final Readable2 src = this;
 		  final State state = this._readableState;
 
@@ -733,7 +733,7 @@ this._readableState.encoding = enc;
 		  final Listener onend = new Listener() {
 
 			  @Override
-			  public void invoke(Object readable) throws Throwable {
+			  public void invoke(Object readable) throws Exception {
 				  Log.d(TAG, "onend");
 				  dest.end(null, null, null);
 			  }
@@ -750,7 +750,7 @@ this._readableState.encoding = enc;
           final Listener ondata = new Listener() {
 
 			@Override
-			public void invoke(Object chunk) throws Throwable {
+			public void invoke(Object chunk) throws Exception {
 			    Log.d(TAG, "ondata");
 			    boolean ret = dest.write(chunk, null, null);
 			    if (false == ret) {
@@ -768,7 +768,7 @@ this._readableState.encoding = enc;
           final Listener onerror = new Listener() {
 
         	  @Override
-        	  public void invoke(Object er) throws Throwable {
+        	  public void invoke(Object er) throws Exception {
         		  Log.d(TAG, "onerror " + er);
         		  unpipe(src, (Writable2) dest);
         		  dest.removeListener("error", this);
@@ -794,7 +794,7 @@ this._readableState.encoding = enc;
 		  final Listener onclose = new Listener() {
 
         	  @Override
-        	  public void invoke(Object er) throws Throwable {
+        	  public void invoke(Object er) throws Exception {
       		    ///dest.removeListener("finish", onfinish);
         		dest.removeListener("finish");
     		    unpipe(src, (Writable2) dest);
@@ -806,7 +806,7 @@ this._readableState.encoding = enc;
 		  final Listener onfinish = new Listener() {
 
         	  @Override
-        	  public void invoke(Object er) throws Throwable {
+        	  public void invoke(Object er) throws Exception {
       		    Log.d(TAG, "onfinish");
     		    dest.removeListener("close", onclose);
     		    unpipe(src, (Writable2) dest);
@@ -827,7 +827,7 @@ this._readableState.encoding = enc;
 		  final Listener cleanup = new Listener() {
 
 			  @Override
-			  public void invoke(Object data) throws Throwable {
+			  public void invoke(Object data) throws Exception {
 				  Log.d(TAG, "cleanup");
 
 				  // cleanup event handlers once the pipe is broken
@@ -857,7 +857,7 @@ this._readableState.encoding = enc;
 		  final Listener onunpipe = new Listener() {
 
 			  @Override
-			  public void invoke(Object readable) throws Throwable {
+			  public void invoke(Object readable) throws Exception {
 				  Log.d(TAG, "onunpipe");
 				  if (readable.equals(src)) {
 					  cleanup.invoke(null);
@@ -878,7 +878,7 @@ this._readableState.encoding = enc;
 		  return dest;
 }
 
-	private static void unpipe(Readable2 src, Writable2 dest) throws Throwable {
+	private static void unpipe(Readable2 src, Writable2 dest) throws Exception {
 		Log.d(TAG, "unpipe");
 		src.unpipe(dest);
 	}
@@ -886,7 +886,7 @@ this._readableState.encoding = enc;
 	private static Listener pipeOnDrain(final Readable2 src) {
 		return new Listener () {
 			@Override
-			public void invoke(Object data) throws Throwable {
+			public void invoke(Object data) throws Exception {
 				State state = src._readableState;
 
 				Log.d(TAG, "pipeOnDrain "+state.awaitDrain);
@@ -901,7 +901,7 @@ this._readableState.encoding = enc;
 	}
 
 	@Override
-	public Readable unpipe(Writable dest) throws Throwable {
+	public Readable unpipe(Writable dest) throws Exception {
 		State state = this._readableState;
 
 		Log.d(TAG, "pipesCount "+state.pipesCount);
@@ -966,7 +966,7 @@ this._readableState.encoding = enc;
 	// set up data events if they are asked for
 	// Ensure readable listeners eventually get something
 	@Override
-	public boolean on(final String ev, final Listener fn) throws Throwable {
+	public boolean on(final String ev, final Listener fn) throws Exception {
 		boolean res = super.on(ev, fn);
 
 		// If listening to data, and it has not explicitly been paused,
@@ -999,7 +999,7 @@ this._readableState.encoding = enc;
 
 	// pause() and resume() are remnants of the legacy readable stream API
 	// If the user uses them, then switch into old mode.
-	public Readable resume() throws Throwable {
+	public Readable resume() throws Exception {
 		State state = this._readableState;
 		if (!state.flowing) {
 			Log.d(TAG, "resume");
@@ -1009,7 +1009,7 @@ this._readableState.encoding = enc;
 		return this;
 	}
 
-	private static void resume(Readable2 stream, State state) throws Throwable {
+	private static void resume(Readable2 stream, State state) throws Exception {
 		if (!state.resumeScheduled) {
 			state.resumeScheduled = true;
 			// TBD...
@@ -1019,12 +1019,12 @@ this._readableState.encoding = enc;
 		}
 	}
 
-	private static void resume_(Readable2 stream, State state) throws Throwable {
+	private static void resume_(Readable2 stream, State state) throws Exception {
 		if (!state.reading) {
 			Log.d(TAG, "resume read 0");
 			try {
 				stream.read(0);
-			} catch (Throwable e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -1039,7 +1039,7 @@ this._readableState.encoding = enc;
 			stream.read(0);
 	}
 
-	public Readable pause() throws Throwable {
+	public Readable pause() throws Exception {
 		Log.d(TAG, "call pause flowing=" + this._readableState.flowing);
 		if (false != this._readableState.flowing) {
 			Log.d(TAG, "pause");
@@ -1056,7 +1056,7 @@ this._readableState.encoding = enc;
 	// wrap an old-style stream as the async data source.
 	// This is *not* part of the readable stream interface.
 	// It is an ugly unfortunate mess of history.
-	public static Readable2 wrap(final Readable stream, Options options) throws Throwable {		  
+	public static Readable2 wrap(final Readable stream, Options options) throws Exception {		  
 		return new WrapReadable2(options, stream);
 	}
 	
@@ -1064,7 +1064,7 @@ this._readableState.encoding = enc;
 	// This returns true if the highWaterMark has not been hit yet,
 	// similar to how Writable.write() returns true if you should
 	// write() some more.
-	protected boolean push(Object chunk, String encoding) throws Throwable {
+	protected boolean push(Object chunk, String encoding) throws Exception {
 		State state = this._readableState;
 
 		if (Util.isString(chunk) && !state.isObjectMode()) {
@@ -1084,5 +1084,5 @@ this._readableState.encoding = enc;
 	// call cb(er, data) where data is <= n in length.
 	// for virtual (non-string, non-buffer) streams, "length" is somewhat
 	// arbitrary, and perhaps not very meaningful.
-	public abstract void _read(int size) throws Throwable;
+	public abstract void _read(int size) throws Exception;
 }

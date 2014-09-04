@@ -35,7 +35,7 @@ public final class EE2Test extends EventEmitter2 {
 						Log.d(TAG, "fail@"+ss);
 				}
 			});
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -52,7 +52,7 @@ public final class EE2Test extends EventEmitter2 {
 			emit("unknown"); 
 			emit("unknown", "ok"); 
 			emit("unknown", "no");
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 

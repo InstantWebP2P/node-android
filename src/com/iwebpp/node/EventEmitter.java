@@ -3,15 +3,15 @@ package com.iwebpp.node;
 import java.util.List;
 
 public interface EventEmitter {
-	boolean emit(final String event) throws Throwable;
-	boolean emit(final String event, final Object data) throws Throwable;
+	boolean emit(final String event) throws Exception;
+	boolean emit(final String event, final Object data) throws Exception;
 
 	interface Listener {
-		void invoke(final Object data) throws Throwable;
+		void invoke(final Object data) throws Exception;
 	};
 
-	boolean on(final String event, final Listener cb) throws Throwable;
-	boolean once(final String event, final Listener cb) throws Throwable;
+	boolean on(final String event, final Listener cb) throws Exception;
+	boolean once(final String event, final Listener cb) throws Exception;
 	
 	boolean addListener(final String event, final Listener cb);
 	boolean addListener(String event, Listener cb, int priority);

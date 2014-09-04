@@ -5,6 +5,7 @@ implements Writable {
 	private final static String TAG = "Duplex";
 
 	private Writable2 _writable;
+	protected Writable2.State _writableState;
 	
 	private class DuplexWritable extends Writable2 {
 		private Duplex hold;
@@ -17,7 +18,7 @@ implements Writable {
 		private DuplexWritable() {super(null);}
 
 		@Override
-		public boolean _write(Object chunk, String encoding, WriteCB cb) throws Throwable {
+		public boolean _write(Object chunk, String encoding, WriteCB cb) throws Exception {
 			// TODO Auto-generated method stub
 			return hold._write(chunk, encoding, cb);
 		}
@@ -28,6 +29,7 @@ implements Writable {
 		super(roptions);
 		// TODO Auto-generated constructor stub
 		_writable = new DuplexWritable(woptions, this);
+		_writableState = _writable._writableState;
 	}
 
 	private Duplex(){
@@ -35,12 +37,12 @@ implements Writable {
 	}
 	
 	@Override
-	public boolean write(Object chunk, String encoding, WriteCB cb) throws Throwable {
+	public boolean write(Object chunk, String encoding, WriteCB cb) throws Exception {
 		// TODO Auto-generated method stub
 		return _writable.write(chunk, encoding, cb);
 	}
 	@Override
-	public void end(Object chunk, String encoding, WriteCB cb) throws Throwable {
+	public void end(Object chunk, String encoding, WriteCB cb) throws Exception {
 		// TODO Auto-generated method stub
 		_writable.end(chunk, encoding, cb);
 	}
@@ -51,8 +53,8 @@ implements Writable {
 	}
 	
 	@Override
-	public abstract void _read(int size) throws Throwable;
+	public abstract void _read(int size) throws Exception;
 	
-	public abstract boolean _write(Object chunk, String encoding, WriteCB cb) throws Throwable;
+	public abstract boolean _write(Object chunk, String encoding, WriteCB cb) throws Exception;
 	
 }

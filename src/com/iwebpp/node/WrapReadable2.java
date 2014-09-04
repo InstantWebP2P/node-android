@@ -16,7 +16,7 @@ public final class WrapReadable2 extends Readable2 {
 	private State state;
 	boolean paused;
 
-	public WrapReadable2(Options options, Readable oldstream) throws Throwable {
+	public WrapReadable2(Options options, Readable oldstream) throws Exception {
 		super(options);
 		// TODO Auto-generated constructor stub
 		stream = oldstream;
@@ -26,7 +26,7 @@ public final class WrapReadable2 extends Readable2 {
 		final Readable2 self = this;
 		stream.on("end", new EventEmitter.Listener() {
 			@Override
-			public void invoke(Object data) throws Throwable {
+			public void invoke(Object data) throws Exception {
 				Log.d(TAG, "wrapped end");
 
 				if (state.getDecoder()!=null && !state.isEnded()) {
@@ -54,7 +54,7 @@ public final class WrapReadable2 extends Readable2 {
 		stream.on("data", new EventEmitter.Listener() {
 
 			@Override
-			public void invoke(Object chunk) throws Throwable {
+			public void invoke(Object chunk) throws Exception {
 				Log.d(TAG, "wrapped data");
 				if (state.getDecoder() != null)
 					///chunk = state.decoder.write(chunk);
@@ -88,35 +88,35 @@ public final class WrapReadable2 extends Readable2 {
 		  });*/
 		stream.on("error", new EventEmitter.Listener() {
 			@Override
-			public void invoke(Object data) throws Throwable {
+			public void invoke(Object data) throws Exception {
 				// TODO Auto-generated method stub
 				self.emit("error", data);
 			}
 		});
 		stream.on("close", new EventEmitter.Listener() {
 			@Override
-			public void invoke(Object data) throws Throwable {
+			public void invoke(Object data) throws Exception {
 				// TODO Auto-generated method stub
 				self.emit("close", data);
 			}
 		});
 		stream.on("destroy", new EventEmitter.Listener() {
 			@Override
-			public void invoke(Object data) throws Throwable {
+			public void invoke(Object data) throws Exception {
 				// TODO Auto-generated method stub
 				self.emit("destroy", data);
 			}
 		});
 		stream.on("pause", new EventEmitter.Listener() {
 			@Override
-			public void invoke(Object data) throws Throwable {
+			public void invoke(Object data) throws Exception {
 				// TODO Auto-generated method stub
 				self.emit("pause", data);
 			}
 		});
 		stream.on("resume", new EventEmitter.Listener() {
 			@Override
-			public void invoke(Object data) throws Throwable {
+			public void invoke(Object data) throws Exception {
 				// TODO Auto-generated method stub
 				self.emit("resume", data);
 			}
@@ -127,7 +127,7 @@ public final class WrapReadable2 extends Readable2 {
 	// when we try to consume some more bytes, simply unpause the
 	// underlying stream.
 	@Override
-	public void _read(int n) throws Throwable {
+	public void _read(int n) throws Exception {
 		Log.d(TAG, "wrapped _read "+n);
 		if (paused) {
 			paused = false;

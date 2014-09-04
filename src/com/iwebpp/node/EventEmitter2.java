@@ -20,7 +20,7 @@ public class EventEmitter2 implements EventEmitter {
     }
     
 	@Override
-	public boolean emit(String event) throws Throwable {
+	public boolean emit(String event) throws Exception {
 		if (events.containsKey(event)) {
 			for (Listener cb : events.get(event))
 				cb.invoke(null);
@@ -32,7 +32,7 @@ public class EventEmitter2 implements EventEmitter {
 	}
 
 	@Override
-	public boolean emit(String event, Object data) throws Throwable {
+	public boolean emit(String event, Object data) throws Exception {
 		if (events.containsKey(event)) {
 			for (Listener cb : events.get(event))
 				cb.invoke(data);
@@ -80,7 +80,7 @@ public class EventEmitter2 implements EventEmitter {
 	}
 
 	@Override
-	public boolean on(String event, Listener cb) throws Throwable {
+	public boolean on(String event, Listener cb) throws Exception {
 		return addListener(event, cb);
 	}
 
@@ -89,7 +89,7 @@ public class EventEmitter2 implements EventEmitter {
 		return addListener(event, new Listener(){
 
 			@Override
-			public void invoke(final Object data) throws Throwable {
+			public void invoke(final Object data) throws Exception {
 				// TODO Auto-generated method stub
 				ocb.invoke(data);
 

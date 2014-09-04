@@ -39,7 +39,7 @@ public final class StreamTest {
 		}
 
 		@Override
-		public void _read(int size) throws Throwable {
+		public void _read(int size) throws Exception {
 			// TODO Auto-generated method stub
 			int i = this._index++;
 			if (i > this._max)
@@ -65,7 +65,7 @@ public final class StreamTest {
 		}
 
 		@Override
-		public boolean _write(Object chunk, String encoding, WriteCB cb) throws Throwable {
+		public boolean _write(Object chunk, String encoding, WriteCB cb) throws Exception {
 			// TODO Auto-generated method stub
 			if (Util.isString(chunk)) {
 				Log.d(TAG, "DummyWritable: encdoing "+encoding+":"+chunk.toString());
@@ -100,7 +100,7 @@ public final class StreamTest {
 		}
 
 		@Override
-		public void _read(int size) throws Throwable {
+		public void _read(int size) throws Exception {
 			// TODO Auto-generated method stub
 			int i = this._index++;
 			if (i > this._max)
@@ -119,7 +119,7 @@ public final class StreamTest {
 		}
 
 		@Override
-		public boolean _write(Object chunk, String encoding, WriteCB cb) throws Throwable {
+		public boolean _write(Object chunk, String encoding, WriteCB cb) throws Exception {
 			// TODO Auto-generated method stub
 			if (Util.isString(chunk)) {
 				Log.d(TAG, "DummyDuplex: encdoing "+encoding+":"+chunk.toString());
@@ -148,7 +148,7 @@ public final class StreamTest {
     		rs.on("readable", new Listener(){
 
     			@Override
-    			public void invoke(Object data) throws Throwable {
+    			public void invoke(Object data) throws Exception {
     				Object chunk;
 
     				Log.d(TAG, "testRead_less: start...");
@@ -162,7 +162,7 @@ public final class StreamTest {
     			}
 
     		});
-    	} catch (Throwable e) {
+    	} catch (Exception e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
     	}
@@ -177,7 +177,7 @@ public final class StreamTest {
     		rs.on("readable", new Listener(){
 
     			@Override
-    			public void invoke(Object data) throws Throwable {
+    			public void invoke(Object data) throws Exception {
     				Object chunk;
 
     				Log.d(TAG, "testRead_more: start...");
@@ -191,7 +191,7 @@ public final class StreamTest {
     			}
 
     		});
-    	} catch (Throwable e) {
+    	} catch (Exception e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
     	}
@@ -206,7 +206,7 @@ public final class StreamTest {
     		rs.on("readable", new Listener(){
 
     			@Override
-    			public void invoke(Object data) throws Throwable {
+    			public void invoke(Object data) throws Exception {
     				Object chunk;
 
     				Log.d(TAG, "testRead_forever: start...");
@@ -219,7 +219,7 @@ public final class StreamTest {
     			}
 
     		});
-    	} catch (Throwable e) {
+    	} catch (Exception e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
     	}
@@ -235,7 +235,7 @@ public final class StreamTest {
 		try {
 			ws.on("pipe", new Listener () {
 				@Override
-				public void invoke(Object src) throws Throwable {
+				public void invoke(Object src) throws Exception {
 					Log.d(TAG, "testPipe: something is piping into the writer");
 					assert(rs.equals(src));
 				}
@@ -243,7 +243,7 @@ public final class StreamTest {
 			});
 			ws.on("unpipe", new Listener () {
 				@Override
-				public void invoke(Object src) throws Throwable {
+				public void invoke(Object src) throws Exception {
 					Log.d(TAG, "testPipe: something has stopped piping into the writer");
 					assert(rs.equals(src));
 				}
@@ -252,7 +252,7 @@ public final class StreamTest {
 			
 			rs.pipe(ws, true);
 			rs.unpipe(ws);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -265,7 +265,7 @@ public final class StreamTest {
      	
  		try {
 			du.pipe(du, true);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -279,7 +279,7 @@ public final class StreamTest {
     	try {
     		ws.on("finish", new Listener() {
     			@Override
-    			public void invoke(Object src) throws Throwable {
+    			public void invoke(Object src) throws Exception {
     				Log.d(TAG, "testFinish: all writes are now complete.");
     			}
     		});
@@ -288,7 +288,7 @@ public final class StreamTest {
     			ws.write("hello, #" + i + "!\n", null, new WriteCB() {
 
     				@Override
-    				public void invoke(String error) throws Throwable {
+    				public void invoke(String error) throws Exception {
     					// TODO Auto-generated method stub
     					Log.d(TAG, "testFinish: write done");
     				}
@@ -297,7 +297,7 @@ public final class StreamTest {
     		}
     		
     		ws.end("this is the end\n", null, null);    		
-    	} catch (Throwable e) {
+    	} catch (Exception e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
     	}
