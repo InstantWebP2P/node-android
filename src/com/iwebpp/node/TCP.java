@@ -12,6 +12,7 @@ import com.iwebpp.libuvpp.cb.StreamReadCallback;
 import com.iwebpp.libuvpp.cb.StreamShutdownCallback;
 import com.iwebpp.libuvpp.cb.StreamWriteCallback;
 import com.iwebpp.libuvpp.handles.TCPHandle;
+import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.Writable.WriteCB;
 import com.iwebpp.node.Writable2.WriteReq;
 
@@ -594,7 +595,8 @@ public final class TCP {
 
 			return bytes;
 		}
-
+		
+		@Override
 		public Object read(int n) throws Exception {
 			if (n == 0)
 				return super.read(n);
@@ -603,7 +605,8 @@ public final class TCP {
 			this._consuming = true;
 			return super.read(n);
 		}
-
+		
+		@Override
 		public boolean write(Object chunk, String encoding, WriteCB cb) throws Exception {
 			// check on writeAfterFIN 
 			if (!this.allowHalfOpen && this._readableState.ended) {
@@ -690,7 +693,8 @@ public final class TCP {
 				this._handle.readStart();
 			}
 		}
-
+		
+		@Override
 		public void end(Object data, String encoding, WriteCB cb) throws Exception {
 			///stream.Duplex.prototype.end.call(this, data, encoding);
 			super.end(data, encoding, null);
@@ -884,34 +888,238 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			return;
 		}
-		
-		public void connect(int port) throws Exception {
+				
+		public void connect(int port, Listener cb) throws Exception {
+			// check handle //////////////////////
+			if (this.destroyed) {
+				this._readableState.reading = false;
+				this._readableState.ended = false;
+				this._readableState.endEmitted = false;
+				this._writableState.ended = false;
+				this._writableState.ending = false;
+				this._writableState.finished = false;
+				this._writableState.errorEmitted = false;
+				this.destroyed = false;
+				this._handle = null;
+			}
+
+			Socket self = this;
+			///var pipe = !!options.path;
+			///debug('pipe', pipe, options.path);
+
+			if (null == this._handle) {
+				///this._handle = pipe ? createPipe() : createTCP();
+				this._handle = createTCP();
+				initSocketHandle(this);
+			}
+
+			///if (util.isFunction(cb)) {
+			if (cb != null) {
+				self.once("connect", cb);
+			}
+
+			Timers._unrefActive(this);
+
+			self._connecting = true;
+			self.writable = true;
+			///////////////////////////////////////////////
+
 			connect(4, null, port, null, -1);
 		}
 		
-		public void connect(String address ,int port) throws Exception {
+		public void connect(String address ,int port, Listener cb) throws Exception {
+			// check handle //////////////////////
+			if (this.destroyed) {
+				this._readableState.reading = false;
+				this._readableState.ended = false;
+				this._readableState.endEmitted = false;
+				this._writableState.ended = false;
+				this._writableState.ending = false;
+				this._writableState.finished = false;
+				this._writableState.errorEmitted = false;
+				this.destroyed = false;
+				this._handle = null;
+			}
+
+			Socket self = this;
+			///var pipe = !!options.path;
+			///debug('pipe', pipe, options.path);
+
+			if (null == this._handle) {
+				///this._handle = pipe ? createPipe() : createTCP();
+				this._handle = createTCP();
+				initSocketHandle(this);
+			}
+
+			///if (util.isFunction(cb)) {
+			if (cb != null) {
+				self.once("connect", cb);
+			}
+
+			Timers._unrefActive(this);
+
+			self._connecting = true;
+			self.writable = true;
+			///////////////////////////////////////////////
+
 			connect(4, address, port, null, -1);
 		}
 		
 		public void connect(
 				String address ,int port,
-				int localPort) throws Exception {
+				int localPort, Listener cb) throws Exception {
+			// check handle //////////////////////
+			if (this.destroyed) {
+				this._readableState.reading = false;
+				this._readableState.ended = false;
+				this._readableState.endEmitted = false;
+				this._writableState.ended = false;
+				this._writableState.ending = false;
+				this._writableState.finished = false;
+				this._writableState.errorEmitted = false;
+				this.destroyed = false;
+				this._handle = null;
+			}
+
+			Socket self = this;
+			///var pipe = !!options.path;
+			///debug('pipe', pipe, options.path);
+
+			if (null == this._handle) {
+				///this._handle = pipe ? createPipe() : createTCP();
+				this._handle = createTCP();
+				initSocketHandle(this);
+			}
+
+			///if (util.isFunction(cb)) {
+			if (cb != null) {
+				self.once("connect", cb);
+			}
+
+			Timers._unrefActive(this);
+
+			self._connecting = true;
+			self.writable = true;
+			///////////////////////////////////////////////
+			
 			connect(4, address, port, null, localPort);
 		}
 		
 		public void connect(
 				String address ,int port,
-				String localAddress) throws Exception {
+				String localAddress, Listener cb) throws Exception {
+			// check handle //////////////////////
+			if (this.destroyed) {
+				this._readableState.reading = false;
+				this._readableState.ended = false;
+				this._readableState.endEmitted = false;
+				this._writableState.ended = false;
+				this._writableState.ending = false;
+				this._writableState.finished = false;
+				this._writableState.errorEmitted = false;
+				this.destroyed = false;
+				this._handle = null;
+			}
+
+			Socket self = this;
+			///var pipe = !!options.path;
+			///debug('pipe', pipe, options.path);
+
+			if (null == this._handle) {
+				///this._handle = pipe ? createPipe() : createTCP();
+				this._handle = createTCP();
+				initSocketHandle(this);
+			}
+
+			///if (util.isFunction(cb)) {
+			if (cb != null) {
+				self.once("connect", cb);
+			}
+
+			Timers._unrefActive(this);
+
+			self._connecting = true;
+			self.writable = true;
+			///////////////////////////////////////////////
+			
 			connect(4, address, port, localAddress, -1);
 		}
 		
 		public void connect(
 				String address ,int port, 
-				String localAddress, int localPort) throws Exception {
+				String localAddress, int localPort, Listener cb) throws Exception {
+			// check handle //////////////////////
+			if (this.destroyed) {
+				this._readableState.reading = false;
+				this._readableState.ended = false;
+				this._readableState.endEmitted = false;
+				this._writableState.ended = false;
+				this._writableState.ending = false;
+				this._writableState.finished = false;
+				this._writableState.errorEmitted = false;
+				this.destroyed = false;
+				this._handle = null;
+			}
+
+			Socket self = this;
+			///var pipe = !!options.path;
+			///debug('pipe', pipe, options.path);
+
+			if (null == this._handle) {
+				///this._handle = pipe ? createPipe() : createTCP();
+				this._handle = createTCP();
+				initSocketHandle(this);
+			}
+
+			///if (util.isFunction(cb)) {
+			if (cb != null) {
+				self.once("connect", cb);
+			}
+
+			Timers._unrefActive(this);
+
+			self._connecting = true;
+			self.writable = true;
+			///////////////////////////////////////////////
+			
 			connect(4, address, port, localAddress, localPort);
 		}
 		
-		public void connect(int addressType, String address ,int port) throws Exception {
+		public void connect(int addressType, String address ,int port, Listener cb) throws Exception {
+			// check handle //////////////////////
+			if (this.destroyed) {
+				this._readableState.reading = false;
+				this._readableState.ended = false;
+				this._readableState.endEmitted = false;
+				this._writableState.ended = false;
+				this._writableState.ending = false;
+				this._writableState.finished = false;
+				this._writableState.errorEmitted = false;
+				this.destroyed = false;
+				this._handle = null;
+			}
+
+			Socket self = this;
+			///var pipe = !!options.path;
+			///debug('pipe', pipe, options.path);
+
+			if (null == this._handle) {
+				///this._handle = pipe ? createPipe() : createTCP();
+				this._handle = createTCP();
+				initSocketHandle(this);
+			}
+
+			///if (util.isFunction(cb)) {
+			if (cb != null) {
+				self.once("connect", cb);
+			}
+
+			Timers._unrefActive(this);
+
+			self._connecting = true;
+			self.writable = true;
+			///////////////////////////////////////////////
+			
 			connect(addressType, address, port, null, -1);
 		}
 				
@@ -1091,9 +1299,9 @@ Socket.prototype._writev = function(chunks, cb) {
 		
 	}
 
-	public static Object createHandle(long fd) {
-		// TODO Auto-generated method stub
-		return null;
+	public static TCPHandle createTCP() {
+		// TBD...
+		return new TCPHandle(null);
 	}
 	
 }
