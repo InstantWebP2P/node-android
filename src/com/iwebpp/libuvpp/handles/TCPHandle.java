@@ -36,6 +36,7 @@ public class TCPHandle extends StreamHandle {
 
     private int bindPort = 0;
 	public Socket owner;
+	public boolean reading;
 
     public TCPHandle(final LoopHandle loop) {
         super(_new(loop.pointer()), loop);

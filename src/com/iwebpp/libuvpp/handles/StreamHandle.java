@@ -203,6 +203,12 @@ class StreamHandle extends Handle {
         }
         closed = true;
     }
+    
+    public void close(final StreamCloseCallback callback) {
+    	if (callback != null) 
+    		setCloseCallback(callback);
+    	close();
+    }
 
     public int listen(final int backlog) {
         return _listen(pointer, backlog);

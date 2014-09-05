@@ -105,6 +105,7 @@ implements Writable {
 		int writelen;
 		int pendingcb;
 		boolean prefinished;
+		boolean errorEmitted;
 
 
 		public State(Options options, final Writable2 stream) {
@@ -196,7 +197,7 @@ implements Writable {
 	}
 
 	// _write(chunk, encoding, callback)
-	public abstract boolean _write(Object chunk, String encoding, WriteCB cb) throws Exception;
+	public abstract void _write(Object chunk, String encoding, WriteCB cb) throws Exception;
 
 	protected State _writableState;
 	
@@ -309,13 +310,8 @@ implements Writable {
     	}*/
 
     	///if (!util.isNullOrUndefined(chunk))
-    	try {
-			if (chunk != null)
-				this.write(chunk, encoding, null);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+    	if (chunk != null)
+    		this.write(chunk, encoding, null);
 
     	// .end() fully uncorks
     	if (state.corked != 0) {

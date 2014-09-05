@@ -65,7 +65,7 @@ public final class StreamTest {
 		}
 
 		@Override
-		public boolean _write(Object chunk, String encoding, WriteCB cb) throws Exception {
+		public void _write(Object chunk, String encoding, WriteCB cb) throws Exception {
 			// TODO Auto-generated method stub
 			if (Util.isString(chunk)) {
 				Log.d(TAG, "DummyWritable: encdoing "+encoding+":"+chunk.toString());
@@ -81,8 +81,6 @@ public final class StreamTest {
 				String result = Charset.forName("utf8").newDecoder().decode((ByteBuffer)chunk).toString();
 				Log.d(TAG, "DummyWritable: decoded string "+result);
 			}
-			
-			return true;
 		}
     	
     }
@@ -119,7 +117,7 @@ public final class StreamTest {
 		}
 
 		@Override
-		public boolean _write(Object chunk, String encoding, WriteCB cb) throws Exception {
+		public void _write(Object chunk, String encoding, WriteCB cb) throws Exception {
 			// TODO Auto-generated method stub
 			if (Util.isString(chunk)) {
 				Log.d(TAG, "DummyDuplex: encdoing "+encoding+":"+chunk.toString());
@@ -135,8 +133,6 @@ public final class StreamTest {
 				String result = Charset.forName("utf8").newDecoder().decode((ByteBuffer)chunk).toString();
 				Log.d(TAG, "DummyDuplex: decoded string "+result);
 			}
-			
-			return true;
 		}
     	
     }

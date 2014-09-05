@@ -7,4 +7,14 @@ public final class Timers extends EventEmitter2 {
 		
 	}
 
+	public static void unenroll(Object item) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public static void enroll(Object item, int msecs) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

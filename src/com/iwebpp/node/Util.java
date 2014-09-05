@@ -1,5 +1,6 @@
 package com.iwebpp.node;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
@@ -35,6 +36,13 @@ public final class Util {
     		String s = (String)chunk;
     		return s.length();
     	}
+    	
+		return 0;
+    } 
+    
+    public static int stringByteLength(String chunk, String encoding) throws UnsupportedEncodingException {
+    	if (isString(chunk))
+    		return chunk.getBytes(encoding).length;
     	
 		return 0;
     } 
