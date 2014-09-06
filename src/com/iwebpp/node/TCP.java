@@ -2,12 +2,15 @@ package com.iwebpp.node;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.util.Log;
 
 import com.iwebpp.libuvpp.Address;
 import com.iwebpp.libuvpp.cb.StreamCloseCallback;
 import com.iwebpp.libuvpp.cb.StreamConnectCallback;
+import com.iwebpp.libuvpp.cb.StreamConnectionCallback;
 import com.iwebpp.libuvpp.cb.StreamReadCallback;
 import com.iwebpp.libuvpp.cb.StreamShutdownCallback;
 import com.iwebpp.libuvpp.cb.StreamWriteCallback;
@@ -43,7 +46,7 @@ public final class TCP {
 
 		private Address _peername;
 
-		public class TcpOptions {
+		public static class Options {
 
 			public TCPHandle handle;
 			public long fd;
@@ -51,9 +54,14 @@ public final class TCP {
 			public boolean writable;
 			public boolean allowHalfOpen;
 
+			Options(TCPHandle handle, boolean allowHalfOpen) {
+				this.handle = handle;
+				this.allowHalfOpen = allowHalfOpen;
+			}
+
 		};
 
-		public Socket(TcpOptions options) throws Exception {
+		public Socket(Options options) throws Exception {
 			super(null, null);
 			// TODO Auto-generated constructor stub
 			final Socket self = this;
@@ -1289,13 +1297,220 @@ Socket.prototype._writev = function(chunks, cb) {
 	
 	// /* [ options, ] listener */
 	public static final class Server extends EventEmitter2 {
+		private final static String TAG = "TCP:Server";
 
 		public int _connections;
+		private TCPHandle _handle;
+		private boolean _usingSlaves;
+		private List<List<Socket>> _slaves;
+		private boolean allowHalfOpen;
+
+		private String _connectionKey;
+
+		protected int maxConnections;
 
 		public void _emitCloseIfDrained() {
 			// TODO Auto-generated method stub
 			
 		}
+		
+		public Server(Options options, final ConnectionCallback listener) throws Exception {
+			  Server self = this;
+
+			  // set initial onConnection callback
+			  if (listener != null) {
+				  self.on("connection", new Listener(){
+
+					@Override
+					public void invoke(Object data) throws Exception {
+						// TODO Auto-generated method stub
+						Socket socket = (Socket)data;
+						listener.onConnection(socket);
+					}
+					  
+				  });
+			  }
+			  
+			  this._connections = 0;
+
+			  /*
+			   * 
+  Object.defineProperty(this, 'connections', {
+    get: util.deprecate(function() {
+
+      if (self._usingSlaves) {
+        return null;
+      }
+      return self._connections;
+    }, 'connections property is deprecated. Use getConnections() method'),
+    set: util.deprecate(function(val) {
+      return (self._connections = val);
+    }, 'connections property is deprecated. Use getConnections() method'),
+    configurable: true, enumerable: true
+  });*/
+
+			  this._handle = null;
+			  this._usingSlaves = false;
+			  this._slaves = new ArrayList< List<Socket> >();
+
+			  this.allowHalfOpen = options.allowHalfOpen;
+		}
+		
+		public class Options {
+
+			public boolean allowHalfOpen;
+			
+		} 
+
+		public static interface ConnectionCallback {
+			public void onConnection(Socket socket);
+		}
+
+		private static int _listen(TCPHandle handle, int backlog) {
+			// Use a backlog of 512 entries. We pass 511 to the listen() call because
+			// the kernel does: backlogsize = roundup_pow_of_two(backlogsize + 1);
+			// which will thus give us a backlog of 512 entries.
+			return handle.listen(backlog>0? backlog : 511);
+		}
+		
+		private static TCPHandle _createServerHandle(String address, int port, int addressType, int fd) {
+			TCPHandle handle = createTCP();
+			int err = 0;
+
+
+			Log.d(TAG, "bind to " + (address /*|| 'anycast'*/));
+			if (null==address) {
+				// Try binding to ipv6 first
+				err = handle.bind6("::", port);
+				if (err!=0) {
+					handle.close();
+					// Fallback to ipv4
+					return _createServerHandle("0.0.0.0", port, 4, -1);
+				}
+			} else if (addressType == 6) {
+				err = handle.bind6(address, port);
+			} else {
+				err = handle.bind(address, port);
+			}
+
+			if (err!=0) {
+				handle.close();
+				return null;
+			}
+
+			return handle;
+		}
+		
+		private void _listen2(String address, int port, int addressType, int backlog, int fd) throws Exception {
+			Log.d(TAG, "listen2 "+address+":"+port+":"+addressType+":"+backlog);
+			final Server self = this;
+
+			boolean alreadyListening = false;
+
+			// If there is not yet a handle, we need to create one and bind.
+			// In the case of a server sent via IPC, we don't need to do this.
+			if (null==self._handle) {
+				Log.d(TAG, "_listen2: create a handle");
+
+				/*var rval = createServerHandle(address, port, addressType, fd);
+			    if (util.isNumber(rval)) {
+			      var error = errnoException(rval, 'listen');
+			      process.nextTick(function() {
+			        self.emit('error', error);
+			      });
+			      return;
+			    }*/
+				TCPHandle rval = _createServerHandle(address, port, addressType, fd);
+				if (rval == null) {
+					String error = "err listen";
+					///process.nextTick(function() {
+					self.emit("error", error);
+					//});
+					return;
+				}
+
+				///alreadyListening = (process.platform === 'win32');
+				self._handle = rval;
+			} else {
+				///debug('_listen2: have a handle already');
+				Log.d(TAG, "_listen2: have a handle already");
+			}
+
+			///self._handle.onconnection = onconnection;
+
+			// onConnection callback
+			StreamConnectionCallback onconnection = new StreamConnectionCallback(){
+
+				@Override
+				public void onConnection(int status, Exception error)
+						throws Exception {
+					///var handle = this;
+					///var self = handle.owner;
+					TCPHandle handle = self._handle;
+					TCPHandle clientHandle = createTCP();
+					int err = handle.accept(clientHandle);
+					
+					
+					Log.d(TAG, "onconnection");
+
+					if (err!=0) {
+						///self.emit('error', errnoException(err, 'accept'));
+						self.emit("error", "err accept "+err);
+						return;
+					}
+
+					if (/*self.maxConnections &&*/ self._connections >= self.maxConnections) {
+						clientHandle.close();
+						return;
+					}
+
+					/*Socket socket = new Socket({
+						handle: clientHandle,
+						allowHalfOpen: self.allowHalfOpen
+					});*/
+					Socket socket = new Socket(new Socket.Options(clientHandle, self.allowHalfOpen));
+					socket.readable = socket.writable = true;
+
+
+					self._connections++;
+					socket.server = self;
+
+					///DTRACE_NET_SERVER_CONNECTION(socket);
+					///COUNTER_NET_SERVER_CONNECTION(socket);
+					self.emit("connection", socket);
+				}
+
+			};
+			self._handle.setConnectionCallback(onconnection);
+
+			self._handle.owner = self;
+
+			int err = 0;
+			if (!alreadyListening)
+				err = _listen(self._handle, backlog);
+
+			if (0!=err) {
+				///var ex = errnoException(err, "listen");
+				String ex = "err listen";
+				self._handle.close();
+				self._handle = null;
+				///process.nextTick(function() {
+				self.emit("error", ex);
+				///});
+				return;
+			}
+
+			// generate connection key, this should be unique to the connection
+			this._connectionKey = addressType + ':' + address + ':' + port;
+
+			///process.nextTick(function() {
+			// ensure handle hasn't closed
+			if (self._handle != null)
+				self.emit("listening");
+			///});
+}
+		
+		
 		
 	}
 

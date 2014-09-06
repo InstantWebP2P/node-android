@@ -35,7 +35,7 @@ import com.iwebpp.node.TCP.Socket;
 public class TCPHandle extends StreamHandle {
 
     private int bindPort = 0;
-	public Socket owner;
+	public Object owner;
 	public boolean reading;
 
     public TCPHandle(final LoopHandle loop) {
