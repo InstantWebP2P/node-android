@@ -65,9 +65,7 @@ public final class EE2Test extends EventEmitter2 {
 			public void run() {
 				Log.d(TAG, "start test");
 
-				final EE2Test test = new EE2Test();
-
-				test.testEmit();			    
+				testEmit();			    
 			}
 		})).start();
 

@@ -276,15 +276,14 @@ public class TCPHandleTest extends TestBase {
     public void run() {
 		Log.d(TAG, "start test");
 
-        final TCPHandleTest test = new TCPHandleTest();
         try {
-			test.testConnection();
+			testConnection();
 		} catch (Throwable e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         try {
-			test.testConnection6();
+			testConnection6();
 		} catch (Throwable e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

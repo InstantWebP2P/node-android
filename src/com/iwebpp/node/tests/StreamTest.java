@@ -306,14 +306,12 @@ public final class StreamTest {
 			public void run() {
 				Log.d(TAG, "start test");
 
-				final StreamTest test = new StreamTest();
-
-				test.testPipe();
-				test.testFinish();
-				test.testRead_less();
-				test.testRead_more();
-				test.testRead_forever();
-				test.testDuplex();
+				testPipe();
+				testFinish();
+				testRead_less();
+				testRead_more();
+				testRead_forever();
+				testDuplex();
 
 			}
 		})).start();

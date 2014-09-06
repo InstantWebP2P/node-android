@@ -1,5 +1,7 @@
 package com.iwebpp.node;
 
+import static com.iwebpp.libuvpp.handles.DefaultHandleFactory.newFactory;
+
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -14,8 +16,11 @@ import com.iwebpp.libuvpp.cb.StreamConnectionCallback;
 import com.iwebpp.libuvpp.cb.StreamReadCallback;
 import com.iwebpp.libuvpp.cb.StreamShutdownCallback;
 import com.iwebpp.libuvpp.cb.StreamWriteCallback;
+import com.iwebpp.libuvpp.handles.HandleFactory;
+import com.iwebpp.libuvpp.handles.LoopHandle;
 import com.iwebpp.libuvpp.handles.TCPHandle;
 import com.iwebpp.node.EventEmitter.Listener;
+import com.iwebpp.node.Readable2.Options;
 import com.iwebpp.node.Writable.WriteCB;
 import com.iwebpp.node.Writable2.WriteReq;
 
@@ -45,6 +50,8 @@ public final class TCP {
 		private Address _sockname;
 
 		private Address _peername;
+		
+		private NodeContext _ctx;
 
 		public static class Options {
 
@@ -54,18 +61,31 @@ public final class TCP {
 			public boolean writable;
 			public boolean allowHalfOpen;
 
-			Options(TCPHandle handle, boolean allowHalfOpen) {
-				this.handle = handle;
+			public Options(boolean allowHalfOpen, TCPHandle handle) {
 				this.allowHalfOpen = allowHalfOpen;
-			}
 
+				this.handle = handle;
+				this.readable = false;
+				this.writable = false;
+				
+				this.fd = -1;
+			}
+			
+			@SuppressWarnings("unused")
+			private Options(){}
 		};
 
-		public Socket(Options options) throws Exception {
-			super(null, null);
+		public Socket(NodeContext ctx, Options options) throws Exception {
+			// TBD...
+			super(new Readable2.Options(-1, "utf8", false, "utf8"), 
+			      new Writable2.Options(-1, true, "utf8", false));
+			
 			// TODO Auto-generated constructor stub
 			final Socket self = this;
-
+			
+			// node context
+			this._ctx = ctx;
+			
 			///if (!(this instanceof Socket)) return new Socket(options);
 
 			this._connecting = false;
@@ -522,7 +542,7 @@ public final class TCP {
 			if (this._handle /*&& this._handle.setNoDelay*/ != null)
 				this._handle.setKeepAlive(enable, delay);
 		}
-		
+
 		public String remoteAddress() {
 			return this._getpeername().getIp();
 		}
@@ -534,7 +554,7 @@ public final class TCP {
 		public String remoteFamily() {
 			return this._getpeername().getFamily();
 		}
-		
+
 		private Address _getpeername() {
 			if (null == this._handle /*|| !this._handle.getpeername*/) {
 				return null;
@@ -546,7 +566,7 @@ public final class TCP {
 			}
 			return this._peername;
 		}
-				
+
 		public Address address() {
 			return this._getsockname();
 		}
@@ -603,7 +623,7 @@ public final class TCP {
 
 			return bytes;
 		}
-		
+
 		@Override
 		public Object read(int n) throws Exception {
 			if (n == 0)
@@ -613,7 +633,7 @@ public final class TCP {
 			this._consuming = true;
 			return super.read(n);
 		}
-		
+
 		@Override
 		public boolean write(Object chunk, String encoding, WriteCB cb) throws Exception {
 			// check on writeAfterFIN 
@@ -701,7 +721,7 @@ public final class TCP {
 				this._handle.readStart();
 			}
 		}
-		
+
 		@Override
 		public void end(Object data, String encoding, WriteCB cb) throws Exception {
 			///stream.Duplex.prototype.end.call(this, data, encoding);
@@ -896,7 +916,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			return;
 		}
-				
+
 		public void connect(int port, Listener cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
@@ -916,8 +936,8 @@ Socket.prototype._writev = function(chunks, cb) {
 			///debug('pipe', pipe, options.path);
 
 			if (null == this._handle) {
-				///this._handle = pipe ? createPipe() : createTCP();
-				this._handle = createTCP();
+				///this._handle = pipe ? createPipe() : createTCP(_ctx.getLoop());
+				this._handle = createTCP(_ctx.getLoop());
 				initSocketHandle(this);
 			}
 
@@ -934,7 +954,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			connect(4, null, port, null, -1);
 		}
-		
+
 		public void connect(String address ,int port, Listener cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
@@ -954,8 +974,8 @@ Socket.prototype._writev = function(chunks, cb) {
 			///debug('pipe', pipe, options.path);
 
 			if (null == this._handle) {
-				///this._handle = pipe ? createPipe() : createTCP();
-				this._handle = createTCP();
+				///this._handle = pipe ? createPipe() : createTCP(_ctx.getLoop());
+				this._handle = createTCP(_ctx.getLoop());
 				initSocketHandle(this);
 			}
 
@@ -972,7 +992,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			connect(4, address, port, null, -1);
 		}
-		
+
 		public void connect(
 				String address ,int port,
 				int localPort, Listener cb) throws Exception {
@@ -994,8 +1014,8 @@ Socket.prototype._writev = function(chunks, cb) {
 			///debug('pipe', pipe, options.path);
 
 			if (null == this._handle) {
-				///this._handle = pipe ? createPipe() : createTCP();
-				this._handle = createTCP();
+				///this._handle = pipe ? createPipe() : createTCP(_ctx.getLoop());
+				this._handle = createTCP(_ctx.getLoop());
 				initSocketHandle(this);
 			}
 
@@ -1009,10 +1029,10 @@ Socket.prototype._writev = function(chunks, cb) {
 			self._connecting = true;
 			self.writable = true;
 			///////////////////////////////////////////////
-			
+
 			connect(4, address, port, null, localPort);
 		}
-		
+
 		public void connect(
 				String address ,int port,
 				String localAddress, Listener cb) throws Exception {
@@ -1034,8 +1054,8 @@ Socket.prototype._writev = function(chunks, cb) {
 			///debug('pipe', pipe, options.path);
 
 			if (null == this._handle) {
-				///this._handle = pipe ? createPipe() : createTCP();
-				this._handle = createTCP();
+				///this._handle = pipe ? createPipe() : createTCP(_ctx.getLoop());
+				this._handle = createTCP(_ctx.getLoop());
 				initSocketHandle(this);
 			}
 
@@ -1049,10 +1069,10 @@ Socket.prototype._writev = function(chunks, cb) {
 			self._connecting = true;
 			self.writable = true;
 			///////////////////////////////////////////////
-			
+
 			connect(4, address, port, localAddress, -1);
 		}
-		
+
 		public void connect(
 				String address ,int port, 
 				String localAddress, int localPort, Listener cb) throws Exception {
@@ -1074,8 +1094,8 @@ Socket.prototype._writev = function(chunks, cb) {
 			///debug('pipe', pipe, options.path);
 
 			if (null == this._handle) {
-				///this._handle = pipe ? createPipe() : createTCP();
-				this._handle = createTCP();
+				///this._handle = pipe ? createPipe() : createTCP(_ctx.getLoop());
+				this._handle = createTCP(_ctx.getLoop());
 				initSocketHandle(this);
 			}
 
@@ -1089,10 +1109,10 @@ Socket.prototype._writev = function(chunks, cb) {
 			self._connecting = true;
 			self.writable = true;
 			///////////////////////////////////////////////
-			
+
 			connect(4, address, port, localAddress, localPort);
 		}
-		
+
 		public void connect(int addressType, String address ,int port, Listener cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
@@ -1112,8 +1132,8 @@ Socket.prototype._writev = function(chunks, cb) {
 			///debug('pipe', pipe, options.path);
 
 			if (null == this._handle) {
-				///this._handle = pipe ? createPipe() : createTCP();
-				this._handle = createTCP();
+				///this._handle = pipe ? createPipe() : createTCP(_ctx.getLoop());
+				this._handle = createTCP(_ctx.getLoop());
 				initSocketHandle(this);
 			}
 
@@ -1127,10 +1147,10 @@ Socket.prototype._writev = function(chunks, cb) {
 			self._connecting = true;
 			self.writable = true;
 			///////////////////////////////////////////////
-			
+
 			connect(addressType, address, port, null, -1);
 		}
-				
+
 		private void connect(int addressType, String address, int port, 
 				String localAddress, int localPort) throws Exception {
 			final Socket self = this;
@@ -1256,7 +1276,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			if (Util.zeroString(address)) {
 				address = (addressType == 6) ? "::1" : "127.0.0.1";
 			}
-			
+
 			if (port <= 0 || port > 65535)
 				throw new Exception("Port should be > 0 and < 65536");
 
@@ -1292,14 +1312,14 @@ Socket.prototype._writev = function(chunks, cb) {
 			  }
 			 */
 		}
-		
+
 	}
 	
 	// /* [ options, ] listener */
 	public static final class Server extends EventEmitter2 {
 		private final static String TAG = "TCP:Server";
 
-		public int _connections;
+		private int _connections;
 		private TCPHandle _handle;
 		private boolean _usingSlaves;
 		private List<List<Socket>> _slaves;
@@ -1307,19 +1327,38 @@ Socket.prototype._writev = function(chunks, cb) {
 
 		private String _connectionKey;
 
-		protected int maxConnections;
+		private int maxConnections = 1024;
 
-		public void _emitCloseIfDrained() {
-			// TODO Auto-generated method stub
-			
+		private Address _sockname;
+
+		private NodeContext _ctx;
+
+		private void _emitCloseIfDrained() throws Exception {
+			Log.d(TAG, "SERVER _emitCloseIfDrained");
+			Server self = this;
+
+			if (self._handle!=null || self._connections>0) {
+				Log.d(TAG, "SERVER handle? " + self._handle +
+						" connections? " + self._connections);
+				return;
+			}
+
+			// TBD...
+			///process.nextTick(function() {
+			Log.d(TAG, "SERVER: emit close");
+			self.emit("close");
+			///});
 		}
-		
-		public Server(Options options, final ConnectionCallback listener) throws Exception {
-			  Server self = this;
 
-			  // set initial onConnection callback
-			  if (listener != null) {
-				  self.on("connection", new Listener(){
+		public Server(final NodeContext ctx, Options options, final ConnectionCallback listener) throws Exception {
+			Server self = this;
+
+			// node context
+			this._ctx = ctx;
+			
+			// set initial onConnection callback
+			if (listener != null) {
+				self.on("connection", new Listener(){
 
 					@Override
 					public void invoke(Object data) throws Exception {
@@ -1327,14 +1366,14 @@ Socket.prototype._writev = function(chunks, cb) {
 						Socket socket = (Socket)data;
 						listener.onConnection(socket);
 					}
-					  
-				  });
-			  }
-			  
-			  this._connections = 0;
 
-			  /*
-			   * 
+				});
+			}
+
+			this._connections = 0;
+
+			/*
+			 * 
   Object.defineProperty(this, 'connections', {
     get: util.deprecate(function() {
 
@@ -1349,37 +1388,50 @@ Socket.prototype._writev = function(chunks, cb) {
     configurable: true, enumerable: true
   });*/
 
-			  this._handle = null;
-			  this._usingSlaves = false;
-			  this._slaves = new ArrayList< List<Socket> >();
+			this._handle = null;
+			this._usingSlaves = false;
+			this._slaves = new ArrayList< List<Socket> >();
 
-			  this.allowHalfOpen = options.allowHalfOpen;
+			this.allowHalfOpen = options.allowHalfOpen;
 		}
-		
-		public class Options {
+
+		public static class Options {
 
 			public boolean allowHalfOpen;
-			
+
+			public Options(boolean allowHalfOpen) {
+				this.allowHalfOpen = allowHalfOpen;
+			}
+			@SuppressWarnings("unused")
+			private Options(){}
 		} 
 
 		public static interface ConnectionCallback {
 			public void onConnection(Socket socket);
 		}
 
+		public static interface CloseCallback {
+			public void onClose(String error);
+		}
+
+		public static interface ListenCallback {
+			public void onListen();
+		}
+		
 		private static int _listen(TCPHandle handle, int backlog) {
 			// Use a backlog of 512 entries. We pass 511 to the listen() call because
 			// the kernel does: backlogsize = roundup_pow_of_two(backlogsize + 1);
 			// which will thus give us a backlog of 512 entries.
 			return handle.listen(backlog>0? backlog : 511);
 		}
-		
-		private static TCPHandle _createServerHandle(String address, int port, int addressType, int fd) {
-			TCPHandle handle = createTCP();
+
+		private TCPHandle _createServerHandle(String address, int port, int addressType, int fd) {
+			TCPHandle handle = createTCP(_ctx.getLoop());
 			int err = 0;
 
 
-			Log.d(TAG, "bind to " + (address /*|| 'anycast'*/));
-			if (null==address) {
+			Log.d(TAG, "bind to " + (address /*|| 'anycast'*/)+":"+port);
+			if (Util.zeroString(address)) {
 				// Try binding to ipv6 first
 				err = handle.bind6("::", port);
 				if (err!=0) {
@@ -1394,14 +1446,16 @@ Socket.prototype._writev = function(chunks, cb) {
 			}
 
 			if (err!=0) {
+				Log.d(TAG, "bind err "+err);
 				handle.close();
 				return null;
 			}
 
 			return handle;
 		}
-		
-		private void _listen2(String address, int port, int addressType, int backlog, int fd) throws Exception {
+
+		private void _listen2(String address, int port, int addressType, 
+				int backlog, int fd) throws Exception {
 			Log.d(TAG, "listen2 "+address+":"+port+":"+addressType+":"+backlog);
 			final Server self = this;
 
@@ -1447,10 +1501,10 @@ Socket.prototype._writev = function(chunks, cb) {
 					///var handle = this;
 					///var self = handle.owner;
 					TCPHandle handle = self._handle;
-					TCPHandle clientHandle = createTCP();
+					TCPHandle clientHandle = createTCP(_ctx.getLoop());
 					int err = handle.accept(clientHandle);
-					
-					
+
+
 					Log.d(TAG, "onconnection");
 
 					if (err!=0) {
@@ -1460,6 +1514,8 @@ Socket.prototype._writev = function(chunks, cb) {
 					}
 
 					if (/*self.maxConnections &&*/ self._connections >= self.maxConnections) {
+						Log.d(TAG, "exceed maxim connections");
+						
 						clientHandle.close();
 						return;
 					}
@@ -1468,7 +1524,7 @@ Socket.prototype._writev = function(chunks, cb) {
 						handle: clientHandle,
 						allowHalfOpen: self.allowHalfOpen
 					});*/
-					Socket socket = new Socket(new Socket.Options(clientHandle, self.allowHalfOpen));
+					Socket socket = new Socket(_ctx, new Socket.Options(self.allowHalfOpen, clientHandle));
 					socket.readable = socket.writable = true;
 
 
@@ -1497,6 +1553,9 @@ Socket.prototype._writev = function(chunks, cb) {
 				///process.nextTick(function() {
 				self.emit("error", ex);
 				///});
+				
+				Log.d(TAG, ex);
+
 				return;
 			}
 
@@ -1508,15 +1567,151 @@ Socket.prototype._writev = function(chunks, cb) {
 			if (self._handle != null)
 				self.emit("listening");
 			///});
-}
+		}
 		
+		public void listen(String address, int port, int addressType, 
+				int backlog, int fd, final ListenCallback cb) throws Exception {
+			Server self = this;
+
+			///if (util.isFunction(lastArg)) {
+			if (cb != null) {
+				self.once("listening", new Listener(){
+
+					@Override
+					public void invoke(Object data) throws Exception {
+						// TODO Auto-generated method stub
+						cb.onListen();
+					}
+
+				});
+			}
+
+			_listen2(address, port, addressType, backlog, fd);
+		}
 		
+		public Address address() {
+			return this._getsockname();
+		}
+
+		public String localAddress() {
+			return this._getsockname().getIp();
+		}
+
+		public int localPort() {
+			return this._getsockname().getPort();
+		}
+
+		public String family() {
+			return this._getsockname().getFamily();
+		}
+
+		private Address _getsockname() {
+			if (null == this._handle /*|| !this._handle.getsockname*/) {
+				return null;
+			}
+			if (null == this._sockname) {
+				Address out = this._handle.getSocketName();
+				if (null == out) return null;  // FIXME(bnoordhuis) Throw?
+				this._sockname = out;
+			}
+			return this._sockname;
+		}
 		
+		public int getConnections() {
+
+			/*
+			 * 
+  function end(err, connections) {
+    process.nextTick(function() {
+      cb(err, connections);
+    });
+  }
+
+  if (!this._usingSlaves) {
+    return end(null, this._connections);
+  }
+
+  // Poll slaves
+  var left = this._slaves.length,
+      total = this._connections;
+
+  function oncount(err, count) {
+    if (err) {
+      left = -1;
+      return end(err);
+    }
+
+    total += count;
+    if (--left === 0) return end(null, total);
+  }
+
+  this._slaves.forEach(function(slave) {
+    slave.getConnections(oncount);
+  });
+			 */
+
+			return this._connections;
+		}
+
+		public Server close(final CloseCallback cb) throws Exception {
+
+			if (cb!=null) {
+				if (null==this._handle) {
+					this.once("close", new Listener(){
+
+						@Override
+						public void invoke(Object data) throws Exception {
+							// TODO Auto-generated method stub
+							cb.onClose("Not running");
+						}
+
+					});
+				} else {
+					///this.once("close", cb);
+					this.once("close", new Listener(){
+
+						@Override
+						public void invoke(Object data) throws Exception {
+							// TODO Auto-generated method stub
+							cb.onClose((String) data);
+						}
+
+					});
+				}
+			}
+
+
+			if (this._handle != null) {
+				this._handle.close();
+				this._handle = null;
+			}
+
+
+			this._emitCloseIfDrained();
+
+			return this;
+		}
+
+		protected void _setupSlave(List<Socket> socketList) {
+			this._usingSlaves = true;
+			this._slaves.add(socketList);
+		}
+
+		public void ref() {
+			if (this._handle!=null)
+				this._handle.ref();
+		};
+
+		public void unref() {
+			if (this._handle!=null)
+				this._handle.unref();
+		}
+
+
 	}
 
-	public static TCPHandle createTCP() {
-		// TBD...
-		return new TCPHandle(null);
+	public static TCPHandle createTCP(final LoopHandle loop) {
+		return new TCPHandle(loop);
 	}
-	
+
 }
