@@ -671,7 +671,7 @@ public final class TCP {
 
 					@Override
 					public void onNextTick() throws Exception {	
-						cb.invoke(er);
+						cb.onWrite(er);
 					}
 					
 				});
@@ -795,7 +795,7 @@ Socket.prototype._writev = function(chunks, cb) {
 					@Override
 					public void invoke(Object data) throws Exception {
 						// TODO Auto-generated method stub
-						cb.invoke("This socket is closed.");
+						cb.onWrite("This socket is closed.");
 					}
 
 				});
@@ -892,7 +892,7 @@ Socket.prototype._writev = function(chunks, cb) {
 					@Override
 					public void invoke(Object data) throws Exception {
 						// TODO Auto-generated method stub
-						cb.invoke("write invalid data");
+						cb.onWrite("write invalid data");
 					}
 
 				});
@@ -906,7 +906,7 @@ Socket.prototype._writev = function(chunks, cb) {
 					@Override
 					public void invoke(Object data) throws Exception {
 						// TODO Auto-generated method stub
-						cb.invoke("write invalid data");
+						cb.onWrite("write invalid data");
 					}
 
 				});
@@ -922,7 +922,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			///if (req.async && this._handle.writeQueueSize() != 0)
 			///	req.cb = cb;
 			///else
-			cb.invoke(null);
+			cb.onWrite(null);
 
 			return;
 		}

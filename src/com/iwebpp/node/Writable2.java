@@ -6,8 +6,6 @@ import java.util.ArrayList;
 public abstract class Writable2 
 extends EventEmitter2 
 implements Writable {
-	private final static String TAG = "Writable2";
-
 	public static class WriteReq {
 		/**
 		 * @return the chunk
@@ -172,7 +170,7 @@ implements Writable {
 			// the callback that's passed to _write(chunk,cb)
 			this.onwrite = new WriteCB() {
 				@Override
-				public void invoke(String error) throws Exception {
+				public void onWrite(String error) throws Exception {
 					onwrite(stream, error);
 				}
 			};
@@ -243,7 +241,7 @@ implements Writable {
 
     		@Override
     		public void onNextTick() throws Exception {
-    			cb.invoke("write after end");
+    			cb.onWrite("write after end");
     		}
     		
     	});
@@ -269,7 +267,7 @@ implements Writable {
 
     			@Override
     			public void onNextTick() throws Exception {
-    				cb.invoke(er);
+    				cb.onWrite(er);
     			}
     			
     		});
@@ -298,7 +296,7 @@ implements Writable {
     		cb = new WriteCB()
     	{
     		@Override
-    		public void invoke(String error) {
+    		public void onWrite(String error) {
     			// TODO Auto-generated method stub
     		}
     	};
@@ -350,7 +348,7 @@ implements Writable {
 
     				@Override
     				public void onNextTick() throws Exception {   
-    					cb.invoke(null);
+    					cb.onWrite(null);
 
     				}
 
@@ -360,7 +358,7 @@ implements Writable {
     				@Override
     				public void invoke(Object data) throws Exception {
     					// TODO Auto-generated method stub
-    					cb.invoke(null);
+    					cb.onWrite(null);
     				}
     			});
     	}
@@ -531,7 +529,7 @@ implements Writable {
 		if (!finished)
 			onwriteDrain(stream, state);
 		state.pendingcb--;
-		cb.invoke(null);
+		cb.onWrite(null);
 		finishMaybe(stream, state);
 	}
 
@@ -583,13 +581,13 @@ implements Writable {
 				@Override
 				public void onNextTick() throws Exception {
 					state.pendingcb--;
-					cb.invoke(error);
+					cb.onWrite(error);
 				}
 				
 			});
 		} else {
 			state.pendingcb--;
-			cb.invoke(error);
+			cb.onWrite(error);
 		}
 
 		stream.emit("error", error);

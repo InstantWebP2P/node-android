@@ -3,19 +3,13 @@ package com.iwebpp.node;
 public abstract class Duplex
 extends Readable2 
 implements Writable {
-	private final static String TAG = "Duplex";
-
 	private Writable2 _writable;
 	protected Writable2.State _writableState;
 	
 	private class DuplexWritable extends Writable2 {
 		private Duplex hold;
-		private NodeContext context;
-
 		protected DuplexWritable(NodeContext context, Options options, Duplex hold) {
 			super(context, options);
-			this.context = context;
-
 			this.hold = hold;
 		}
 		private DuplexWritable() {super(null, null);}

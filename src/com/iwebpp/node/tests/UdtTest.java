@@ -89,7 +89,7 @@ public final class UdtTest {
 					cln.write("hello word", "utf-8", new WriteCB(){
 
 						@Override
-						public void invoke(String error) throws Exception {
+						public void onWrite(String error) throws Exception {
 							Log.d(TAG, "client write done");							
 						}
 						

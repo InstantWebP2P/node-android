@@ -35,9 +35,9 @@ public class MainActivity extends Activity {
 		///new FileEventHandleTest().start();
 		
 		// Node Unit tests
-		///new EE2Test().start();
-		///new StreamTest().start();
-        ///new TcpTest().start();
+		new EE2Test().start();
+		new StreamTest().start();
+        new TcpTest().start();
         new UdtTest().start();
 
 	}

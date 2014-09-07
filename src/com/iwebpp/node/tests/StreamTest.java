@@ -71,12 +71,12 @@ public final class StreamTest {
 			if (Util.isString(chunk)) {
 				Log.d(TAG, "DummyWritable: encdoing "+encoding+":"+chunk.toString());
 				
-				if (cb != null) cb.invoke(null);
+				if (cb != null) cb.onWrite(null);
 				
 			} else {
 				Log.d(TAG, "DummyWritable: binary data "+chunk.toString());
 				
-				if (cb != null) cb.invoke(null);
+				if (cb != null) cb.onWrite(null);
 
 				// decode chunk to string
 				String result = Charset.forName("utf8").newDecoder().decode((ByteBuffer)chunk).toString();
@@ -124,12 +124,12 @@ public final class StreamTest {
 			if (Util.isString(chunk)) {
 				Log.d(TAG, "DummyDuplex: encdoing "+encoding+":"+chunk.toString());
 				
-				if (cb != null) cb.invoke(null);
+				if (cb != null) cb.onWrite(null);
 				
 			} else {
 				Log.d(TAG, "DummyDuplex: binary data "+chunk.toString());
 				
-				if (cb != null) cb.invoke(null);
+				if (cb != null) cb.onWrite(null);
 
 				// decode chunk to string
 				String result = Charset.forName("utf8").newDecoder().decode((ByteBuffer)chunk).toString();
@@ -286,7 +286,7 @@ public final class StreamTest {
     			ws.write("hello, #" + i + "!\n", null, new WriteCB() {
 
     				@Override
-    				public void invoke(String error) throws Exception {
+    				public void onWrite(String error) throws Exception {
     					// TODO Auto-generated method stub
     					Log.d(TAG, "testFinish: write done");
     				}
