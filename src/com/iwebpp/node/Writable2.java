@@ -207,12 +207,12 @@ implements Writable {
 
 	private boolean writable;
 	
-	private NodeContext _ctx;
+	private NodeContext context;
 	
-    protected Writable2(NodeContext ctx, Options options) {
+    protected Writable2(NodeContext context, Options options) {
     	super();
     	
-    	this._ctx = ctx;
+    	this.context = context;
     	
 	  // Writable ctor is applied to Duplexes, though they're not
 	  // instanceof Writable, they're instanceof Readable.
@@ -239,7 +239,7 @@ implements Writable {
     	stream.emit("error", "write after end");
     	//TBD...
     	///process.nextTick(function() {
-    	Util.nextTick(_ctx, new Util.nexTickCallback() {
+    	Util.nextTick(context, new Util.nexTickCallback() {
 
     		@Override
     		public void onNextTick() throws Exception {
@@ -265,7 +265,7 @@ implements Writable {
     		stream.emit("error", er);
     		//TBD...
     		///process.nextTick(function() {
-    		Util.nextTick(_ctx, new Util.nexTickCallback() {
+    		Util.nextTick(context, new Util.nexTickCallback() {
 
     			@Override
     			public void onNextTick() throws Exception {
@@ -346,7 +346,7 @@ implements Writable {
     	if (cb != null) {
     		if (state.finished)
     			///process.nextTick(cb);
-    			Util.nextTick(_ctx, new Util.nexTickCallback() {
+    			Util.nextTick(context, new Util.nexTickCallback() {
 
     				@Override
     				public void onNextTick() throws Exception {   
@@ -445,7 +445,7 @@ implements Writable {
 			if (sync) {
 				///TBD
 				///process.nextTick(function() {
-				Util.nextTick(_ctx, new Util.nexTickCallback() {
+				Util.nextTick(context, new Util.nexTickCallback() {
 
 					@Override
 					public void onNextTick() throws Exception {
@@ -578,7 +578,7 @@ implements Writable {
 		if (sync) {
 			/// TBD
 			///process.nextTick(function() {
-			Util.nextTick(_ctx, new Util.nexTickCallback() {
+			Util.nextTick(context, new Util.nexTickCallback() {
 
 				@Override
 				public void onNextTick() throws Exception {

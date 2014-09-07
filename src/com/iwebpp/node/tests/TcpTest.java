@@ -2,10 +2,12 @@ package com.iwebpp.node.tests;
 
 import android.util.Log;
 
+import com.iwebpp.libuvpp.handles.TimerHandle;
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.NodeContext.IntervalCallback;
 import com.iwebpp.node.TCP;
+import com.iwebpp.node.TCP.Socket.ConnectCallback;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.TCP.Server;
 import com.iwebpp.node.TCP.Server.ListenCallback;
@@ -61,10 +63,13 @@ public final class TcpTest {
 			
 			cln = new TCP.Socket(ctx, new Socket.Options(false, null));
 			
-			cln.connect(port, new Listener(){
+			cln.setEncoding("utf8");
+			
+			cln.connect(port, new ConnectCallback(){
 
 				@Override
-				public void invoke(Object data) throws Exception {
+				public void onConnect() throws Exception {
+
 					Log.d(TAG, "got connected");
 					
 					cln.on("readable", new Listener(){
@@ -81,29 +86,41 @@ public final class TcpTest {
 						
 					});
 					
+					///while (cln.write("hello word", "utf-8", new WriteCB(){
 					cln.write("hello word", "utf-8", new WriteCB(){
 
 						@Override
 						public void invoke(String error) throws Exception {
-							Log.d(TAG, "client write done");							
+							Log.d(TAG, "client write done @"+System.currentTimeMillis());
+						}
+						
+					});
+					
+					cln.on("drain", new Listener(){
+
+						@Override
+						public void invoke(Object data) throws Exception {
+							Log.d(TAG, "client write drained");
+
+                            ///while (cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null));
 						}
 						
 					});
 					
 					// write after 2s
-					ctx.setInterval(new IntervalCallback(){
+					TimerHandle interval = ctx.setInterval(new IntervalCallback(){
 
 						@Override
 						public void onInterval() throws Exception {
-							cln.write("hello word: "+System.currentTimeMillis() , "utf-8", null);							
+							cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null);							
 						}
 						
 					}, 2000);
-					
+					///ctx.clearInterval(interval);
 				}
 				
-			});		
-			
+			});
+						
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

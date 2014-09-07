@@ -1,7 +1,5 @@
 package com.iwebpp.node;
 
-import static com.iwebpp.libuvpp.handles.DefaultHandleFactory.newFactory;
-
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -16,12 +14,8 @@ import com.iwebpp.libuvpp.cb.StreamConnectionCallback;
 import com.iwebpp.libuvpp.cb.StreamReadCallback;
 import com.iwebpp.libuvpp.cb.StreamShutdownCallback;
 import com.iwebpp.libuvpp.cb.StreamWriteCallback;
-import com.iwebpp.libuvpp.handles.HandleFactory;
 import com.iwebpp.libuvpp.handles.LoopHandle;
 import com.iwebpp.libuvpp.handles.TCPHandle;
-import com.iwebpp.node.EventEmitter.Listener;
-import com.iwebpp.node.Readable2.Options;
-import com.iwebpp.node.Writable.WriteCB;
 import com.iwebpp.node.Writable2.WriteReq;
 
 public final class TCP {
@@ -51,7 +45,7 @@ public final class TCP {
 
 		private Address _peername;
 		
-		private NodeContext _ctx;
+		private NodeContext context;
 
 		public static class Options {
 
@@ -60,14 +54,14 @@ public final class TCP {
 			public boolean readable;
 			public boolean writable;
 			public boolean allowHalfOpen;
-
+			
 			public Options(boolean allowHalfOpen, TCPHandle handle) {
 				this.allowHalfOpen = allowHalfOpen;
 
 				this.handle = handle;
 				this.readable = false;
 				this.writable = false;
-				
+								
 				this.fd = -1;
 			}
 			
@@ -75,17 +69,17 @@ public final class TCP {
 			private Options(){}
 		};
 
-		public Socket(NodeContext ctx, Options options) throws Exception {
+		public Socket(NodeContext context, Options options) throws Exception {
 			// TBD...
-			super(ctx, 
-				  new Readable2.Options(-1, "utf8", false, "utf8"), 
-			      new Writable2.Options(-1, true, "utf8", false));
+			super(context, 
+				  new Readable2.Options(-1, "", false, "utf8"), 
+			      new Writable2.Options(-1, false, "utf8", false));
 			
-			// TODO Auto-generated constructor stub
+
 			final Socket self = this;
 			
 			// node context
-			this._ctx = ctx;
+			this.context = context;
 			
 			///if (!(this instanceof Socket)) return new Socket(options);
 
@@ -406,7 +400,7 @@ public final class TCP {
 					if (exception!=null && !self._writableState.errorEmitted) {
 						// TBD...
 						///process.nextTick(function() {
-						Util.nextTick(_ctx, new Util.nexTickCallback() {
+						Util.nextTick(context, new Util.nexTickCallback() {
 							
 					    	public void onNextTick() throws Exception {
 								self.emit("error", exception);
@@ -600,6 +594,10 @@ public final class TCP {
 			}
 			return this._sockname;
 		}
+		
+		public int bytesRead() {
+			return this.bytesRead;
+		}
 
 		public int bytesWritten() throws UnsupportedEncodingException {
 			int bytes = this._bytesDispatched;
@@ -669,7 +667,7 @@ public final class TCP {
 			///if (util.isFunction(cb)) {
 			if (cb != null) {
 				///process.nextTick(function() {
-				Util.nextTick(_ctx, new Util.nexTickCallback() {
+				Util.nextTick(context, new Util.nexTickCallback() {
 
 					@Override
 					public void onNextTick() throws Exception {	
@@ -929,7 +927,11 @@ Socket.prototype._writev = function(chunks, cb) {
 			return;
 		}
 
-		public void connect(int port, Listener cb) throws Exception {
+		public static interface ConnectCallback {
+			public void onConnect() throws Exception;
+		}
+		
+		public void connect(int port, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
 				this._readableState.reading = false;
@@ -948,14 +950,21 @@ Socket.prototype._writev = function(chunks, cb) {
 			///debug('pipe', pipe, options.path);
 
 			if (null == this._handle) {
-				///this._handle = pipe ? createPipe() : createTCP(_ctx.getLoop());
-				this._handle = createTCP(_ctx.getLoop());
+				///this._handle = pipe ? createPipe() : createTCP(context.getLoop());
+				this._handle = createTCP(context.getLoop());
 				initSocketHandle(this);
 			}
 
 			///if (util.isFunction(cb)) {
 			if (cb != null) {
-				self.once("connect", cb);
+				self.once("connect", new Listener(){
+
+					@Override
+					public void invoke(Object data) throws Exception {
+						cb.onConnect();
+					}
+					
+				});
 			}
 
 			Timers._unrefActive(this);
@@ -967,7 +976,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			connect(4, null, port, null, -1);
 		}
 
-		public void connect(String address ,int port, Listener cb) throws Exception {
+		public void connect(String address ,int port, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
 				this._readableState.reading = false;
@@ -986,14 +995,21 @@ Socket.prototype._writev = function(chunks, cb) {
 			///debug('pipe', pipe, options.path);
 
 			if (null == this._handle) {
-				///this._handle = pipe ? createPipe() : createTCP(_ctx.getLoop());
-				this._handle = createTCP(_ctx.getLoop());
+				///this._handle = pipe ? createPipe() : createTCP(context.getLoop());
+				this._handle = createTCP(context.getLoop());
 				initSocketHandle(this);
 			}
 
 			///if (util.isFunction(cb)) {
 			if (cb != null) {
-				self.once("connect", cb);
+				self.once("connect", new Listener(){
+
+					@Override
+					public void invoke(Object data) throws Exception {
+						cb.onConnect();
+					}
+					
+				});
 			}
 
 			Timers._unrefActive(this);
@@ -1007,7 +1023,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 		public void connect(
 				String address ,int port,
-				int localPort, Listener cb) throws Exception {
+				int localPort, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
 				this._readableState.reading = false;
@@ -1026,14 +1042,21 @@ Socket.prototype._writev = function(chunks, cb) {
 			///debug('pipe', pipe, options.path);
 
 			if (null == this._handle) {
-				///this._handle = pipe ? createPipe() : createTCP(_ctx.getLoop());
-				this._handle = createTCP(_ctx.getLoop());
+				///this._handle = pipe ? createPipe() : createTCP(context.getLoop());
+				this._handle = createTCP(context.getLoop());
 				initSocketHandle(this);
 			}
 
 			///if (util.isFunction(cb)) {
 			if (cb != null) {
-				self.once("connect", cb);
+				self.once("connect", new Listener(){
+
+					@Override
+					public void invoke(Object data) throws Exception {
+						cb.onConnect();
+					}
+					
+				});
 			}
 
 			Timers._unrefActive(this);
@@ -1047,7 +1070,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 		public void connect(
 				String address ,int port,
-				String localAddress, Listener cb) throws Exception {
+				String localAddress, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
 				this._readableState.reading = false;
@@ -1066,14 +1089,21 @@ Socket.prototype._writev = function(chunks, cb) {
 			///debug('pipe', pipe, options.path);
 
 			if (null == this._handle) {
-				///this._handle = pipe ? createPipe() : createTCP(_ctx.getLoop());
-				this._handle = createTCP(_ctx.getLoop());
+				///this._handle = pipe ? createPipe() : createTCP(context.getLoop());
+				this._handle = createTCP(context.getLoop());
 				initSocketHandle(this);
 			}
 
 			///if (util.isFunction(cb)) {
 			if (cb != null) {
-				self.once("connect", cb);
+				self.once("connect", new Listener(){
+
+					@Override
+					public void invoke(Object data) throws Exception {
+						cb.onConnect();
+					}
+					
+				});
 			}
 
 			Timers._unrefActive(this);
@@ -1087,7 +1117,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 		public void connect(
 				String address ,int port, 
-				String localAddress, int localPort, Listener cb) throws Exception {
+				String localAddress, int localPort, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
 				this._readableState.reading = false;
@@ -1106,14 +1136,21 @@ Socket.prototype._writev = function(chunks, cb) {
 			///debug('pipe', pipe, options.path);
 
 			if (null == this._handle) {
-				///this._handle = pipe ? createPipe() : createTCP(_ctx.getLoop());
-				this._handle = createTCP(_ctx.getLoop());
+				///this._handle = pipe ? createPipe() : createTCP(context.getLoop());
+				this._handle = createTCP(context.getLoop());
 				initSocketHandle(this);
 			}
 
 			///if (util.isFunction(cb)) {
 			if (cb != null) {
-				self.once("connect", cb);
+				self.once("connect", new Listener(){
+
+					@Override
+					public void invoke(Object data) throws Exception {
+						cb.onConnect();
+					}
+					
+				});
 			}
 
 			Timers._unrefActive(this);
@@ -1125,7 +1162,8 @@ Socket.prototype._writev = function(chunks, cb) {
 			connect(4, address, port, localAddress, localPort);
 		}
 
-		public void connect(int addressType, String address ,int port, Listener cb) throws Exception {
+		public void connect(int addressType, String address ,int port, 
+				final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
 				this._readableState.reading = false;
@@ -1144,14 +1182,21 @@ Socket.prototype._writev = function(chunks, cb) {
 			///debug('pipe', pipe, options.path);
 
 			if (null == this._handle) {
-				///this._handle = pipe ? createPipe() : createTCP(_ctx.getLoop());
-				this._handle = createTCP(_ctx.getLoop());
+				///this._handle = pipe ? createPipe() : createTCP(context.getLoop());
+				this._handle = createTCP(context.getLoop());
 				initSocketHandle(this);
 			}
 
 			///if (util.isFunction(cb)) {
 			if (cb != null) {
-				self.once("connect", cb);
+				self.once("connect", new Listener(){
+
+					@Override
+					public void invoke(Object data) throws Exception {
+						cb.onConnect();
+					}
+					
+				});
 			}
 
 			Timers._unrefActive(this);
@@ -1343,7 +1388,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 		private Address _sockname;
 
-		private NodeContext _ctx;
+		private NodeContext context;
 
 		private void _emitCloseIfDrained() throws Exception {
 			Log.d(TAG, "SERVER _emitCloseIfDrained");
@@ -1357,7 +1402,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			// TBD...
 			///process.nextTick(function() {
-			Util.nextTick(_ctx, new Util.nexTickCallback() {
+			Util.nextTick(context, new Util.nexTickCallback() {
 
 				@Override
 				public void onNextTick() throws Exception {
@@ -1368,11 +1413,11 @@ Socket.prototype._writev = function(chunks, cb) {
 			});
 		}
 
-		public Server(final NodeContext ctx, Options options, final ConnectionCallback listener) throws Exception {
+		public Server(final NodeContext context, Options options, final ConnectionCallback listener) throws Exception {
 			Server self = this;
 
 			// node context
-			this._ctx = ctx;
+			this.context = context;
 			
 			// set initial onConnection callback
 			if (listener != null) {
@@ -1444,7 +1489,7 @@ Socket.prototype._writev = function(chunks, cb) {
 		}
 
 		private TCPHandle _createServerHandle(String address, int port, int addressType, int fd) {
-			TCPHandle handle = createTCP(_ctx.getLoop());
+			TCPHandle handle = createTCP(context.getLoop());
 			int err = 0;
 
 
@@ -1496,7 +1541,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				if (rval == null) {
 					final String error = "err listen";
 					///process.nextTick(function() {
-					Util.nextTick(_ctx, new Util.nexTickCallback() {
+					Util.nextTick(context, new Util.nexTickCallback() {
 						
 						@Override
 						public void onNextTick() throws Exception {
@@ -1525,7 +1570,7 @@ Socket.prototype._writev = function(chunks, cb) {
 					///var handle = this;
 					///var self = handle.owner;
 					TCPHandle handle = self._handle;
-					TCPHandle clientHandle = createTCP(_ctx.getLoop());
+					TCPHandle clientHandle = createTCP(context.getLoop());
 					int err = handle.accept(clientHandle);
 
 
@@ -1548,7 +1593,7 @@ Socket.prototype._writev = function(chunks, cb) {
 						handle: clientHandle,
 						allowHalfOpen: self.allowHalfOpen
 					});*/
-					Socket socket = new Socket(_ctx, new Socket.Options(self.allowHalfOpen, clientHandle));
+					Socket socket = new Socket(context, new Socket.Options(self.allowHalfOpen, clientHandle));
 					socket.readable = socket.writable = true;
 
 
@@ -1575,7 +1620,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				self._handle.close();
 				self._handle = null;
 				///process.nextTick(function() {
-				Util.nextTick(_ctx, new Util.nexTickCallback() {
+				Util.nextTick(context, new Util.nexTickCallback() {
 					
 					@Override
 					public void onNextTick() throws Exception {
@@ -1593,7 +1638,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			this._connectionKey = addressType + ':' + address + ':' + port;
 
 			///process.nextTick(function() {
-			Util.nextTick(_ctx, new Util.nexTickCallback() {
+			Util.nextTick(context, new Util.nexTickCallback() {
 
 				@Override
 				public void onNextTick() throws Exception {

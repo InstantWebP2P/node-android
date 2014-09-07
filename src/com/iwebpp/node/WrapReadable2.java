@@ -1,12 +1,7 @@
 package com.iwebpp.node;
 
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
-
 import android.util.Log;
-
-import com.iwebpp.node.Readable2.State;
 
 public final class WrapReadable2 extends Readable2 {
 	private final static String TAG = "WrapReadable2";
@@ -16,12 +11,12 @@ public final class WrapReadable2 extends Readable2 {
 	private State state;
 	boolean paused;
 
-	private NodeContext _ctx;
+	private NodeContext context;
 
-	public WrapReadable2(NodeContext ctx, Options options, Readable oldstream) throws Exception {
-		super(ctx, options);
+	public WrapReadable2(NodeContext context, Options options, Readable oldstream) throws Exception {
+		super(context, options);
 		
-		this._ctx = ctx;
+		this.context = context;
 		
 		// TODO Auto-generated constructor stub
 		stream = oldstream;

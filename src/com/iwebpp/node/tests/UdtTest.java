@@ -2,11 +2,13 @@ package com.iwebpp.node.tests;
 
 import android.util.Log;
 
+import com.iwebpp.libuvpp.handles.TimerHandle;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.UDT;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext.IntervalCallback;
+import com.iwebpp.node.UDT.Socket.ConnectCallback;
 import com.iwebpp.node.UDT.Server;
 import com.iwebpp.node.UDT.Socket;
 import com.iwebpp.node.UDT.Server.ListenCallback;
@@ -61,10 +63,13 @@ public final class UdtTest {
 			
 			cln = new UDT.Socket(ctx, new Socket.Options(false, null));
 			
-			cln.connect(port, new Listener(){
+			cln.setEncoding("utf8");
+
+			cln.connect(port, new ConnectCallback(){
 
 				@Override
-				public void invoke(Object data) throws Exception {
+				public void onConnect() throws Exception {
+
 					Log.d(TAG, "got connected");
 					
 					cln.on("readable", new Listener(){
@@ -91,14 +96,16 @@ public final class UdtTest {
 					});
 					
 					// write after 2s
-					ctx.setInterval(new IntervalCallback(){
+					// write after 2s
+					TimerHandle interval = ctx.setInterval(new IntervalCallback(){
 
 						@Override
 						public void onInterval() throws Exception {
-							cln.write("hello word: "+System.currentTimeMillis() , "utf-8", null);							
+							cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null);							
 						}
 						
 					}, 2000);
+					///ctx.clearInterval(interval);
 					
 				}
 				

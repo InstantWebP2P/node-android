@@ -1,6 +1,7 @@
 package com.iwebpp.node;
 
-public abstract class Duplex extends Readable2 
+public abstract class Duplex
+extends Readable2 
 implements Writable {
 	private final static String TAG = "Duplex";
 
@@ -9,12 +10,12 @@ implements Writable {
 	
 	private class DuplexWritable extends Writable2 {
 		private Duplex hold;
-		private NodeContext _ctx;
+		private NodeContext context;
 
-		protected DuplexWritable(NodeContext ctx, Options options, Duplex hold) {
-			super(ctx, options);
-			this._ctx = ctx;
-			// TODO Auto-generated constructor stub
+		protected DuplexWritable(NodeContext context, Options options, Duplex hold) {
+			super(context, options);
+			this.context = context;
+
 			this.hold = hold;
 		}
 		private DuplexWritable() {super(null, null);}
@@ -29,7 +30,7 @@ implements Writable {
 	
 	protected Duplex(NodeContext ctx, Readable2.Options roptions, Writable2.Options woptions) {
 		super(ctx, roptions);
-		// TODO Auto-generated constructor stub
+
 		_writable = new DuplexWritable(ctx, woptions, this);
 		_writableState = _writable._writableState;
 	}

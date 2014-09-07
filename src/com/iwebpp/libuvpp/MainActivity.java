@@ -37,7 +37,7 @@ public class MainActivity extends Activity {
 		// Node Unit tests
 		///new EE2Test().start();
 		///new StreamTest().start();
-        new TcpTest().start();
+        ///new TcpTest().start();
         new UdtTest().start();
 
 	}

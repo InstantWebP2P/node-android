@@ -15,7 +15,7 @@ implements Readable {
 	private final static String TAG = "Readable2";
 	protected State _readableState;
 	private boolean readable;
-	private NodeContext _ctx;
+	private NodeContext context;
 
 	public static class Options {
 
@@ -188,10 +188,10 @@ implements Readable {
 		}
 	}
 
-	protected Readable2(NodeContext ctx, Options options) {
+	protected Readable2(NodeContext context, Options options) {
 		super();
 
-		this._ctx = ctx;
+		this.context = context;
 		
 		///if (!(this instanceof Readable))
 		///	    return new Readable(options);
@@ -592,7 +592,7 @@ this._readableState.encoding = enc;
 			state.setEnded(true);
 			///TDB...
 			///process.nextTick(function() {
-			Util.nextTick(_ctx, new Util.nexTickCallback() {
+			Util.nextTick(context, new Util.nexTickCallback() {
 
 				@Override
 				public void onNextTick() throws Exception {
@@ -619,7 +619,7 @@ this._readableState.encoding = enc;
 			state.readingMore = true;
 			//TBD...
 			///process.nextTick(function() {
-			Util.nextTick(_ctx, new Util.nexTickCallback() {
+			Util.nextTick(context, new Util.nexTickCallback() {
 
 				@Override
 				public void onNextTick() throws Exception {
@@ -656,7 +656,7 @@ this._readableState.encoding = enc;
 			if (state.sync) {
 				//TBD...
 				///process.nextTick(function() {
-				Util.nextTick(_ctx, new Util.nexTickCallback() {
+				Util.nextTick(context, new Util.nexTickCallback() {
 
 					@Override
 					public void onNextTick() throws Exception {
@@ -892,7 +892,7 @@ this._readableState.encoding = enc;
 		  if (state.endEmitted)
 			  // TBD...
 			  ///process.nextTick(endFn);
-			  Util.nextTick(_ctx, new Util.nexTickCallback() {
+			  Util.nextTick(context, new Util.nexTickCallback() {
 
 				  @Override
 				  public void onNextTick() throws Exception {	
@@ -1013,7 +1013,7 @@ this._readableState.encoding = enc;
 					final Readable2 self = this;
 					///TBD...
 					///process.nextTick(function() {
-					Util.nextTick(_ctx, new Util.nexTickCallback() {
+					Util.nextTick(context, new Util.nexTickCallback() {
 
 						@Override
 						public void onNextTick() throws Exception {
@@ -1048,7 +1048,7 @@ this._readableState.encoding = enc;
 			state.resumeScheduled = true;
 			// TBD...
 			///process.nextTick(function() {
-			Util.nextTick(_ctx, new Util.nexTickCallback() {
+			Util.nextTick(context, new Util.nexTickCallback() {
 
 				@Override
 				public void onNextTick() throws Exception {
