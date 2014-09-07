@@ -15,6 +15,7 @@ implements Readable {
 	private final static String TAG = "Readable2";
 	protected State _readableState;
 	private boolean readable;
+	private NodeContext _ctx;
 
 	public static class Options {
 
@@ -187,9 +188,11 @@ implements Readable {
 		}
 	}
 
-	protected Readable2(Options options) {
+	protected Readable2(NodeContext ctx, Options options) {
 		super();
 
+		this._ctx = ctx;
+		
 		///if (!(this instanceof Readable))
 		///	    return new Readable(options);
 
@@ -207,7 +210,7 @@ implements Readable {
 		return readableAddChunk(this, state, chunk, "", true);
 	}
 
-	private static boolean readableAddChunk(Readable2 stream, State state, 
+	private  boolean readableAddChunk(Readable2 stream, State state, 
 			Object chunk, String encoding, boolean addToFront) throws Exception {
 		String er = chunkInvalid(state, chunk);
 		if (er != null) {
@@ -268,7 +271,7 @@ implements Readable {
 	//readable event, and the user called read(largeNumber) such that
 	//needReadable was set, then we ought to push more, so that another
 	//'readable' event will be triggered.
-	private static boolean needMoreData(State state) {
+	private  boolean needMoreData(State state) {
 		Log.d(TAG, "needMoreData: state.length:"+
 				state.length+",state.highWaterMark:"+
 				state.highWaterMark);
@@ -293,8 +296,8 @@ this._readableState.encoding = enc;
 	};
 
 	//Don't raise the hwm > 128MB
-	private static int MAX_HWM = 0x800000;
-	private static int roundUpToNextPowerOf2(int n) {
+	private  int MAX_HWM = 0x800000;
+	private  int roundUpToNextPowerOf2(int n) {
 		if (n >= MAX_HWM) {
 			n = MAX_HWM;
 		} else {
@@ -306,7 +309,7 @@ this._readableState.encoding = enc;
 		return n;
 	}
 
-	private static int howMuchToRead(int n, State state) {
+	private  int howMuchToRead(int n, State state) {
 		if (state.length == 0 && state.isEnded())
 			return 0;
 
@@ -351,7 +354,7 @@ this._readableState.encoding = enc;
 		int nOrig = n;
 
 		///if (!util.isNumber(n) || n > 0)
-		if (n > 0)
+		if (n > 0 || n < 0)
 			state.emittedReadable = false;
 
 		// if we're doing read(0) to trigger a readable event, but we
@@ -465,7 +468,7 @@ this._readableState.encoding = enc;
 
 	//Pluck off n bytes from an array of buffers.
 	//Length is the combined lengths of all the buffers in the list.
-	private static Object fromList(int n, State state) {
+	private  Object fromList(int n, State state) {
 		List<Object> list = state.buffer;
 		int length = state.length;
 		boolean stringMode = state.getDecoder() != null;
@@ -577,8 +580,8 @@ this._readableState.encoding = enc;
 		return ret;
 	}
 
-	private static void endReadable(Readable2 stream) throws Exception {
-		State state = stream._readableState;
+	private void endReadable(final Readable2 stream) throws Exception {
+		final State state = stream._readableState;
 
 		// If we get here before consuming all the bytes, then that is a
 		// bug in node.  Should never happen.
@@ -589,13 +592,19 @@ this._readableState.encoding = enc;
 			state.setEnded(true);
 			///TDB...
 			///process.nextTick(function() {
-			// Check that we didn't get one last unshift.
-			if (!state.endEmitted && state.length == 0) {
-				state.endEmitted = true;
-				stream.readable = false;
-				stream.emit("end");
-			}
-			///});
+			Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+				@Override
+				public void onNextTick() throws Exception {
+					// Check that we didn't get one last unshift.
+					if (!state.endEmitted && state.length == 0) {
+						state.endEmitted = true;
+						stream.readable = false;
+						stream.emit("end");
+					}
+				}
+				
+			});
 		}
 	}
 
@@ -605,16 +614,22 @@ this._readableState.encoding = enc;
 	//it's in progress.
 	//However, if we're not ended, or reading, and the length < hwm,
 	//then go ahead and try to read some more preemptively.
-	private static void maybeReadMore(Readable2 stream, State state) throws Exception {
+	private void maybeReadMore(final Readable2 stream, final State state) throws Exception {
 		if (!state.readingMore) {
 			state.readingMore = true;
 			//TBD...
 			///process.nextTick(function() {
-			maybeReadMore_(stream, state);
-			///});
+			Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+				@Override
+				public void onNextTick() throws Exception {
+					maybeReadMore_(stream, state);
+				}
+				
+			});
 		}
 	}
-	private static void maybeReadMore_(Readable2 stream, State state) throws Exception {
+	private void maybeReadMore_(Readable2 stream, State state) throws Exception {
 		int len = state.length;
 		while (!state.reading && !state.flowing && !state.isEnded() &&
 				state.length < state.highWaterMark) {
@@ -632,7 +647,7 @@ this._readableState.encoding = enc;
 	//Don't emit readable right away in sync mode, because this can trigger
 	//another read() call => stack overflow.  This way, it might trigger
 	//a nextTick recursion warning, but that's not so bad.
-	private static void emitReadable(Readable2 stream) throws Exception {
+	private void emitReadable(final Readable2 stream) throws Exception {
 		State state = stream._readableState;
 		state.needReadable = false;
 		if (!state.emittedReadable) {
@@ -641,19 +656,25 @@ this._readableState.encoding = enc;
 			if (state.sync) {
 				//TBD...
 				///process.nextTick(function() {
-				emitReadable_(stream);
-				///});
+				Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+					@Override
+					public void onNextTick() throws Exception {
+						emitReadable_(stream);
+
+					}
+				});
 			} else
 				emitReadable_(stream);
 		}
 	}
-	private static void emitReadable_(Readable2 stream) throws Exception {
+	private  void emitReadable_(Readable2 stream) throws Exception {
 		Log.d(TAG, "emit readable");
 		stream.emit("readable");
 		flow(stream);
 	}
 
-	private static void flow(Readable2 stream) throws Exception {
+	private  void flow(Readable2 stream) throws Exception {
 		State state = stream._readableState;
 		Log.d(TAG, "flow " + state.flowing);
 		if (state.flowing) {
@@ -665,7 +686,7 @@ this._readableState.encoding = enc;
 		}
 	}
 
-	private static void onEofChunk(Readable2 stream, State state) throws Exception {
+	private  void onEofChunk(Readable2 stream, State state) throws Exception {
 		if (state.getDecoder()!=null && !state.isEnded()) {
 			///Object chunk = state.decoder.end();
 			
@@ -688,7 +709,7 @@ this._readableState.encoding = enc;
 		emitReadable(stream);
 	}
 
-	private static String chunkInvalid(State state, Object chunk) {
+	private  String chunkInvalid(State state, Object chunk) {
 		String er = null;
 		/*if (!util.isBuffer(chunk) &&
       !util.isString(chunk) &&
@@ -867,23 +888,30 @@ this._readableState.encoding = enc;
 		  };
 		  dest.once("unpipe", onunpipe);
 		  
-		  Listener endFn = doEnd ? onend : cleanup;
+		  final Listener endFn = doEnd ? onend : cleanup;
 		  if (state.endEmitted)
 			  // TBD...
-		    ///process.nextTick(endFn);
-			  endFn.invoke(null);
+			  ///process.nextTick(endFn);
+			  Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+				  @Override
+				  public void onNextTick() throws Exception {	
+					  endFn.invoke(null);
+				  }
+				  
+			  });
 		  else
-		    src.once("end", endFn);
+			  src.once("end", endFn);
 		  
 		  return dest;
 }
 
-	private static void unpipe(Readable2 src, Writable2 dest) throws Exception {
+	private  void unpipe(Readable2 src, Writable2 dest) throws Exception {
 		Log.d(TAG, "unpipe");
 		src.unpipe(dest);
 	}
 
-	private static Listener pipeOnDrain(final Readable2 src) {
+	private  Listener pipeOnDrain(final Readable2 src) {
 		return new Listener () {
 			@Override
 			public void invoke(Object data) throws Exception {
@@ -982,12 +1010,18 @@ this._readableState.encoding = enc;
 				state.emittedReadable = false;
 				state.needReadable = true;
 				if (!state.reading) {
-					Readable2 self = this;
+					final Readable2 self = this;
 					///TBD...
 					///process.nextTick(function() {
-					Log.d(TAG, "readable nexttick read 0");
-					self.read(0);
-					///});
+					Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+						@Override
+						public void onNextTick() throws Exception {
+							Log.d(TAG, "readable nexttick read 0");
+							self.read(0);
+						}
+						
+					});
 				} else if (state.length > 0) {
 					emitReadable(this);
 				}
@@ -1009,17 +1043,23 @@ this._readableState.encoding = enc;
 		return this;
 	}
 
-	private static void resume(Readable2 stream, State state) throws Exception {
+	private  void resume(final Readable2 stream, final State state) throws Exception {
 		if (!state.resumeScheduled) {
 			state.resumeScheduled = true;
 			// TBD...
 			///process.nextTick(function() {
-			resume_(stream, state);
-			///});
+			Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+				@Override
+				public void onNextTick() throws Exception {
+					resume_(stream, state);
+				}
+				
+			});
 		}
 	}
 
-	private static void resume_(Readable2 stream, State state) throws Exception {
+	private  void resume_(Readable2 stream, State state) throws Exception {
 		if (!state.reading) {
 			Log.d(TAG, "resume read 0");
 			try {
@@ -1056,8 +1096,8 @@ this._readableState.encoding = enc;
 	// wrap an old-style stream as the async data source.
 	// This is *not* part of the readable stream interface.
 	// It is an ugly unfortunate mess of history.
-	public static Readable2 wrap(final Readable stream, Options options) throws Exception {		  
-		return new WrapReadable2(options, stream);
+	public static Readable2 wrap(final NodeContext ctx, final Readable stream, Options options) throws Exception {		  
+		return new WrapReadable2(ctx, options, stream);
 	}
 	
 	// Manually shove something into the read() buffer.

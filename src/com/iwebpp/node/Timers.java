@@ -1,6 +1,7 @@
 package com.iwebpp.node;
 
 public final class Timers extends EventEmitter2 {
+	private NodeContext _ctx;
 
 	public static void _unrefActive(Object item) {
 		// TODO Auto-generated method stub
@@ -16,5 +17,11 @@ public final class Timers extends EventEmitter2 {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	public Timers(final NodeContext ctx) {
+		this._ctx = ctx;
+	}
+	@SuppressWarnings("unused")
+	private Timers(){}
 
 }

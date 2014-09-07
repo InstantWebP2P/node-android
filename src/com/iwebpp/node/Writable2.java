@@ -207,8 +207,12 @@ implements Writable {
 
 	private boolean writable;
 	
-    protected Writable2(Options options) {
+	private NodeContext _ctx;
+	
+    protected Writable2(NodeContext ctx, Options options) {
     	super();
+    	
+    	this._ctx = ctx;
     	
 	  // Writable ctor is applied to Duplexes, though they're not
 	  // instanceof Writable, they're instanceof Readable.
@@ -229,14 +233,20 @@ implements Writable {
     }
     
     // Helpers functions
-    private static void writeAfterEnd(Writable2 stream, State state, WriteCB cb) throws Exception {
+    private void writeAfterEnd(Writable2 stream, State state, final WriteCB cb) throws Exception {
     	///var er = new Error('write after end');
     	// TODO: defer error events consistently everywhere, not just the cb
     	stream.emit("error", "write after end");
     	//TBD...
     	///process.nextTick(function() {
-    	cb.invoke("write after end");
-    	///});
+    	Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+    		@Override
+    		public void onNextTick() throws Exception {
+    			cb.invoke("write after end");
+    		}
+    		
+    	});
     }
 
     // If we get something that is not a buffer, string, null, or undefined,
@@ -244,19 +254,25 @@ implements Writable {
     // Otherwise stream chunks are all considered to be of length=1, and the
     // watermarks determine how many objects to keep in the buffer, rather than
     // how many bytes or characters.
-    private static boolean validChunk(Writable2 stream, State state, Object chunk, WriteCB cb) throws Exception {
+    private boolean validChunk(Writable2 stream, State state, Object chunk, final WriteCB cb) throws Exception {
     	boolean valid = true;
     	if (!Util.isBuffer(chunk) &&
     		!Util.isString(chunk) &&
     		!Util.isNullOrUndefined(chunk) &&
     		!state.objectMode) {
     		///var er = new TypeError('Invalid non-string/buffer chunk');
-    		String er = "Invalid non-string/buffer chunk";
+    		final String er = "Invalid non-string/buffer chunk";
     		stream.emit("error", er);
     		//TBD...
     		///process.nextTick(function() {
-    			cb.invoke(er);
-    		///});
+    		Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+    			@Override
+    			public void onNextTick() throws Exception {
+    				cb.invoke(er);
+    			}
+    			
+    		});
     		valid = false;
     	}
     	return valid;
@@ -330,7 +346,15 @@ implements Writable {
     	if (cb != null) {
     		if (state.finished)
     			///process.nextTick(cb);
-    			cb.invoke(null);
+    			Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+    				@Override
+    				public void onNextTick() throws Exception {   
+    					cb.invoke(null);
+
+    				}
+
+    			});
     		else
     			stream.once("finish", new EventEmitter.Listener() {
     				@Override
@@ -367,7 +391,7 @@ implements Writable {
     // if we're already writing something, then just put this
     // in the queue, and wait our turn.  Otherwise, call _write
     // If we return false, then we need a drain event, so set that flag.
-    private static boolean writeOrBuffer(Writable2 stream, State state,
+    private boolean writeOrBuffer(Writable2 stream, State state,
     		Object chunk, String encoding, WriteCB cb) throws Exception {
     	chunk = decodeChunk(state, chunk, encoding);
     	if (Util.isBuffer(chunk))
@@ -389,7 +413,7 @@ implements Writable {
     	return ret;
     }
 
-    private static Object decodeChunk(State state, Object chunk, String encoding) throws Exception {
+    private Object decodeChunk(State state, Object chunk, String encoding) throws Exception {
     	if (!state.objectMode &&
     		 state.decodeStrings != false &&
     		 Util.isString(chunk)) {
@@ -398,10 +422,10 @@ implements Writable {
     	return chunk;
     }
 
-	private static void onwrite(Writable2 stream, String error) throws Exception {
-		State state = stream._writableState;
+	private void onwrite(final Writable2 stream, String error) throws Exception {
+		final State state = stream._writableState;
 		boolean sync = state.sync;
-		WriteCB cb = state.writecb;
+		final WriteCB cb = state.writecb;
 
 		onwriteStateUpdate(state);
 
@@ -409,7 +433,7 @@ implements Writable {
 			onwriteError(stream, state, sync, error, cb);
 		else {
 			// Check if we're actually ready to finish, but don't emit yet
-			boolean finished = needFinish(stream, state);
+			final boolean finished = needFinish(stream, state);
 
 			if (!finished &&
 					state.corked == 0 &&
@@ -421,16 +445,22 @@ implements Writable {
 			if (sync) {
 				///TBD
 				///process.nextTick(function() {
-				afterWrite(stream, state, finished, cb);
-				///});
+				Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+					@Override
+					public void onNextTick() throws Exception {
+						afterWrite(stream, state, finished, cb);
+					}
+					
+				});
 			} else {
-				afterWrite(stream, state, finished, cb);
+					afterWrite(stream, state, finished, cb);
+				}
 			}
-		}
 	}
 
 	// if there's something in the buffer waiting, then process it
-	private static void clearBuffer(Writable2 stream, State state) throws Exception {
+	private void clearBuffer(Writable2 stream, State state) throws Exception {
 		state.bufferProcessing = true;
 
 		/*if (stream._writev && state.buffer.length > 1) {
@@ -483,7 +513,7 @@ implements Writable {
 		state.bufferProcessing = false;
 	}
 
-	private static void doWrite(Writable2 stream, State state, boolean b,
+	private void doWrite(Writable2 stream, State state, boolean b,
 			int len, Object chunk, String encoding, WriteCB cb) throws Exception {
 		state.writelen = len;
 		state.writecb = cb;
@@ -496,7 +526,7 @@ implements Writable {
 		state.sync = false;
 	}
 
-	private static void afterWrite(Writable2 stream, State state,
+	private void afterWrite(Writable2 stream, State state,
 			boolean finished, WriteCB cb) throws Exception {
 		if (!finished)
 			onwriteDrain(stream, state);
@@ -505,7 +535,7 @@ implements Writable {
 		finishMaybe(stream, state);
 	}
 
-	private static boolean finishMaybe(Writable2 stream, State state) throws Exception {
+	private boolean finishMaybe(Writable2 stream, State state) throws Exception {
 		boolean need = needFinish(stream, state);
 		if (need) {
 			if (state.pendingcb == 0) {
@@ -518,7 +548,7 @@ implements Writable {
 		return need;
 	}
 
-	private static void prefinish(Writable2 stream, State state) throws Exception {
+	private void prefinish(Writable2 stream, State state) throws Exception {
 		if (!state.prefinished) {
 			state.prefinished = true;
 			stream.emit("prefinish");
@@ -528,14 +558,14 @@ implements Writable {
 	// Must force callback to be called on nextTick, so that we don't
 	// emit 'drain' before the write() consumer gets the 'false' return
 	// value, and has a chance to attach a 'drain' listener.
-	private static void onwriteDrain(Writable2 stream, State state) throws Exception {
+	private void onwriteDrain(Writable2 stream, State state) throws Exception {
 		if (state.length == 0 && state.needDrain) {
 			state.needDrain = false;
 			stream.emit("drain");
 		}
 	}
 
-	private static boolean needFinish(Writable2 stream, State state) {
+	private boolean needFinish(Writable2 stream, State state) {
 		return (state.ending &&
 				state.length == 0 &&
 				state.buffer.size() == 0 &&
@@ -543,14 +573,20 @@ implements Writable {
 				!state.writing);
 	}
 
-	private static void onwriteError(Writable2 stream, State state,
-			boolean sync, String error, WriteCB cb) throws Exception {
+	private void onwriteError(Writable2 stream, final State state,
+			boolean sync, final String error, final WriteCB cb) throws Exception {
 		if (sync) {
 			/// TBD
 			///process.nextTick(function() {
-			state.pendingcb--;
-			cb.invoke(error);
-			///});
+			Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+				@Override
+				public void onNextTick() throws Exception {
+					state.pendingcb--;
+					cb.invoke(error);
+				}
+				
+			});
 		} else {
 			state.pendingcb--;
 			cb.invoke(error);
@@ -559,7 +595,7 @@ implements Writable {
 		stream.emit("error", error);
 	}
 
-	private static void onwriteStateUpdate(State state) {
+	private void onwriteStateUpdate(State state) {
 		state.writing = false;
 		state.writecb = null;
 		state.length -= state.writelen;

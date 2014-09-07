@@ -16,8 +16,13 @@ public final class WrapReadable2 extends Readable2 {
 	private State state;
 	boolean paused;
 
-	public WrapReadable2(Options options, Readable oldstream) throws Exception {
-		super(options);
+	private NodeContext _ctx;
+
+	public WrapReadable2(NodeContext ctx, Options options, Readable oldstream) throws Exception {
+		super(ctx, options);
+		
+		this._ctx = ctx;
+		
 		// TODO Auto-generated constructor stub
 		stream = oldstream;
 		state = _readableState;

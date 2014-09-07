@@ -77,7 +77,8 @@ public final class TCP {
 
 		public Socket(NodeContext ctx, Options options) throws Exception {
 			// TBD...
-			super(new Readable2.Options(-1, "utf8", false, "utf8"), 
+			super(ctx, 
+				  new Readable2.Options(-1, "utf8", false, "utf8"), 
 			      new Writable2.Options(-1, true, "utf8", false));
 			
 			// TODO Auto-generated constructor stub
@@ -405,8 +406,13 @@ public final class TCP {
 					if (exception!=null && !self._writableState.errorEmitted) {
 						// TBD...
 						///process.nextTick(function() {
-						self.emit("error", exception);
-						///});
+						Util.nextTick(_ctx, new Util.nexTickCallback() {
+							
+					    	public void onNextTick() throws Exception {
+								self.emit("error", exception);
+					    	}
+
+						});
 						self._writableState.errorEmitted = true;
 					}
 				}
@@ -478,7 +484,7 @@ public final class TCP {
 			}
 		}
 
-		private Socket() {super(null, null);}
+		private Socket() {super(null, null, null);}
 
 		// TBD...
 		/*Socket.prototype.listen = function() {
@@ -648,7 +654,7 @@ public final class TCP {
 		// Provide a better error message when we call end() as a result
 		// of the other side sending a FIN.  The standard 'write after end'
 		// is overly vague, and makes it seem like the user's code is to blame.
-		private boolean writeAfterFIN(Object chunk, String encoding, WriteCB cb) throws Exception {
+		private boolean writeAfterFIN(Object chunk, String encoding, final WriteCB cb) throws Exception {
 			/*if (util.isFunction(encoding)) {
 		    cb = encoding;
 		    encoding = null;
@@ -656,15 +662,21 @@ public final class TCP {
 
 			///var er = new Error('This socket has been ended by the other party');
 			///er.code = 'EPIPE';
-			String er = "This socket has been ended by the other party";
+			final String er = "This socket has been ended by the other party";
 			Socket self = this;
 			// TODO: defer error events consistently everywhere, not just the cb
 			self.emit("error", er);
 			///if (util.isFunction(cb)) {
 			if (cb != null) {
 				///process.nextTick(function() {
-				cb.invoke(er);
-				///});
+				Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+					@Override
+					public void onNextTick() throws Exception {	
+						cb.invoke(er);
+					}
+					
+				});
 			}
 
 			return false;
@@ -1335,7 +1347,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 		private void _emitCloseIfDrained() throws Exception {
 			Log.d(TAG, "SERVER _emitCloseIfDrained");
-			Server self = this;
+			final Server self = this;
 
 			if (self._handle!=null || self._connections>0) {
 				Log.d(TAG, "SERVER handle? " + self._handle +
@@ -1345,9 +1357,15 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			// TBD...
 			///process.nextTick(function() {
-			Log.d(TAG, "SERVER: emit close");
-			self.emit("close");
-			///});
+			Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+				@Override
+				public void onNextTick() throws Exception {
+					Log.d(TAG, "SERVER: emit close");
+					self.emit("close");
+				}
+
+			});
 		}
 
 		public Server(final NodeContext ctx, Options options, final ConnectionCallback listener) throws Exception {
@@ -1476,10 +1494,16 @@ Socket.prototype._writev = function(chunks, cb) {
 			    }*/
 				TCPHandle rval = _createServerHandle(address, port, addressType, fd);
 				if (rval == null) {
-					String error = "err listen";
+					final String error = "err listen";
 					///process.nextTick(function() {
-					self.emit("error", error);
-					//});
+					Util.nextTick(_ctx, new Util.nexTickCallback() {
+						
+						@Override
+						public void onNextTick() throws Exception {
+							self.emit("error", error);
+						}
+						
+					});
 					return;
 				}
 
@@ -1547,12 +1571,18 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			if (0!=err) {
 				///var ex = errnoException(err, "listen");
-				String ex = "err listen";
+				final String ex = "err listen";
 				self._handle.close();
 				self._handle = null;
 				///process.nextTick(function() {
-				self.emit("error", ex);
-				///});
+				Util.nextTick(_ctx, new Util.nexTickCallback() {
+					
+					@Override
+					public void onNextTick() throws Exception {
+						self.emit("error", ex);
+					}
+					
+				});
 				
 				Log.d(TAG, ex);
 
@@ -1563,10 +1593,16 @@ Socket.prototype._writev = function(chunks, cb) {
 			this._connectionKey = addressType + ':' + address + ':' + port;
 
 			///process.nextTick(function() {
-			// ensure handle hasn't closed
-			if (self._handle != null)
-				self.emit("listening");
-			///});
+			Util.nextTick(_ctx, new Util.nexTickCallback() {
+
+				@Override
+				public void onNextTick() throws Exception {
+					// ensure handle hasn't closed
+					if (self._handle != null)
+						self.emit("listening");
+				}
+
+			});
 		}
 		
 		public void listen(String address, int port, int addressType, 
@@ -1710,7 +1746,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 	}
 
-	public static TCPHandle createTCP(final LoopHandle loop) {
+	private static TCPHandle createTCP(final LoopHandle loop) {
 		return new TCPHandle(loop);
 	}
 

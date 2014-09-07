@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.iwebpp.node.Duplex;
 import com.iwebpp.node.EventEmitter.Listener;
+import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Readable;
 import com.iwebpp.node.Readable2;
 import com.iwebpp.node.Util;
@@ -32,7 +33,7 @@ public final class StreamTest {
 		private int _index = 1;
 		
 		Counting() {
-			super(new Options(16, "utf8", false, "utf8"));
+			super(new NodeContext(), new Options(16, "utf8", false, "utf8"));
 			// TODO Auto-generated constructor stub
 
 			_index = 1;
@@ -60,7 +61,7 @@ public final class StreamTest {
     private class DummyWritable extends Writable2 {
 
 		public DummyWritable() {
-			super(new Options(-1, true, "utf8", false));
+			super(new NodeContext(), new Options(-1, true, "utf8", false));
 			// TODO Auto-generated constructor stub
 		}
 
@@ -90,7 +91,8 @@ public final class StreamTest {
 		private int _index = 1;
 		
 		public DummyDuplex() {
-			super(new Options(-1, "utf8", false, "utf8"), 
+			super(new NodeContext(), 
+				  new Options(-1, "utf8", false, "utf8"), 
 				  new Writable2.Options(-1, true, "utf8", false));
 			// TODO Auto-generated constructor stub
 			

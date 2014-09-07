@@ -9,13 +9,15 @@ implements Writable {
 	
 	private class DuplexWritable extends Writable2 {
 		private Duplex hold;
+		private NodeContext _ctx;
 
-		protected DuplexWritable(Options options, Duplex hold) {
-			super(options);
+		protected DuplexWritable(NodeContext ctx, Options options, Duplex hold) {
+			super(ctx, options);
+			this._ctx = ctx;
 			// TODO Auto-generated constructor stub
 			this.hold = hold;
 		}
-		private DuplexWritable() {super(null);}
+		private DuplexWritable() {super(null, null);}
 
 		@Override
 		public void _write(Object chunk, String encoding, WriteCB cb) throws Exception {
@@ -25,15 +27,15 @@ implements Writable {
 		
 	}
 	
-	protected Duplex(Readable2.Options roptions, Writable2.Options woptions) {
-		super(roptions);
+	protected Duplex(NodeContext ctx, Readable2.Options roptions, Writable2.Options woptions) {
+		super(ctx, roptions);
 		// TODO Auto-generated constructor stub
-		_writable = new DuplexWritable(woptions, this);
+		_writable = new DuplexWritable(ctx, woptions, this);
 		_writableState = _writable._writableState;
 	}
 
 	private Duplex(){
-		super(null);
+		super(null, null);
 	}
 	
 	@Override

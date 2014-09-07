@@ -5,6 +5,7 @@ import com.iwebpp.libuvpp.tests.*;
 import com.iwebpp.node.tests.EE2Test;
 import com.iwebpp.node.tests.StreamTest;
 import com.iwebpp.node.tests.TcpTest;
+import com.iwebpp.node.tests.UdtTest;
 
 import android.os.Bundle;
 import android.app.Activity;
@@ -37,7 +38,8 @@ public class MainActivity extends Activity {
 		///new EE2Test().start();
 		///new StreamTest().start();
         new TcpTest().start();
-		
+        new UdtTest().start();
+
 	}
 
 	@Override
