@@ -289,8 +289,13 @@ implements Readable {
 this._readableState.decoder = new StringDecoder(enc);
 this._readableState.encoding = enc;
 		 */
-		this._readableState.setDecoder(Charset.forName(enc).newDecoder());
-		this._readableState.encoding = enc;
+		if (!Util.zeroString(enc)) {
+			this._readableState.setDecoder(Charset.forName(enc).newDecoder());
+			this._readableState.encoding = enc;
+		} else {
+			this._readableState.setDecoder(null);
+			this._readableState.encoding = null;
+		}
 
 		return true;
 	};
