@@ -31,6 +31,10 @@ public final class Util {
     	return chunk == null;
     }
     
+    public static boolean isNull(Object chunk) {
+    	return chunk == null;
+    }
+    
     public static int chunkLength(Object chunk) {
     	if (isBuffer(chunk)) {
     		ByteBuffer bb = (ByteBuffer)chunk;
@@ -92,7 +96,7 @@ public final class Util {
     	
     	return null;
     }
-    
+
     public static boolean zeroString(String s) {
     	if (s == null) 
     		return true;

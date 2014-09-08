@@ -130,13 +130,13 @@ extends Duplex {
 	public void _read(int size) throws Exception {
 		final TransformState ts = this._transformState;
 
-		if (null!=ts.writechunk && ts.writecb!=null && !ts.transforming) {
+		if (!Util.isNull(ts.writechunk) && ts.writecb!=null && !ts.transforming) {
 			ts.transforming = true;
 			///this._transform(ts.writechunk, ts.writeencoding, ts.afterTransform);
 			this._transform(ts.writechunk, ts.writeencoding, new afterTransformCallback(){
 
 				@Override
-				public void afterTransform(String error) throws Exception {
+				public void afterTransform(String error, Object data) throws Exception {
 					ts.afterTransform(error, null);				
 				}
 
@@ -150,7 +150,8 @@ extends Duplex {
 
 
 	private static boolean done(Transform stream, String er) throws Exception {
-		if (er != null) {
+		///if (er != null) {
+		if (!Util.zeroString(er)) {
 			stream.emit("error", er);
 			return false;
 		}
@@ -161,10 +162,10 @@ extends Duplex {
 		TransformState ts = stream._transformState;
 
 		if (ws.length!=0)
-			throw new Error("calling transform done when ws.length != 0");
+			throw new Exception("calling transform done when ws.length != 0");
 
 		if (ts.transforming)
-			throw new Error("calling transform done when still transforming");
+			throw new Exception("calling transform done when still transforming");
 
 		return stream.push(null, null);
 	}
@@ -180,13 +181,14 @@ extends Duplex {
 	// an error, then that'll put the hurt on the whole operation.  If you
 	// never call cb(), then you'll never get another chunk.
 	public static interface afterTransformCallback {
-		public void afterTransform(String error) throws Exception;
+		public void afterTransform(String error, Object data) throws Exception;
 	}
-	public abstract void _transform(final Object chunk, String encoding, afterTransformCallback callback);
+	public abstract void _transform(final Object chunk, String encoding, 
+			afterTransformCallback callback) throws Exception;
 
 	public static interface flushCallback {
 		public void onFlush(String error) throws Exception;
 	}
-	public abstract void _flush(flushCallback callback);
+	public abstract void _flush(flushCallback callback) throws Exception;
 
 }
