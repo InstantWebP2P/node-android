@@ -195,7 +195,7 @@ implements Writable {
 	}
 
 	// _write(chunk, encoding, callback)
-	public abstract void _write(Object chunk, String encoding, WriteCB cb) throws Exception;
+	protected abstract void _write(Object chunk, String encoding, WriteCB cb) throws Exception;
 
 	protected State _writableState;
 	

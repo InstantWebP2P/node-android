@@ -110,7 +110,7 @@ extends Duplex {
 		return super.push(chunk, encoding);
 	}
 
-	public void _write(Object chunk, String encoding, WriteCB cb) throws Exception {
+	protected void _write(Object chunk, String encoding, WriteCB cb) throws Exception {
 		TransformState ts = this._transformState;
 		ts.writecb = cb;
 		ts.writechunk = chunk;
@@ -127,7 +127,7 @@ extends Duplex {
 	// Doesn't matter what the args are here.
 	// _transform does all the work.
 	// That we got here means that the readable side wants more data.
-	public void _read(int size) throws Exception {
+	protected void _read(int size) throws Exception {
 		final TransformState ts = this._transformState;
 
 		if (!Util.isNull(ts.writechunk) && ts.writecb!=null && !ts.transforming) {
@@ -180,15 +180,15 @@ extends Duplex {
 	// Call `cb(err)` when you are done with this chunk.  If you pass
 	// an error, then that'll put the hurt on the whole operation.  If you
 	// never call cb(), then you'll never get another chunk.
-	public static interface afterTransformCallback {
-		public void afterTransform(String error, Object data) throws Exception;
+	protected static interface afterTransformCallback {
+		void afterTransform(String error, Object data) throws Exception;
 	}
-	public abstract void _transform(final Object chunk, String encoding, 
+	protected abstract void _transform(final Object chunk, String encoding, 
 			afterTransformCallback callback) throws Exception;
 
-	public static interface flushCallback {
-		public void onFlush(String error) throws Exception;
+	protected static interface flushCallback {
+		void onFlush(String error) throws Exception;
 	}
-	public abstract void _flush(flushCallback callback) throws Exception;
+	protected abstract void _flush(flushCallback callback) throws Exception;
 
 }

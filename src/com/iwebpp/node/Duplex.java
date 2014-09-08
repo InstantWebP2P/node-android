@@ -50,8 +50,8 @@ implements Writable {
 	}
 	
 	@Override
-	public abstract void _read(int size) throws Exception;
+	protected abstract void _read(int size) throws Exception;
 	
-	public abstract void _write(Object chunk, String encoding, WriteCB cb) throws Exception;
+	protected abstract void _write(Object chunk, String encoding, WriteCB cb) throws Exception;
 	
 }

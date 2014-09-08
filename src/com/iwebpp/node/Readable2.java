@@ -1129,5 +1129,5 @@ this._readableState.encoding = enc;
 	// call cb(er, data) where data is <= n in length.
 	// for virtual (non-string, non-buffer) streams, "length" is somewhat
 	// arbitrary, and perhaps not very meaningful.
-	public abstract void _read(int size) throws Exception;
+	protected abstract void _read(int size) throws Exception;
 }

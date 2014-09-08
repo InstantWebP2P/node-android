@@ -123,7 +123,7 @@ public final class WrapReadable2 extends Readable2 {
 	// when we try to consume some more bytes, simply unpause the
 	// underlying stream.
 	@Override
-	public void _read(int n) throws Exception {
+	protected void _read(int n) throws Exception {
 		Log.d(TAG, "wrapped _read "+n);
 		if (paused) {
 			paused = false;
