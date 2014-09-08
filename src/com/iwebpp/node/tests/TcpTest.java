@@ -90,7 +90,7 @@ public final class TcpTest {
 					cln.write("hello word", "utf-8", new WriteCB(){
 
 						@Override
-						public void onWrite(String error) throws Exception {
+						public void writeDone(String error) throws Exception {
 							Log.d(TAG, "client write done @"+System.currentTimeMillis());
 						}
 						

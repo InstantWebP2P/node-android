@@ -170,7 +170,7 @@ implements Writable {
 			// the callback that's passed to _write(chunk,cb)
 			this.onwrite = new WriteCB() {
 				@Override
-				public void onWrite(String error) throws Exception {
+				public void writeDone(String error) throws Exception {
 					onwrite(stream, error);
 				}
 			};
@@ -241,7 +241,7 @@ implements Writable {
 
     		@Override
     		public void onNextTick() throws Exception {
-    			cb.onWrite("write after end");
+    			cb.writeDone("write after end");
     		}
     		
     	});
@@ -267,7 +267,7 @@ implements Writable {
 
     			@Override
     			public void onNextTick() throws Exception {
-    				cb.onWrite(er);
+    				cb.writeDone(er);
     			}
     			
     		});
@@ -296,7 +296,7 @@ implements Writable {
     		cb = new WriteCB()
     	{
     		@Override
-    		public void onWrite(String error) {
+    		public void writeDone(String error) {
     			// TODO Auto-generated method stub
     		}
     	};
@@ -348,7 +348,7 @@ implements Writable {
 
     				@Override
     				public void onNextTick() throws Exception {   
-    					cb.onWrite(null);
+    					cb.writeDone(null);
 
     				}
 
@@ -358,7 +358,7 @@ implements Writable {
     				@Override
     				public void invoke(Object data) throws Exception {
     					// TODO Auto-generated method stub
-    					cb.onWrite(null);
+    					cb.writeDone(null);
     				}
     			});
     	}
@@ -529,7 +529,7 @@ implements Writable {
 		if (!finished)
 			onwriteDrain(stream, state);
 		state.pendingcb--;
-		cb.onWrite(null);
+		cb.writeDone(null);
 		finishMaybe(stream, state);
 	}
 
@@ -581,13 +581,13 @@ implements Writable {
 				@Override
 				public void onNextTick() throws Exception {
 					state.pendingcb--;
-					cb.onWrite(error);
+					cb.writeDone(error);
 				}
 				
 			});
 		} else {
 			state.pendingcb--;
-			cb.onWrite(error);
+			cb.writeDone(error);
 		}
 
 		stream.emit("error", error);

@@ -18,7 +18,7 @@ import com.iwebpp.libuvpp.handles.LoopHandle;
 import com.iwebpp.libuvpp.handles.UDTHandle;
 import com.iwebpp.node.Writable2.WriteReq;
 
-public class UDT {
+public final class UDT {
 	
 	public static final class Socket extends Duplex {
 		private final static String TAG = "UDT:Socket";
@@ -671,7 +671,7 @@ public class UDT {
 
 					@Override
 					public void onNextTick() throws Exception {	
-						cb.onWrite(er);
+						cb.writeDone(er);
 					}
 					
 				});
@@ -795,7 +795,7 @@ Socket.prototype._writev = function(chunks, cb) {
 					@Override
 					public void invoke(Object data) throws Exception {
 						// TODO Auto-generated method stub
-						cb.onWrite("This socket is closed.");
+						cb.writeDone("This socket is closed.");
 					}
 
 				});
@@ -892,7 +892,7 @@ Socket.prototype._writev = function(chunks, cb) {
 					@Override
 					public void invoke(Object data) throws Exception {
 						// TODO Auto-generated method stub
-						cb.onWrite("write invalid data");
+						cb.writeDone("write invalid data");
 					}
 
 				});
@@ -906,7 +906,7 @@ Socket.prototype._writev = function(chunks, cb) {
 					@Override
 					public void invoke(Object data) throws Exception {
 						// TODO Auto-generated method stub
-						cb.onWrite("write invalid data");
+						cb.writeDone("write invalid data");
 					}
 
 				});
@@ -922,7 +922,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			///if (req.async && this._handle.writeQueueSize() != 0)
 			///	req.cb = cb;
 			///else
-			cb.onWrite(null);
+			cb.writeDone(null);
 
 			return;
 		}
