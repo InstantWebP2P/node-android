@@ -324,7 +324,7 @@ implements Writable {
     	}*/
 
     	///if (!util.isNullOrUndefined(chunk))
-    	if (chunk != null)
+    	if (!Util.isNullOrUndefined(chunk))
     		this.write(chunk, encoding, null);
 
     	// .end() fully uncorks

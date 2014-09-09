@@ -11,13 +11,13 @@ extends Transform {
 	private PassThrough(){super(null, null, null);}
 
 	@Override
-	public void _transform(Object chunk, String encoding,
+	protected void _transform(Object chunk, String encoding,
 			afterTransformCallback cb) throws Exception {
 		  cb.afterTransform(null, chunk);
 	}
 
 	@Override
-	public void _flush(flushCallback cb) throws Exception {
+	protected void _flush(flushCallback cb) throws Exception {
 	    cb.onFlush(null);
 	}
 

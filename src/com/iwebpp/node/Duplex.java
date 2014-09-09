@@ -15,8 +15,7 @@ implements Writable {
 		private DuplexWritable() {super(null, null);}
 
 		@Override
-		public void _write(Object chunk, String encoding, WriteCB cb) throws Exception {
-			// TODO Auto-generated method stub
+		protected void _write(Object chunk, String encoding, WriteCB cb) throws Exception {
 			hold._write(chunk, encoding, cb);
 		}
 		
@@ -35,17 +34,14 @@ implements Writable {
 	
 	@Override
 	public boolean write(Object chunk, String encoding, WriteCB cb) throws Exception {
-		// TODO Auto-generated method stub
 		return _writable.write(chunk, encoding, cb);
 	}
 	@Override
 	public void end(Object chunk, String encoding, WriteCB cb) throws Exception {
-		// TODO Auto-generated method stub
 		_writable.end(chunk, encoding, cb);
 	}
 	@Override
 	public boolean writable() {
-		// TODO Auto-generated method stub
 		return _writable.writable();
 	}
 	

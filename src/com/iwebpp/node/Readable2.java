@@ -448,7 +448,7 @@ this._readableState.encoding = enc;
 			ret = null;
 
 		///if (util.isNull(ret)) {
-		if (ret == null) {
+		if (Util.isNull(ret)) {
 			state.needReadable = true;
 			n = 0;
 		}
@@ -465,7 +465,7 @@ this._readableState.encoding = enc;
 			endReadable(this);
 
 		///if (!util.isNull(ret))
-		if (ret != null)
+		if (!Util.isNull(ret))
 			this.emit("data", ret);
 
 		return ret;
