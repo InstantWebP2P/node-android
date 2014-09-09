@@ -19,86 +19,88 @@ public abstract class HttpParser {
 	}
 	
 	private static enum state {
-	  	  s_dead (1) /* important that this is > 0 */
+	  	  s_dead                                (1) /* important that this is > 0 */
 
-		, s_start_req_or_res
-		, s_res_or_resp_H
-		, s_start_res
-		, s_res_H
-		, s_res_HT
-		, s_res_HTT
-		, s_res_HTTP
-		, s_res_first_http_major
-		, s_res_http_major
-		, s_res_first_http_minor
-		, s_res_http_minor
-		, s_res_first_status_code
-		, s_res_status_code
-		, s_res_status_start
-		, s_res_status
-		, s_res_line_almost_done
+		, s_start_req_or_res                    (2) 
+		, s_res_or_resp_H                       (3)
+		, s_start_res                           (4)
+		, s_res_H                               (5)
+		, s_res_HT                              (6)
+		, s_res_HTT                             (7)
+		, s_res_HTTP                            (8)
+		, s_res_first_http_major                (9)
+		, s_res_http_major                      (10)
+		, s_res_first_http_minor                (11)
+		, s_res_http_minor                      (12)
+		, s_res_first_status_code               (13)
+		, s_res_status_code                     (14)
+		, s_res_status_start                    (15)
+		, s_res_status                          (16)
+		, s_res_line_almost_done                (17)
 
-		, s_start_req
+		, s_start_req                           (18)
 
-		, s_req_method
-		, s_req_spaces_before_url
-		, s_req_schema
-		, s_req_schema_slash
-		, s_req_schema_slash_slash
-		, s_req_server_start
-		, s_req_server
-		, s_req_server_with_at
-		, s_req_path
-		, s_req_query_string_start
-		, s_req_query_string
-		, s_req_fragment_start
-		, s_req_fragment
-		, s_req_http_start
-		, s_req_http_H
-		, s_req_http_HT
-		, s_req_http_HTT
-		, s_req_http_HTTP
-		, s_req_first_http_major
-		, s_req_http_major
-		, s_req_first_http_minor
-		, s_req_http_minor
-		, s_req_line_almost_done
+		, s_req_method                          (19)
+		, s_req_spaces_before_url               (20)
+		, s_req_schema                          (21)
+		, s_req_schema_slash                    (22)
+		, s_req_schema_slash_slash              (23)
+		, s_req_server_start                    (24)
+		, s_req_server                          (25)
+		, s_req_server_with_at                  (26)
+		, s_req_path                            (27)
+		, s_req_query_string_start              (28)
+		, s_req_query_string                    (29)
+		, s_req_fragment_start                  (30)
+		, s_req_fragment                        (31)
+		, s_req_http_start                      (32)
+		, s_req_http_H                          (33)
+		, s_req_http_HT                         (34)
+		, s_req_http_HTT                        (35)
+		, s_req_http_HTTP                       (36)
+		, s_req_first_http_major                (37)
+		, s_req_http_major                      (38)
+		, s_req_first_http_minor                (39)
+		, s_req_http_minor                      (40)
+		, s_req_line_almost_done                (41)
 
-		, s_header_field_start
-		, s_header_field
-		, s_header_value_discard_ws
-		, s_header_value_discard_ws_almost_done
-		, s_header_value_discard_lws
-		, s_header_value_start
-		, s_header_value
-		, s_header_value_lws
+		, s_header_field_start                  (42)
+		, s_header_field                        (43)
+		, s_header_value_discard_ws             (44)
+		, s_header_value_discard_ws_almost_done (45)
+		, s_header_value_discard_lws            (46)
+		, s_header_value_start                  (47)
+		, s_header_value                        (48)
+		, s_header_value_lws                    (49)
 
-		, s_header_almost_done
+		, s_header_almost_done                  (50)
 
-		, s_chunk_size_start
-		, s_chunk_size
-		, s_chunk_parameters
-		, s_chunk_size_almost_done
+		, s_chunk_size_start                    (51)
+		, s_chunk_size                          (52)
+		, s_chunk_parameters                    (53)
+		, s_chunk_size_almost_done              (54)
 
-		, s_headers_almost_done
-		, s_headers_done
+		, s_headers_almost_done                 (55)
+		, s_headers_done                        (56)
 
 		/* Important: 's_headers_done' must be the last 'header' state. All
 		 * states beyond this must be 'body' states. It is used for overflow
 		 * checking. See the PARSING_HEADER() macro.
 		 */
 
-		, s_chunk_data
-		, s_chunk_data_almost_done
-		, s_chunk_data_done
+		, s_chunk_data                          (57)
+		, s_chunk_data_almost_done              (58)
+		, s_chunk_data_done                     (59)
 
-		, s_body_identity
-		, s_body_identity_eof
+		, s_body_identity                       (60)
+		, s_body_identity_eof                   (61)
 
-		, s_message_done;
+		, s_message_done                        (62);
 		
-		private state(int value) {}
-		private state() {}
+	  	private int state;
+		private state(int state) {
+			this.state = state;
+		}
 	}
 	
 	private static enum header_states {
@@ -126,9 +128,9 @@ public abstract class HttpParser {
 		, h_connection_keep_alive              (17)
 		, h_connection_close                   (18);
 
-	  	private int value;
-		private header_states(int value){
-			this.value = value;
+	  	private int state;
+		private header_states(int state){
+			this.state = state;
 		}
 	};
 
@@ -144,9 +146,9 @@ public abstract class HttpParser {
 		, s_http_host_port_start (9)
 		, s_http_host_port       (10);
 
-		private int value;
-		http_host_state(int value){
-			this.value = value;
+		private int state;
+		http_host_state(int state){
+			this.state = state;
 		}
 	}
 
