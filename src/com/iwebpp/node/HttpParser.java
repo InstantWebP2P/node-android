@@ -8,13 +8,13 @@ public abstract class HttpParser {
         this.data = data;
         this.type = type;
         this.http_errno = http_errno.HPE_OK;
-        this.State = (type == http_parser_type.HTTP_REQUEST ? State.s_start_req : 
+        this.state = (type == http_parser_type.HTTP_REQUEST ? State.s_start_req : 
         	         (type == http_parser_type.HTTP_RESPONSE ? State.s_start_res : State.s_start_req_or_res));
 	}
 	@SuppressWarnings("unused")
 	private HttpParser() {this.data = null;}
 
-	public static enum http_parser_type {
+	protected static enum http_parser_type {
 		HTTP_REQUEST, HTTP_RESPONSE, HTTP_BOTH;
 	}
 	
@@ -128,10 +128,7 @@ public abstract class HttpParser {
 		, h_connection_keep_alive              (17)
 		, h_connection_close                   (18);
 
-	  	private int state;
-		private header_states(int state){
-			this.state = state;
-		}
+	  	private header_states(int state){ }
 	};
 
 	private enum http_host_state {
@@ -146,14 +143,11 @@ public abstract class HttpParser {
 		, s_http_host_port_start (9)
 		, s_http_host_port       (10);
 
-		private int state;
-		http_host_state(int state){
-			this.state = state;
-		}
+		private http_host_state(int state){ }
 	}
 
 	/* Request Methods */
-	public static enum http_method {
+	protected static enum http_method {
 		HTTP_DELETE      ("DELETE"),
 		HTTP_GET         ("GET"),
 		HTTP_HEAD        ("HEAD"),
@@ -198,7 +192,7 @@ public abstract class HttpParser {
 	}
 	
 	/* Define HPE_* values for each errno value above */
-	public static enum http_errno {
+	protected static enum http_errno {
 		/* No error */                                                     
 		///XX(OK, "success")                                                  
 		HPE_OK("success"),    
@@ -326,21 +320,13 @@ public abstract class HttpParser {
 		return Long.MAX_VALUE; 
 	}
 	
-	private static int MIN(int a, int b) {
+	private static long MIN(long a, long b) {
 		return ((a) < (b) ? (a) : (b));
 	}
 	
-	private static int ARRAY_SIZE(char [] a) {
-		return a.length;
-	}
-	
 	private static boolean BIT_AT(char [] a, char i) {
-		return (0 != ( a[i >> 3] &                  
-				      (1 << (i & 7))));
-	}
-	
-	private static char ELEM_AT(char [] a, int i, char v) {
-		return ((int) (i) < ARRAY_SIZE(a) ? (a)[(i)] : (v));
+		return (0 != (a[i >> 3] &                  
+				     (1 << (i & 7))));
 	}
 	
 	private void SET_ERRNO(http_errno e) {
@@ -388,7 +374,43 @@ public abstract class HttpParser {
 		/* 120  x   121  y   122  z   123  {   124  |   125  }   126  ~   127 del */
 		'x',     'y',     'z',      0,      '|',      0,      '~',       0
 	};
-
+	
+	private final static char ASCII[] = {
+    /*   0 nul    1 soh    2 stx    3 etx    4 eot    5 enq    6 ack    7 bel  */
+	    0,       0,       0,       0,       0,       0,       0,       0,
+	/*   8 bs     9 ht    10 nl    11 vt    12 np    13 cr    14 so    15 si   */
+		0,    '\t',    '\n',       0,    '\f',    '\r',       0,       0,
+	/*  16 dle   17 dc1   18 dc2   19 dc3   20 dc4   21 nak   22 syn   23 etb */
+		0,       0,       0,       0,       0,       0,       0,       0,
+	/*  24 can   25 em    26 sub   27 esc   28 fs    29 gs    30 rs    31 us  */
+		0,       0,       0,       0,       0,       0,       0,       0,
+		
+	/*  32 sp    33  !    34  "    35  #    36  $    37  %    38  &    39  '  */
+		' ',     '!',      '"',     '#',    '$',      '%',     '&',   '\'',
+	/*  40  (    41  )    42  *    43  +    44  ,    45  -    46  .    47  /  */
+		'(',     ')',      '*',     '+',    ',',      '-',     '.',      0,
+	/*  48  0    49  1    50  2    51  3    52  4    53  5    54  6    55  7  */
+		'0',     '1',     '2',     '3',     '4',     '5',     '6',     '7',
+	/*  56  8    57  9    58  :    59  ;    60  <    61  =    62  >    63  ?  */
+		'8',     '9',     ':',     ';',     '<',     '=',     '>',     '?',
+	/*  64  @    65  A    66  B    67  C    68  D    69  E    70  F    71  G  */
+	    '@',     'A',     'B',     'C',     'D',     'E',     'F',     'G',
+	/*  72  H    73  I    74  J    75  K    76  L    77  M    78  N    79  O  */
+		'H',     'I',     'J',     'K',     'L',     'M',     'N',     'O',
+	/*  80  P    81  Q    82  R    83  S    84  T    85  U    86  V    87  W  */
+		'P',     'Q',     'R',     'S',     'T',     'U',     'V',     'W',
+	/*  88  X    89  Y    90  Z    91  [    92  \    93  ]    94  ^    95  _  */
+		'X',     'Y',     'Z',     '[',    '\\',     ']',      '^',     '_',
+	/*  96  `    97  a    98  b    99  c   100  d   101  e   102  f   103  g  */
+		'`',     'a',     'b',     'c',     'd',     'e',     'f',     'g',
+	/* 104  h   105  i   106  j   107  k   108  l   109  m   110  n   111  o  */
+		'h',     'i',     'j',     'k',     'l',     'm',     'n',     'o',
+	/* 112  p   113  q   114  r   115  s   116  t   117  u   118  v   119  w  */
+		'p',     'q',     'r',     's',     't',     'u',     'v',     'w',
+	/* 120  x   121  y   122  z   123  {   124  |   125  }   126  ~   127 del */
+		'x',     'y',     'z',     '{',      '|',    '}',     '~',       0
+	};
+	
 	private final static byte unhex[] = {
 		 -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
 		,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
@@ -489,15 +511,9 @@ public abstract class HttpParser {
 	#endif
 
 
-	#define start_state (parser->type == HTTP_REQUEST ? s_start_req : s_start_res)
+	#define start_state (type == HTTP_REQUEST ? s_start_req : s_start_res)
 	*/
 	
-	private static char CR() {
-		return '\r';
-	}
-	private static char LF() {
-		return '\n';
-	}
 	private static char LOWER(char c) {
 		return Character.toLowerCase(c);
 	}
@@ -707,18 +723,18 @@ public abstract class HttpParser {
 	 * because we probably have padding left over), we convert any port to
 	 * a uint16_t.
 	 */
-	private class http_parser_url {
-		int field_set;              /* Bitmask of (1 << UF_*) values */
-		int port;                   /* Converted UF_PORT string */
+	protected static class http_parser_url {
+		protected int field_set;              /* Bitmask of (1 << UF_*) values */
+		protected int port;                   /* Converted UF_PORT string */
 
-		class field_data_t {
+		protected class field_data_t {
 			int off;                /* Offset into buffer in which field starts */
 			int len;                /* Length of run in buffer */
 		}
 
-		field_data_t field_data[];
+		protected field_data_t field_data[];
 
-		http_parser_url() {
+		protected http_parser_url() {
 			field_data = new field_data_t[http_parser_url_fields.UF_MAX.field];
 		}
 	}
@@ -737,11 +753,11 @@ struct http_parser_settings {
 };
 	 * */
 	protected abstract int on_message_begin();
-	protected abstract int on_url(String url);
-	protected abstract int on_status(int status);
-	protected abstract int on_header_field(String field);
-	protected abstract int on_header_value(String field);
-	protected abstract int on_headers_complete(String field);
+	protected abstract int on_url(ByteBuffer url);
+	protected abstract int on_status(ByteBuffer status);
+	protected abstract int on_header_field(ByteBuffer field);
+	protected abstract int on_header_value(ByteBuffer field);
+	protected abstract int on_headers_complete();
 	protected abstract int on_body(ByteBuffer body);
 	protected abstract int on_message_complete();
 
@@ -759,15 +775,18 @@ struct http_parser_settings {
 	private final static long HTTP_PARSER_VERSION_MINOR = 3;
 	private final static long HTTP_PARSER_VERSION_PATCH = 0;
 
-	public long http_parser_version() {
+	protected long version() {
 		return HTTP_PARSER_VERSION_MAJOR * 0x10000 |
 			   HTTP_PARSER_VERSION_MINOR * 0x00100 |
 			   HTTP_PARSER_VERSION_PATCH * 0x00001;
 	}
 
+	/* Maximium header size allowed */
+	private final static int HTTP_MAX_HEADER_SIZE = (80*1024);
+	
 	///void http_parser_init(http_parser *parser, enum http_parser_type type);
 
-	protected int execute(ByteBuffer data) {
+	protected int execute(ByteBuffer data) throws Exception {
 		char c, ch;
 		
 		/*int8_t unhex_val;
@@ -799,7 +818,23 @@ struct http_parser_settings {
 				 * we got paused.
 				 */
 				///CALLBACK_NOTIFY_NOADVANCE(message_complete);
-				return 0;
+			{                                                                 
+				assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+				///if (settings->on_##FOR) 
+				{                                          
+					if (0 != on_message_complete()) {                           
+						SET_ERRNO(http_errno.HPE_CB_message_complete);                                       
+					}                                                                
+
+					/* We either errored above or got paused; get out */             
+					if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                       
+						///return (ER);    
+						return (p);
+					}                                                                
+				}                                                                  
+			}
+			    return 0;
 
 			case s_dead:
 			case s_start_req_or_res:
@@ -835,13 +870,20 @@ struct http_parser_settings {
 		case s_res_status:
 			status_mark = 0;///data;
 			break;
+		default:
+			break;
 		}
 
-		for (p=data; p != data + len; p++) {
-			ch = *p;
+		///for (p=data; p != data + len; p++) {
+		for (p = 0; p < len; p ++) {
+			///ch = *p;
+			ch = ASCII[data.get(p) & 0xff];
 
-			if (PARSING_HEADER(parser->state)) {
-				++parser->nread;
+			///if (PARSING_HEADER(state)) {
+			if (PARSING_HEADER()) {
+				///++nread;
+				nread++;
+				
 				/* Don't allow the total size of the HTTP headers (including the status
 				 * line) to exceed HTTP_MAX_HEADER_SIZE.  This check is here to protect
 				 * embedders against denial-of-service attacks where the attacker feeds
@@ -853,40 +895,78 @@ struct http_parser_settings {
 				 * than any reasonable request or response so this should never affect
 				 * day-to-day operation.
 				 */
-				if (parser->nread > HTTP_MAX_HEADER_SIZE) {
-					SET_ERRNO(HPE_HEADER_OVERFLOW);
-					goto error;
+				///if (nread > HTTP_MAX_HEADER_SIZE) {
+				if (nread > HTTP_MAX_HEADER_SIZE) {
+					SET_ERRNO(http_errno.HPE_HEADER_OVERFLOW);
+					///goto error;
+					{
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
 				}
 			}
 
-			reexecute_byte:
-				switch (parser->state) {
-
+			///reexecute_byte:
+			while (true) {
+				
+				switch (state) {
+				
 				case s_dead:
 					/* this state is used after a 'Connection: close' message
 					 * the parser will error out if it reads another message
 					 */
-					if (ch == CR || ch == LF)
+					if (ch == '\r' || ch == '\n')
 						break;
 
-					SET_ERRNO(HPE_CLOSED_CONNECTION);
-					goto error;
+					SET_ERRNO(http_errno.HPE_CLOSED_CONNECTION);
+					///goto error;
+					{
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
 
+						///return (p - data);
+						return p;
+					}
+					
 				case s_start_req_or_res:
 				{
-					if (ch == CR || ch == LF)
+					if (ch == '\r' || ch == '\n')
 						break;
-					parser->flags = 0;
-					parser->content_length = ULLONG_MAX;
+					
+					flags = 0;
+					content_length = ULLONG_MAX();
 
 					if (ch == 'H') {
-						parser->state = s_res_or_resp_H;
+						state = State.s_res_or_resp_H;
 
-						CALLBACK_NOTIFY(message_begin);
+						///CALLBACK_NOTIFY(message_begin);
+						{                                                                 
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							///if (settings->on_##FOR) 
+							{                                          
+								if (0 != on_message_begin()) {                           
+									SET_ERRNO(http_errno.HPE_CB_message_begin);                                       
+								}                                                                
+
+								/* We either errored above or got paused; get out */             
+								if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                       
+									///return (ER);    
+									return (p + 1);
+								}                                                                
+							}                                                                  
+						}
+						
 					} else {
-						parser->type = HTTP_REQUEST;
-						parser->state = s_start_req;
-						goto reexecute_byte;
+						type = http_parser_type.HTTP_REQUEST;
+						state = State.s_start_req;
+						///goto reexecute_byte;
+						continue;
 					}
 
 					break;
@@ -894,93 +974,197 @@ struct http_parser_settings {
 
 				case s_res_or_resp_H:
 					if (ch == 'T') {
-						parser->type = HTTP_RESPONSE;
-						parser->state = s_res_HT;
+						type = http_parser_type.HTTP_RESPONSE;
+						state = State.s_res_HT;
 					} else {
 						if (ch != 'E') {
-							SET_ERRNO(HPE_INVALID_CONSTANT);
-							goto error;
+							SET_ERRNO(http_errno.HPE_INVALID_CONSTANT);
+							///goto error;
+							{
+								if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+									SET_ERRNO(http_errno.HPE_UNKNOWN);
+								}
+
+								///return (p - data);
+								return p;
+							}
 						}
 
-						parser->type = HTTP_REQUEST;
-						parser->method = HTTP_HEAD;
-						parser->index = 2;
-						parser->state = s_req_method;
+						type = http_parser_type.HTTP_REQUEST;
+						method = http_method.HTTP_HEAD;
+						index = 2;
+						state = State.s_req_method;
 					}
 					break;
 
 				case s_start_res:
 				{
-					parser->flags = 0;
-					parser->content_length = ULLONG_MAX;
+					flags = 0;
+					content_length = ULLONG_MAX();
 
 					switch (ch) {
 					case 'H':
-						parser->state = s_res_H;
+						state = State.s_res_H;
 						break;
 
-					case CR:
-					case LF:
+					case '\r':
+					case '\n':
 						break;
 
 					default:
-						SET_ERRNO(HPE_INVALID_CONSTANT);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_CONSTANT);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					CALLBACK_NOTIFY(message_begin);
+					///CALLBACK_NOTIFY(message_begin);
+					{                                                                 
+						assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+						///if (settings->on_##FOR) 
+						{                                          
+							if (0 != on_message_begin()) {                           
+								SET_ERRNO(http_errno.HPE_CB_message_begin);                                       
+							}                                                                
+
+							/* We either errored above or got paused; get out */             
+							if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                       
+								///return (ER);    
+								return (p + 1);
+							}                                                                
+						}                                                                  
+					}
 					break;
 				}
 
 				case s_res_H:
-					STRICT_CHECK(ch != 'T');
-					parser->state = s_res_HT;
+					///STRICT_CHECK(ch != 'T');
+					if (ch != 'T') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
+
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+
+					state = State.s_res_HT;
 					break;
 
 				case s_res_HT:
-					STRICT_CHECK(ch != 'T');
-					parser->state = s_res_HTT;
+					///STRICT_CHECK(ch != 'T');
+					if (ch != 'T') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
+
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					state = State.s_res_HTT;
 					break;
 
 				case s_res_HTT:
-					STRICT_CHECK(ch != 'P');
-					parser->state = s_res_HTTP;
+					///STRICT_CHECK(ch != 'P');
+					if (ch != 'P') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
+
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					state = State.s_res_HTTP;
 					break;
 
 				case s_res_HTTP:
-					STRICT_CHECK(ch != '/');
-					parser->state = s_res_first_http_major;
+					///STRICT_CHECK(ch != '/');
+					if (ch != '/') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
+
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					state = State.s_res_first_http_major;
 					break;
 
 				case s_res_first_http_major:
 					if (ch < '0' || ch > '9') {
-						SET_ERRNO(HPE_INVALID_VERSION);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					parser->http_major = ch - '0';
-					parser->state = s_res_http_major;
+					http_major = ch - '0';
+					state = State.s_res_http_major;
 					break;
 
 					/* major HTTP version or dot */
 				case s_res_http_major:
 				{
 					if (ch == '.') {
-						parser->state = s_res_first_http_minor;
+						state = State.s_res_first_http_minor;
 						break;
 					}
 
 					if (!IS_NUM(ch)) {
-						SET_ERRNO(HPE_INVALID_VERSION);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					parser->http_major *= 10;
-					parser->http_major += ch - '0';
+					http_major *= 10;
+					http_major += ch - '0';
 
-					if (parser->http_major > 999) {
-						SET_ERRNO(HPE_INVALID_VERSION);
-						goto error;
+					if (http_major > 999) {
+						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
 					break;
@@ -989,33 +1173,57 @@ struct http_parser_settings {
 				/* first digit of minor HTTP version */
 				case s_res_first_http_minor:
 					if (!IS_NUM(ch)) {
-						SET_ERRNO(HPE_INVALID_VERSION);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					parser->http_minor = ch - '0';
-					parser->state = s_res_http_minor;
+					http_minor = ch - '0';
+					state = State.s_res_http_minor;
 					break;
 
 					/* minor HTTP version or end of request line */
 				case s_res_http_minor:
 				{
 					if (ch == ' ') {
-						parser->state = s_res_first_status_code;
+						state = State.s_res_first_status_code;
 						break;
 					}
 
 					if (!IS_NUM(ch)) {
-						SET_ERRNO(HPE_INVALID_VERSION);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					parser->http_minor *= 10;
-					parser->http_minor += ch - '0';
+					http_minor *= 10;
+					http_minor += ch - '0';
 
-					if (parser->http_minor > 999) {
-						SET_ERRNO(HPE_INVALID_VERSION);
-						goto error;
+					if (http_minor > 999) {
+						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
 					break;
@@ -1028,11 +1236,19 @@ struct http_parser_settings {
 							break;
 						}
 
-						SET_ERRNO(HPE_INVALID_STATUS);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_STATUS);
+						////goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
-					parser->status_code = ch - '0';
-					parser->state = s_res_status_code;
+					status_code = ch - '0';
+					state = State.s_res_status_code;
 					break;
 				}
 
@@ -1041,27 +1257,43 @@ struct http_parser_settings {
 					if (!IS_NUM(ch)) {
 						switch (ch) {
 						case ' ':
-							parser->state = s_res_status_start;
+							state = State.s_res_status_start;
 							break;
-						case CR:
-							parser->state = s_res_line_almost_done;
+						case '\r':
+							state = State.s_res_line_almost_done;
 							break;
-						case LF:
-							parser->state = s_header_field_start;
+						case '\n':
+							state = State.s_header_field_start;
 							break;
 						default:
-							SET_ERRNO(HPE_INVALID_STATUS);
-							goto error;
+							SET_ERRNO(http_errno.HPE_INVALID_STATUS);
+							///goto error;
+							{
+								if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+									SET_ERRNO(http_errno.HPE_UNKNOWN);
+								}
+
+								///return (p - data);
+								return p;
+							}
 						}
 						break;
 					}
 
-					parser->status_code *= 10;
-					parser->status_code += ch - '0';
+					status_code *= 10;
+					status_code += ch - '0';
 
-					if (parser->status_code > 999) {
-						SET_ERRNO(HPE_INVALID_STATUS);
-						goto error;
+					if (status_code > 999) {
+						SET_ERRNO(http_errno.HPE_INVALID_STATUS);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
 					break;
@@ -1069,163 +1301,339 @@ struct http_parser_settings {
 
 				case s_res_status_start:
 				{
-					if (ch == CR) {
-						parser->state = s_res_line_almost_done;
+					if (ch == '\r') {
+						state = State.s_res_line_almost_done;
 						break;
 					}
 
-					if (ch == LF) {
-						parser->state = s_header_field_start;
+					if (ch == '\n') {
+						state = State.s_header_field_start;
 						break;
 					}
 
-					MARK(status);
-					parser->state = s_res_status;
-					parser->index = 0;
+					///MARK(status);
+				    if (status_mark == -1) status_mark = p;
+					
+					state = State.s_res_status;
+					index = 0;
 					break;
 				}
 
 				case s_res_status:
-					if (ch == CR) {
-						parser->state = s_res_line_almost_done;
-						CALLBACK_DATA(status);
+					if (ch == '\r') {
+						state = State.s_res_line_almost_done;
+						///CALLBACK_DATA(status);
+						{
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							if (status_mark != -1) {                                                  
+								///if (settings->on_##FOR) 
+								{          
+									// slice data ByteBuffer
+									ByteBuffer bb = data;
+									int opos = bb.position(); bb.position(status_mark);
+									int olmt = bb.limit(); bb.limit(p);
+
+									ByteBuffer rb = bb.slice();
+									bb.limit(olmt); bb.position(opos);
+
+									///if (0 != on_status(FOR##_mark, (LEN))) {  
+									if (0 != on_status(rb)) {
+										SET_ERRNO(http_errno.HPE_CB_status);                                     
+									}                                                              
+
+									/* We either errored above or got paused; get out */          
+									if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+										///return (ER);
+										return (p + 1);
+									}                                                              
+								}                                                                
+								///FOR##_mark = NULL;
+								status_mark = -1;
+							}                                                  
+						}
 						break;
 					}
 
-					if (ch == LF) {
-						parser->state = s_header_field_start;
-						CALLBACK_DATA(status);
+					if (ch == '\n') {
+						state = State.s_header_field_start;
+						///CALLBACK_DATA(status);
+						{
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							if (status_mark != -1) {                                                  
+								///if (settings->on_##FOR) 
+								{          
+									// slice data ByteBuffer
+									ByteBuffer bb = data;
+									int opos = bb.position(); bb.position(status_mark);
+									int olmt = bb.limit(); bb.limit(p);
+
+									ByteBuffer rb = bb.slice();
+									bb.limit(olmt); bb.position(opos);
+
+									///if (0 != on_status(FOR##_mark, (LEN))) {  
+									if (0 != on_status(rb)) {
+										SET_ERRNO(http_errno.HPE_CB_status);                                     
+									}                                                              
+
+									/* We either errored above or got paused; get out */          
+									if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+										///return (ER);
+										return (p + 1);
+									}                                                              
+								}                                                                
+								///FOR##_mark = NULL;
+								status_mark = -1;
+							}                                                  
+						}
 						break;
 					}
 
 					break;
 
 				case s_res_line_almost_done:
-					STRICT_CHECK(ch != LF);
-					parser->state = s_header_field_start;
+					///STRICT_CHECK(ch != '\n');
+					if (ch != '\n') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
+
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					state = State.s_header_field_start;
 					break;
 
 				case s_start_req:
 				{
-					if (ch == CR || ch == LF)
+					if (ch == '\r' || ch == '\n')
 						break;
-					parser->flags = 0;
-					parser->content_length = ULLONG_MAX;
+					flags = 0;
+					content_length = ULLONG_MAX();
 
 					if (!IS_ALPHA(ch)) {
-						SET_ERRNO(HPE_INVALID_METHOD);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_METHOD);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					parser->method = (enum http_method) 0;
-					parser->index = 1;
+					method = http_method.HTTP_DELETE;
+					index = 1;
 					switch (ch) {
-					case 'C': parser->method = HTTP_CONNECT; /* or COPY, CHECKOUT */ break;
-					case 'D': parser->method = HTTP_DELETE; break;
-					case 'G': parser->method = HTTP_GET; break;
-					case 'H': parser->method = HTTP_HEAD; break;
-					case 'L': parser->method = HTTP_LOCK; break;
-					case 'M': parser->method = HTTP_MKCOL; /* or MOVE, MKACTIVITY, MERGE, M-SEARCH */ break;
-					case 'N': parser->method = HTTP_NOTIFY; break;
-					case 'O': parser->method = HTTP_OPTIONS; break;
-					case 'P': parser->method = HTTP_POST;
+					case 'C': method = http_method.HTTP_CONNECT; /* or COPY, CHECKOUT */ break;
+					case 'D': method = http_method.HTTP_DELETE; break;
+					case 'G': method = http_method.HTTP_GET; break;
+					case 'H': method = http_method.HTTP_HEAD; break;
+					case 'L': method = http_method.HTTP_LOCK; break;
+					case 'M': method = http_method. HTTP_MKCOL; /* or MOVE, MKACTIVITY, MERGE, M-SEARCH */ break;
+					case 'N': method = http_method.HTTP_NOTIFY; break;
+					case 'O': method = http_method.HTTP_OPTIONS; break;
+					case 'P': method = http_method.HTTP_POST;
 					/* or PROPFIND|PROPPATCH|PUT|PATCH|PURGE */
 					break;
-					case 'R': parser->method = HTTP_REPORT; break;
-					case 'S': parser->method = HTTP_SUBSCRIBE; /* or SEARCH */ break;
-					case 'T': parser->method = HTTP_TRACE; break;
-					case 'U': parser->method = HTTP_UNLOCK; /* or UNSUBSCRIBE */ break;
+					case 'R': method = http_method.HTTP_REPORT; break;
+					case 'S': method = http_method.HTTP_SUBSCRIBE; /* or SEARCH */ break;
+					case 'T': method = http_method.HTTP_TRACE; break;
+					case 'U': method = http_method.HTTP_UNLOCK; /* or UNSUBSCRIBE */ break;
 					default:
-						SET_ERRNO(HPE_INVALID_METHOD);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_METHOD);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
-					parser->state = s_req_method;
+					state = State.s_req_method;
 
-					CALLBACK_NOTIFY(message_begin);
+					///CALLBACK_NOTIFY(message_begin);
+					{                                                                 
+						assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
 
+						///if (settings->on_##FOR) 
+						{                                          
+							if (0 != on_message_begin()) {                           
+								SET_ERRNO(http_errno.HPE_CB_message_begin);                                       
+							}                                                                
+
+							/* We either errored above or got paused; get out */             
+							if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                       
+								///return (ER);    
+								return (p + 1);
+							}                                                                
+						}                                                                  
+					}
+					
 					break;
 				}
 
 				case s_req_method:
 				{
-					const char *matcher;
+					char [] matcher;
 					if (ch == '\0') {
-						SET_ERRNO(HPE_INVALID_METHOD);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_METHOD);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					matcher = method_strings[parser->method];
-					if (ch == ' ' && matcher[parser->index] == '\0') {
-						parser->state = s_req_spaces_before_url;
-					} else if (ch == matcher[parser->index]) {
+					matcher = method.desc.toCharArray();
+					if (ch == ' ' && matcher[index] == '\0') {
+						state = State.s_req_spaces_before_url;
+					} else if (ch == matcher[index]) {
 						; /* nada */
-					} else if (parser->method == HTTP_CONNECT) {
-						if (parser->index == 1 && ch == 'H') {
-							parser->method = HTTP_CHECKOUT;
-						} else if (parser->index == 2  && ch == 'P') {
-							parser->method = HTTP_COPY;
+					} else if (method == http_method.HTTP_CONNECT) {
+						if (index == 1 && ch == 'H') {
+							method = http_method.HTTP_CHECKOUT;
+						} else if (index == 2  && ch == 'P') {
+							method = http_method.HTTP_COPY;
 						} else {
-							SET_ERRNO(HPE_INVALID_METHOD);
-							goto error;
+							SET_ERRNO(http_errno.HPE_INVALID_METHOD);
+							///goto error;
+							{
+								if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+									SET_ERRNO(http_errno.HPE_UNKNOWN);
+								}
+
+								///return (p - data);
+								return p;
+							}
 						}
-					} else if (parser->method == HTTP_MKCOL) {
-						if (parser->index == 1 && ch == 'O') {
-							parser->method = HTTP_MOVE;
-						} else if (parser->index == 1 && ch == 'E') {
-							parser->method = HTTP_MERGE;
-						} else if (parser->index == 1 && ch == '-') {
-							parser->method = HTTP_MSEARCH;
-						} else if (parser->index == 2 && ch == 'A') {
-							parser->method = HTTP_MKACTIVITY;
+					} else if (method == http_method.HTTP_MKCOL) {
+						if (index == 1 && ch == 'O') {
+							method = http_method.HTTP_MOVE;
+						} else if (index == 1 && ch == 'E') {
+							method = http_method.HTTP_MERGE;
+						} else if (index == 1 && ch == '-') {
+							method = http_method.HTTP_MSEARCH;
+						} else if (index == 2 && ch == 'A') {
+							method = http_method.HTTP_MKACTIVITY;
 						} else {
-							SET_ERRNO(HPE_INVALID_METHOD);
-							goto error;
+							SET_ERRNO(http_errno.HPE_INVALID_METHOD);
+							///goto error;
+							{
+								if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+									SET_ERRNO(http_errno.HPE_UNKNOWN);
+								}
+
+								///return (p - data);
+								return p;
+							}
 						}
-					} else if (parser->method == HTTP_SUBSCRIBE) {
-						if (parser->index == 1 && ch == 'E') {
-							parser->method = HTTP_SEARCH;
+					} else if (method == http_method.HTTP_SUBSCRIBE) {
+						if (index == 1 && ch == 'E') {
+							method = http_method.HTTP_SEARCH;
 						} else {
-							SET_ERRNO(HPE_INVALID_METHOD);
-							goto error;
+							SET_ERRNO(http_errno.HPE_INVALID_METHOD);
+							///goto error;
+							{
+								if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+									SET_ERRNO(http_errno.HPE_UNKNOWN);
+								}
+
+								///return (p - data);
+								return p;
+							}
 						}
-					} else if (parser->index == 1 && parser->method == HTTP_POST) {
+					} else if (index == 1 && method == http_method.HTTP_POST) {
 						if (ch == 'R') {
-							parser->method = HTTP_PROPFIND; /* or HTTP_PROPPATCH */
+							method = http_method.HTTP_PROPFIND; /* or HTTP_PROPPATCH */
 						} else if (ch == 'U') {
-							parser->method = HTTP_PUT; /* or HTTP_PURGE */
+							method = http_method.HTTP_PUT; /* or HTTP_PURGE */
 						} else if (ch == 'A') {
-							parser->method = HTTP_PATCH;
+							method = http_method.HTTP_PATCH;
 						} else {
-							SET_ERRNO(HPE_INVALID_METHOD);
-							goto error;
+							SET_ERRNO(http_errno.HPE_INVALID_METHOD);
+							///goto error;
+							{
+								if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+									SET_ERRNO(http_errno.HPE_UNKNOWN);
+								}
+
+								///return (p - data);
+								return p;
+							}
 						}
-					} else if (parser->index == 2) {
-						if (parser->method == HTTP_PUT) {
+					} else if (index == 2) {
+						if (method == http_method.HTTP_PUT) {
 							if (ch == 'R') {
-								parser->method = HTTP_PURGE;
+								method = http_method.HTTP_PURGE;
 							} else {
-								SET_ERRNO(HPE_INVALID_METHOD);
-								goto error;
+								SET_ERRNO(http_errno.HPE_INVALID_METHOD);
+								///goto error;
+								{
+									if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+										SET_ERRNO(http_errno.HPE_UNKNOWN);
+									}
+
+									///return (p - data);
+									return p;
+								}
 							}
-						} else if (parser->method == HTTP_UNLOCK) {
+						} else if (method == http_method.HTTP_UNLOCK) {
 							if (ch == 'S') {
-								parser->method = HTTP_UNSUBSCRIBE;
+								method = http_method.HTTP_UNSUBSCRIBE;
 							} else {
-								SET_ERRNO(HPE_INVALID_METHOD);
-								goto error;
+								SET_ERRNO(http_errno.HPE_INVALID_METHOD);
+								///goto error;
+								{
+									if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+										SET_ERRNO(http_errno.HPE_UNKNOWN);
+									}
+
+									///return (p - data);
+									return p;
+								}
 							}
 						} else {
-							SET_ERRNO(HPE_INVALID_METHOD);
-							goto error;
+							SET_ERRNO(http_errno.HPE_INVALID_METHOD);
+							///goto error;
+							{
+								if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+									SET_ERRNO(http_errno.HPE_UNKNOWN);
+								}
+
+								///return (p - data);
+								return p;
+							}
 						}
-					} else if (parser->index == 4 && parser->method == HTTP_PROPFIND && ch == 'P') {
-						parser->method = HTTP_PROPPATCH;
+					} else if (index == 4 && method == http_method.HTTP_PROPFIND && ch == 'P') {
+						method = http_method.HTTP_PROPPATCH;
 					} else {
-						SET_ERRNO(HPE_INVALID_METHOD);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_METHOD);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					++parser->index;
+					++index;
 					break;
 				}
 
@@ -1233,15 +1641,25 @@ struct http_parser_settings {
 				{
 					if (ch == ' ') break;
 
-					MARK(url);
-					if (parser->method == HTTP_CONNECT) {
-						parser->state = s_req_server_start;
+					///MARK(url);
+				    if (url_mark == -1) url_mark = p;
+
+					if (method == http_method.HTTP_CONNECT) {
+						state = State.s_req_server_start;
 					}
 
-					parser->state = parse_url_char((enum state)parser->state, ch);
-					if (parser->state == s_dead) {
-						SET_ERRNO(HPE_INVALID_URL);
-						goto error;
+					state = parse_url_char(state, ch);
+					if (state == State.s_dead) {
+						SET_ERRNO(http_errno.HPE_INVALID_URL);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
 					break;
@@ -1255,15 +1673,31 @@ struct http_parser_settings {
 					switch (ch) {
 					/* No whitespace allowed here */
 					case ' ':
-					case CR:
-					case LF:
-						SET_ERRNO(HPE_INVALID_URL);
-						goto error;
+					case '\r':
+					case '\n':
+						SET_ERRNO(http_errno.HPE_INVALID_URL);
+					///goto error;
+					{
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
 					default:
-						parser->state = parse_url_char((enum state)parser->state, ch);
-						if (parser->state == s_dead) {
-							SET_ERRNO(HPE_INVALID_URL);
-							goto error;
+						state = parse_url_char(state, ch);
+						if (state == State.s_dead) {
+							SET_ERRNO(http_errno.HPE_INVALID_URL);
+							///goto error;
+							{
+								if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+									SET_ERRNO(http_errno.HPE_UNKNOWN);
+								}
+
+								///return (p - data);
+								return p;
+							}
 						}
 					}
 
@@ -1280,23 +1714,89 @@ struct http_parser_settings {
 				{
 					switch (ch) {
 					case ' ':
-						parser->state = s_req_http_start;
-						CALLBACK_DATA(url);
+						state = State.s_req_http_start;
+						///CALLBACK_DATA(url);
+						{
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							if (url_mark != -1) {                                                  
+								///if (settings->on_##FOR) 
+								{          
+									// slice data ByteBuffer
+									ByteBuffer bb = data;
+									int opos = bb.position(); bb.position(url_mark);
+									int olmt = bb.limit(); bb.limit(p);
+
+									ByteBuffer rb = bb.slice();
+									bb.limit(olmt); bb.position(opos);
+
+									///if (0 != on_url(FOR##_mark, (LEN))) {  
+									if (0 != on_url(rb)) {
+										SET_ERRNO(http_errno.HPE_CB_url);                                     
+									}                                                              
+
+									/* We either errored above or got paused; get out */          
+									if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+										///return (ER);
+										return (p + 1);
+									}                                                              
+								}                                                                
+								///FOR##_mark = NULL;
+								url_mark = -1;
+							}                                                  
+						}
 						break;
-					case CR:
-					case LF:
-						parser->http_major = 0;
-						parser->http_minor = 9;
-						parser->state = (ch == CR) ?
-								s_req_line_almost_done :
-									s_header_field_start;
-						CALLBACK_DATA(url);
+					case '\r':
+					case '\n':
+						http_major = 0;
+						http_minor = 9;
+						state = (ch == '\r') ?
+								State.s_req_line_almost_done :
+								State.s_header_field_start;
+						///CALLBACK_DATA(url);
+						{
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							if (url_mark != -1) {                                                  
+								///if (settings->on_##FOR) 
+								{          
+									// slice data ByteBuffer
+									ByteBuffer bb = data;
+									int opos = bb.position(); bb.position(url_mark);
+									int olmt = bb.limit(); bb.limit(p);
+
+									ByteBuffer rb = bb.slice();
+									bb.limit(olmt); bb.position(opos);
+
+									///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+									if (0 != on_url(rb)) {
+										SET_ERRNO(http_errno.HPE_CB_url);                                     
+									}                                                              
+
+									/* We either errored above or got paused; get out */          
+									if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+										///return (ER);
+										return (p + 1);
+									}                                                              
+								}                                                                
+								///FOR##_mark = NULL;
+								url_mark = -1;
+							}                                                  
+						}
 						break;
 					default:
-						parser->state = parse_url_char((enum state)parser->state, ch);
-						if (parser->state == s_dead) {
-							SET_ERRNO(HPE_INVALID_URL);
-							goto error;
+						state = parse_url_char(state, ch);
+						if (state == State.s_dead) {
+							SET_ERRNO(http_errno.HPE_INVALID_URL);
+							///goto error;
+							{
+								if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+									SET_ERRNO(http_errno.HPE_UNKNOWN);
+								}
+
+								///return (p - data);
+								return p;
+							}
 						}
 					}
 					break;
@@ -1305,66 +1805,146 @@ struct http_parser_settings {
 				case s_req_http_start:
 					switch (ch) {
 					case 'H':
-						parser->state = s_req_http_H;
+						state = State.s_req_http_H;
 						break;
 					case ' ':
 						break;
 					default:
-						SET_ERRNO(HPE_INVALID_CONSTANT);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_CONSTANT);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 					break;
 
 				case s_req_http_H:
-					STRICT_CHECK(ch != 'T');
-					parser->state = s_req_http_HT;
+					///STRICT_CHECK(ch != 'T');
+					if (ch != 'T') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
+
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					state = State.s_req_http_HT;
 					break;
 
 				case s_req_http_HT:
-					STRICT_CHECK(ch != 'T');
-					parser->state = s_req_http_HTT;
+					///STRICT_CHECK(ch != 'T');
+					if (ch != 'T') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
+
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					state = State.s_req_http_HTT;
 					break;
 
 				case s_req_http_HTT:
-					STRICT_CHECK(ch != 'P');
-					parser->state = s_req_http_HTTP;
+					///STRICT_CHECK(ch != 'P');
+					if (ch != 'P') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
+
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					state = State.s_req_http_HTTP;
 					break;
 
 				case s_req_http_HTTP:
-					STRICT_CHECK(ch != '/');
-					parser->state = s_req_first_http_major;
+					///STRICT_CHECK(ch != '/');
+					if (ch != '/') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
+
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					state = State.s_req_first_http_major;
 					break;
 
 					/* first digit of major HTTP version */
 				case s_req_first_http_major:
 					if (ch < '1' || ch > '9') {
-						SET_ERRNO(HPE_INVALID_VERSION);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					parser->http_major = ch - '0';
-					parser->state = s_req_http_major;
+					http_major = ch - '0';
+					state = State.s_req_http_major;
 					break;
 
 					/* major HTTP version or dot */
 				case s_req_http_major:
 				{
 					if (ch == '.') {
-						parser->state = s_req_first_http_minor;
+						state = State.s_req_first_http_minor;
 						break;
 					}
 
 					if (!IS_NUM(ch)) {
-						SET_ERRNO(HPE_INVALID_VERSION);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					parser->http_major *= 10;
-					parser->http_major += ch - '0';
+					http_major *= 10;
+					http_major += ch - '0';
 
-					if (parser->http_major > 999) {
-						SET_ERRNO(HPE_INVALID_VERSION);
-						goto error;
+					if (http_major > 999) {
+						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
 					break;
@@ -1373,40 +1953,64 @@ struct http_parser_settings {
 				/* first digit of minor HTTP version */
 				case s_req_first_http_minor:
 					if (!IS_NUM(ch)) {
-						SET_ERRNO(HPE_INVALID_VERSION);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					parser->http_minor = ch - '0';
-					parser->state = s_req_http_minor;
+					http_minor = ch - '0';
+					state = State.s_req_http_minor;
 					break;
 
 					/* minor HTTP version or end of request line */
 				case s_req_http_minor:
 				{
-					if (ch == CR) {
-						parser->state = s_req_line_almost_done;
+					if (ch == '\r') {
+						state = State.s_req_line_almost_done;
 						break;
 					}
 
-					if (ch == LF) {
-						parser->state = s_header_field_start;
+					if (ch == '\n') {
+						state = State.s_header_field_start;
 						break;
 					}
 
 					/* XXX allow spaces after digit? */
 
 					if (!IS_NUM(ch)) {
-						SET_ERRNO(HPE_INVALID_VERSION);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					parser->http_minor *= 10;
-					parser->http_minor += ch - '0';
+					http_minor *= 10;
+					http_minor += ch - '0';
 
-					if (parser->http_minor > 999) {
-						SET_ERRNO(HPE_INVALID_VERSION);
-						goto error;
+					if (http_minor > 999) {
+						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
 					break;
@@ -1415,60 +2019,78 @@ struct http_parser_settings {
 				/* end of request line */
 				case s_req_line_almost_done:
 				{
-					if (ch != LF) {
-						SET_ERRNO(HPE_LF_EXPECTED);
-						goto error;
+					if (ch != '\n') {
+						SET_ERRNO(http_errno.HPE_LF_EXPECTED);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					parser->state = s_header_field_start;
+					state = State.s_header_field_start;
 					break;
 				}
 
 				case s_header_field_start:
 				{
-					if (ch == CR) {
-						parser->state = s_headers_almost_done;
+					if (ch == '\r') {
+						state = State.s_headers_almost_done;
 						break;
 					}
 
-					if (ch == LF) {
+					if (ch == '\n') {
 						/* they might be just sending \n instead of \r\n so this would be
 						 * the second \n to denote the end of headers*/
-						parser->state = s_headers_almost_done;
-						goto reexecute_byte;
+						state = State.s_headers_almost_done;
+						///goto reexecute_byte;
+						continue;
 					}
 
 					c = TOKEN(ch);
 
-					if (!c) {
-						SET_ERRNO(HPE_INVALID_HEADER_TOKEN);
-						goto error;
+					if (0==c) {
+						SET_ERRNO(http_errno.HPE_INVALID_HEADER_TOKEN);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					MARK(header_field);
+					///MARK(header_field);
+				    if (header_field_mark == -1) header_field_mark = p;
 
-					parser->index = 0;
-					parser->state = s_header_field;
+					index = 0;
+					state = State.s_header_field;
 
 					switch (c) {
 					case 'c':
-						parser->header_state = h_C;
+						header_state = header_states.h_C;
 						break;
 
 					case 'p':
-						parser->header_state = h_matching_proxy_connection;
+						header_state = header_states.h_matching_proxy_connection;
 						break;
 
 					case 't':
-						parser->header_state = h_matching_transfer_encoding;
+						header_state = header_states.h_matching_transfer_encoding;
 						break;
 
 					case 'u':
-						parser->header_state = h_matching_upgrade;
+						header_state = header_states.h_matching_upgrade;
 						break;
 
 					default:
-						parser->header_state = h_general;
+						header_state = header_states.h_general;
 						break;
 					}
 					break;
@@ -1478,32 +2100,32 @@ struct http_parser_settings {
 				{
 					c = TOKEN(ch);
 
-					if (c) {
-						switch (parser->header_state) {
+					if (c != 0) {
+						switch (header_state) {
 						case h_general:
 							break;
 
 						case h_C:
-							parser->index++;
-							parser->header_state = (c == 'o' ? h_CO : h_general);
+							index++;
+							header_state = (c == 'o' ? header_states.h_CO : header_states.h_general);
 							break;
 
 						case h_CO:
-							parser->index++;
-							parser->header_state = (c == 'n' ? h_CON : h_general);
+							index++;
+							header_state = (c == 'n' ? header_states.h_CON : header_states.h_general);
 							break;
 
 						case h_CON:
-							parser->index++;
+							index++;
 							switch (c) {
 							case 'n':
-								parser->header_state = h_matching_connection;
+								header_state = header_states.h_matching_connection;
 								break;
 							case 't':
-								parser->header_state = h_matching_content_length;
+								header_state = header_states.h_matching_content_length;
 								break;
 							default:
-								parser->header_state = h_general;
+								header_state = header_states.h_general;
 								break;
 							}
 							break;
@@ -1511,60 +2133,64 @@ struct http_parser_settings {
 							/* connection */
 
 						case h_matching_connection:
-							parser->index++;
-							if (parser->index > sizeof(CONNECTION)-1
-									|| c != CONNECTION[parser->index]) {
-								parser->header_state = h_general;
-							} else if (parser->index == sizeof(CONNECTION)-2) {
-								parser->header_state = h_connection;
+							index++;
+							///if (index > sizeof(CONNECTION)-1
+							if (index > CONNECTION.length()-1
+								|| c != CONNECTION.toCharArray()[index]) {
+								header_state = header_states.h_general;
+							///} else if (index == sizeof(CONNECTION)-2) {
+							} else if (index == CONNECTION.length()-2) {
+								header_state = header_states.h_connection;
 							}
 							break;
 
 							/* proxy-connection */
 
 						case h_matching_proxy_connection:
-							parser->index++;
-							if (parser->index > sizeof(PROXY_CONNECTION)-1
-									|| c != PROXY_CONNECTION[parser->index]) {
-								parser->header_state = h_general;
-							} else if (parser->index == sizeof(PROXY_CONNECTION)-2) {
-								parser->header_state = h_connection;
+							index++;
+							///if (index > sizeof(PROXY_CONNECTION)-1
+							if (index > PROXY_CONNECTION.length()-1
+								|| c != PROXY_CONNECTION.toCharArray()[index]) {
+								header_state = header_states.h_general;
+							///} else if (index == sizeof(PROXY_CONNECTION)-2) {
+							} else if (index == (PROXY_CONNECTION).length()-2) {	
+								header_state = header_states.h_connection;
 							}
 							break;
 
 							/* content-length */
 
 						case h_matching_content_length:
-							parser->index++;
-							if (parser->index > sizeof(CONTENT_LENGTH)-1
-									|| c != CONTENT_LENGTH[parser->index]) {
-								parser->header_state = h_general;
-							} else if (parser->index == sizeof(CONTENT_LENGTH)-2) {
-								parser->header_state = h_content_length;
+							index++;
+							if (index > (CONTENT_LENGTH).length()-1
+								|| c != CONTENT_LENGTH.toCharArray()[index]) {
+								header_state = header_states.h_general;
+							} else if (index == (CONTENT_LENGTH).length()-2) {
+								header_state = header_states.h_content_length;
 							}
 							break;
 
 							/* transfer-encoding */
 
 						case h_matching_transfer_encoding:
-							parser->index++;
-							if (parser->index > sizeof(TRANSFER_ENCODING)-1
-									|| c != TRANSFER_ENCODING[parser->index]) {
-								parser->header_state = h_general;
-							} else if (parser->index == sizeof(TRANSFER_ENCODING)-2) {
-								parser->header_state = h_transfer_encoding;
+							index++;
+							if (index > (TRANSFER_ENCODING).length()-1
+								|| c != TRANSFER_ENCODING.toCharArray()[index]) {
+								header_state = header_states.h_general;
+							} else if (index == (TRANSFER_ENCODING).length()-2) {
+								header_state = header_states.h_transfer_encoding;
 							}
 							break;
 
 							/* upgrade */
 
 						case h_matching_upgrade:
-							parser->index++;
-							if (parser->index > sizeof(UPGRADE)-1
-									|| c != UPGRADE[parser->index]) {
-								parser->header_state = h_general;
-							} else if (parser->index == sizeof(UPGRADE)-2) {
-								parser->header_state = h_upgrade;
+							index++;
+							if (index > (UPGRADE).length()-1
+								|| c != UPGRADE.toCharArray()[index]) {
+								header_state = header_states.h_general;
+							} else if (index == (UPGRADE).length()-2) {
+								header_state = header_states.h_upgrade;
 							}
 							break;
 
@@ -1572,48 +2198,144 @@ struct http_parser_settings {
 						case h_content_length:
 						case h_transfer_encoding:
 						case h_upgrade:
-							if (ch != ' ') parser->header_state = h_general;
+							if (ch != ' ') header_state = header_states.h_general;
 							break;
 
 						default:
-							assert(0 && "Unknown header_state");
+							///assert(0 && "Unknown header_state");
+							assert("Unknown header_state"==null);
 							break;
 						}
 						break;
 					}
 
 					if (ch == ':') {
-						parser->state = s_header_value_discard_ws;
-						CALLBACK_DATA(header_field);
+						state = State.s_header_value_discard_ws;
+						///CALLBACK_DATA(header_field);
+						{
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							if (header_field_mark != -1) {                                                  
+								///if (settings->on_##FOR) 
+								{          
+									// slice data ByteBuffer
+									ByteBuffer bb = data;
+									int opos = bb.position(); bb.position(header_field_mark);
+									int olmt = bb.limit(); bb.limit(p);
+
+									ByteBuffer rb = bb.slice();
+									bb.limit(olmt); bb.position(opos);
+
+									///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+									if (0 != on_header_field(rb)) {
+										SET_ERRNO(http_errno.HPE_CB_header_field);                                     
+									}                                                              
+
+									/* We either errored above or got paused; get out */          
+									if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+										///return (ER);
+										return (p + 1);
+									}                                                              
+								}                                                                
+								///FOR##_mark = NULL;
+								header_field_mark = -1;
+							}                                                  
+						}
 						break;
 					}
 
-					if (ch == CR) {
-						parser->state = s_header_almost_done;
-						CALLBACK_DATA(header_field);
+					if (ch == '\r') {
+						state = State.s_header_almost_done;
+						///CALLBACK_DATA(header_field);
+						{
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							if (header_field_mark != -1) {                                                  
+								///if (settings->on_##FOR) 
+								{          
+									// slice data ByteBuffer
+									ByteBuffer bb = data;
+									int opos = bb.position(); bb.position(header_field_mark);
+									int olmt = bb.limit(); bb.limit(p);
+
+									ByteBuffer rb = bb.slice();
+									bb.limit(olmt); bb.position(opos);
+
+									///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+									if (0 != on_header_field(rb)) {
+										SET_ERRNO(http_errno.HPE_CB_header_field);                                     
+									}                                                              
+
+									/* We either errored above or got paused; get out */          
+									if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+										///return (ER);
+										return (p + 1);
+									}                                                              
+								}                                                                
+								///FOR##_mark = NULL;
+								header_field_mark = -1;
+							}                                                  
+						}
 						break;
 					}
 
-					if (ch == LF) {
-						parser->state = s_header_field_start;
-						CALLBACK_DATA(header_field);
+					if (ch == '\n') {
+						state = State.s_header_field_start;
+						///CALLBACK_DATA(header_field);
+						{
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							if (header_field_mark != -1) {                                                  
+								///if (settings->on_##FOR) 
+								{          
+									// slice data ByteBuffer
+									ByteBuffer bb = data;
+									int opos = bb.position(); bb.position(header_field_mark);
+									int olmt = bb.limit(); bb.limit(p);
+
+									ByteBuffer rb = bb.slice();
+									bb.limit(olmt); bb.position(opos);
+
+									///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+									if (0 != on_header_field(rb)) {
+										SET_ERRNO(http_errno.HPE_CB_header_field);                                     
+									}                                                              
+
+									/* We either errored above or got paused; get out */          
+									if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+										///return (ER);
+										return (p + 1);
+									}                                                              
+								}                                                                
+								///FOR##_mark = NULL;
+								header_field_mark = -1;
+							}                                                  
+						}
 						break;
 					}
 
-					SET_ERRNO(HPE_INVALID_HEADER_TOKEN);
-					goto error;
+					SET_ERRNO(http_errno.HPE_INVALID_HEADER_TOKEN);
+					///goto error;
+					{
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
 				}
 
 				case s_header_value_discard_ws:
 					if (ch == ' ' || ch == '\t') break;
 
-					if (ch == CR) {
-						parser->state = s_header_value_discard_ws_almost_done;
+					if (ch == '\r') {
+						state = State.s_header_value_discard_ws_almost_done;
 						break;
 					}
 
-					if (ch == LF) {
-						parser->state = s_header_value_discard_lws;
+					if (ch == '\n') {
+						state = State.s_header_value_discard_lws;
 						break;
 					}
 
@@ -1621,51 +2343,60 @@ struct http_parser_settings {
 
 				case s_header_value_start:
 				{
-					MARK(header_value);
+					///MARK(header_value);
+				    if (header_value_mark == -1) header_value_mark = p;
 
-					parser->state = s_header_value;
-					parser->index = 0;
+					state = State.s_header_value;
+					index = 0;
 
 					c = LOWER(ch);
 
-					switch (parser->header_state) {
+					switch (header_state) {
 					case h_upgrade:
-						parser->flags |= F_UPGRADE;
-						parser->header_state = h_general;
+						flags |= Flags.F_UPGRADE.flag;
+						header_state = header_states.h_general;
 						break;
 
 					case h_transfer_encoding:
 						/* looking for 'Transfer-Encoding: chunked' */
 						if ('c' == c) {
-							parser->header_state = h_matching_transfer_encoding_chunked;
+							header_state = header_states.h_matching_transfer_encoding_chunked;
 						} else {
-							parser->header_state = h_general;
+							header_state = header_states.h_general;
 						}
 						break;
 
 					case h_content_length:
 						if (!IS_NUM(ch)) {
-							SET_ERRNO(HPE_INVALID_CONTENT_LENGTH);
-							goto error;
+							SET_ERRNO(http_errno.HPE_INVALID_CONTENT_LENGTH);
+							///goto error;
+							{
+								if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+									SET_ERRNO(http_errno.HPE_UNKNOWN);
+								}
+
+								///return (p - data);
+								return p;
+							}
 						}
 
-						parser->content_length = ch - '0';
+						content_length = ch - '0';
 						break;
 
 					case h_connection:
 						/* looking for 'Connection: keep-alive' */
 						if (c == 'k') {
-							parser->header_state = h_matching_connection_keep_alive;
+							header_state = header_states.h_matching_connection_keep_alive;
 							/* looking for 'Connection: close' */
 						} else if (c == 'c') {
-							parser->header_state = h_matching_connection_close;
+							header_state = header_states.h_matching_connection_close;
 						} else {
-							parser->header_state = h_general;
+							header_state = header_states.h_general;
 						}
 						break;
 
 					default:
-						parser->header_state = h_general;
+						header_state = header_states.h_general;
 						break;
 					}
 					break;
@@ -1674,95 +2405,174 @@ struct http_parser_settings {
 				case s_header_value:
 				{
 
-					if (ch == CR) {
-						parser->state = s_header_almost_done;
-						CALLBACK_DATA(header_value);
+					if (ch == '\r') {
+						state = State.s_header_almost_done;
+						///CALLBACK_DATA(header_value);
+						{
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							if (header_value_mark != -1) {                                                  
+								///if (settings->on_##FOR) 
+								{          
+									// slice data ByteBuffer
+									ByteBuffer bb = data;
+									int opos = bb.position(); bb.position(header_value_mark);
+									int olmt = bb.limit(); bb.limit(p);
+
+									ByteBuffer rb = bb.slice();
+									bb.limit(olmt); bb.position(opos);
+
+									///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+									if (0 != on_header_value(rb)) {
+										SET_ERRNO(http_errno.HPE_CB_header_value);                                     
+									}                                                              
+
+									/* We either errored above or got paused; get out */          
+									if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+										///return (ER);
+										return (p + 1);
+									}                                                              
+								}                                                                
+								///FOR##_mark = NULL;
+								header_value_mark = -1;
+							}                                                  
+						}
 						break;
 					}
 
-					if (ch == LF) {
-						parser->state = s_header_almost_done;
-						CALLBACK_DATA_NOADVANCE(header_value);
-						goto reexecute_byte;
+					if (ch == '\n') {
+						state = State.s_header_almost_done;
+						
+						///CALLBACK_DATA_NOADVANCE(header_value);
+						{
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							if (header_value_mark != -1) {                                                  
+								///if (settings->on_##FOR) 
+								{          
+									// slice data ByteBuffer
+									ByteBuffer bb = data;
+									int opos = bb.position(); bb.position(header_value_mark);
+									int olmt = bb.limit(); bb.limit(p);
+
+									ByteBuffer rb = bb.slice();
+									bb.limit(olmt); bb.position(opos);
+
+									///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+									if (0 != on_header_value(rb)) {
+										SET_ERRNO(http_errno.HPE_CB_header_value);                                     
+									}                                                              
+
+									/* We either errored above or got paused; get out */          
+									if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+										///return (ER);
+										return (p);
+									}                                                              
+								}                                                                
+								///FOR##_mark = NULL;
+								header_value_mark = -1;
+							}                                                  
+						}
+						
+						///goto reexecute_byte;
+						continue;
 					}
 
 					c = LOWER(ch);
 
-					switch (parser->header_state) {
+					switch (header_state) {
 					case h_general:
 						break;
 
 					case h_connection:
 					case h_transfer_encoding:
-						assert(0 && "Shouldn't get here.");
+						///assert(0 && "Shouldn't get here.");
+						assert("Shouldn't get here."==null);
 						break;
 
 					case h_content_length:
 					{
-						uint64_t t;
+						long t;
 
 						if (ch == ' ') break;
 
 						if (!IS_NUM(ch)) {
-							SET_ERRNO(HPE_INVALID_CONTENT_LENGTH);
-							goto error;
+							SET_ERRNO(http_errno.HPE_INVALID_CONTENT_LENGTH);
+							///goto error;
+							{
+								if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+									SET_ERRNO(http_errno.HPE_UNKNOWN);
+								}
+
+								///return (p - data);
+								return p;
+							}
 						}
 
-						t = parser->content_length;
+						t = content_length;
 						t *= 10;
 						t += ch - '0';
 
 						/* Overflow? Test against a conservative limit for simplicity. */
-						if ((ULLONG_MAX - 10) / 10 < parser->content_length) {
-							SET_ERRNO(HPE_INVALID_CONTENT_LENGTH);
-							goto error;
+						if ((ULLONG_MAX() - 10) / 10 < content_length) {
+							SET_ERRNO(http_errno.HPE_INVALID_CONTENT_LENGTH);
+							///goto error;
+							{
+								if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+									SET_ERRNO(http_errno.HPE_UNKNOWN);
+								}
+
+								///return (p - data);
+								return p;
+							}
 						}
 
-						parser->content_length = t;
+						content_length = t;
 						break;
 					}
 
 					/* Transfer-Encoding: chunked */
 					case h_matching_transfer_encoding_chunked:
-						parser->index++;
-						if (parser->index > sizeof(CHUNKED)-1
-								|| c != CHUNKED[parser->index]) {
-							parser->header_state = h_general;
-						} else if (parser->index == sizeof(CHUNKED)-2) {
-							parser->header_state = h_transfer_encoding_chunked;
+						index++;
+						if (index > (CHUNKED).length()-1
+							|| c != CHUNKED.toCharArray()[index]) {
+							header_state = header_states.h_general;
+						} else if (index == (CHUNKED).length()-2) {
+							header_state = header_states.h_transfer_encoding_chunked;
 						}
 						break;
 
 						/* looking for 'Connection: keep-alive' */
 					case h_matching_connection_keep_alive:
-						parser->index++;
-						if (parser->index > sizeof(KEEP_ALIVE)-1
-								|| c != KEEP_ALIVE[parser->index]) {
-							parser->header_state = h_general;
-						} else if (parser->index == sizeof(KEEP_ALIVE)-2) {
-							parser->header_state = h_connection_keep_alive;
+						index++;
+						if (index > (KEEP_ALIVE).length()-1
+							|| c != KEEP_ALIVE.toCharArray()[index]) {
+							header_state = header_states.h_general;
+						} else if (index == (KEEP_ALIVE).length()-2) {
+							header_state = header_states.h_connection_keep_alive;
 						}
 						break;
 
 						/* looking for 'Connection: close' */
 					case h_matching_connection_close:
-						parser->index++;
-						if (parser->index > sizeof(CLOSE)-1 || c != CLOSE[parser->index]) {
-							parser->header_state = h_general;
-						} else if (parser->index == sizeof(CLOSE)-2) {
-							parser->header_state = h_connection_close;
+						index++;
+						if (index > (CLOSE).length()-1 
+							|| c != CLOSE.toCharArray()[index]) {
+							header_state = header_states.h_general;
+						} else if (index == (CLOSE).length()-2) {
+							header_state = header_states.h_connection_close;
 						}
 						break;
 
 					case h_transfer_encoding_chunked:
 					case h_connection_keep_alive:
 					case h_connection_close:
-						if (ch != ' ') parser->header_state = h_general;
+						if (ch != ' ') header_state = header_states.h_general;
 						break;
 
 					default:
-						parser->state = s_header_value;
-						parser->header_state = h_general;
+						state = State.s_header_value;
+						header_state = header_states.h_general;
 						break;
 					}
 					break;
@@ -1770,75 +2580,163 @@ struct http_parser_settings {
 
 				case s_header_almost_done:
 				{
-					STRICT_CHECK(ch != LF);
+					///STRICT_CHECK(ch != '\n');
+					if (ch != '\n') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
 
-					parser->state = s_header_value_lws;
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					state = State.s_header_value_lws;
 					break;
 				}
 
 				case s_header_value_lws:
 				{
 					if (ch == ' ' || ch == '\t') {
-						parser->state = s_header_value_start;
-						goto reexecute_byte;
+						state = State.s_header_value_start;
+						///goto reexecute_byte;
+						continue;
 					}
 
 					/* finished the header */
-					switch (parser->header_state) {
+					switch (header_state) {
 					case h_connection_keep_alive:
-						parser->flags |= F_CONNECTION_KEEP_ALIVE;
+						flags |= Flags.F_CONNECTION_KEEP_ALIVE.flag;
 						break;
 					case h_connection_close:
-						parser->flags |= F_CONNECTION_CLOSE;
+						flags |= Flags.F_CONNECTION_CLOSE.flag;
 						break;
 					case h_transfer_encoding_chunked:
-						parser->flags |= F_CHUNKED;
+						flags |= Flags.F_CHUNKED.flag;
 						break;
 					default:
 						break;
 					}
 
-					parser->state = s_header_field_start;
-					goto reexecute_byte;
+					state = State.s_header_field_start;
+					///goto reexecute_byte;
+					continue;
 				}
 
 				case s_header_value_discard_ws_almost_done:
 				{
-					STRICT_CHECK(ch != LF);
-					parser->state = s_header_value_discard_lws;
+					///STRICT_CHECK(ch != '\n');
+					if (ch != '\n') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
+
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					state = State.s_header_value_discard_lws;
 					break;
 				}
 
 				case s_header_value_discard_lws:
 				{
 					if (ch == ' ' || ch == '\t') {
-						parser->state = s_header_value_discard_ws;
+						state = State.s_header_value_discard_ws;
 						break;
 					} else {
 						/* header value was empty */
-						MARK(header_value);
-						parser->state = s_header_field_start;
-						CALLBACK_DATA_NOADVANCE(header_value);
-						goto reexecute_byte;
+						///MARK(header_value);
+					    if (header_value_mark == -1) header_value_mark = p;
+						
+						state = State.s_header_field_start;
+						
+						///CALLBACK_DATA_NOADVANCE(header_value);
+						{
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							if (header_value_mark != -1) {                                                  
+								///if (settings->on_##FOR) 
+								{          
+									// slice data ByteBuffer
+									ByteBuffer bb = data;
+									int opos = bb.position(); bb.position(header_value_mark);
+									int olmt = bb.limit(); bb.limit(p);
+
+									ByteBuffer rb = bb.slice();
+									bb.limit(olmt); bb.position(opos);
+
+									///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+									if (0 != on_header_value(rb)) {
+										SET_ERRNO(http_errno.HPE_CB_header_value);                                     
+									}                                                              
+
+									/* We either errored above or got paused; get out */          
+									if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+										///return (ER);
+										return (p);
+									}                                                              
+								}                                                                
+								///FOR##_mark = NULL;
+								header_value_mark = -1;
+							}                                                  
+						}
+						
+						///goto reexecute_byte;
+						continue;
 					}
 				}
 
 				case s_headers_almost_done:
 				{
-					STRICT_CHECK(ch != LF);
+					///STRICT_CHECK(ch != '\n');
+					if (ch != '\n') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
 
-					if (parser->flags & F_TRAILING) {
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					if (0!=(flags & Flags.F_TRAILING.flag)) {
 						/* End of a chunked request */
-						parser->state = NEW_MESSAGE();
-						CALLBACK_NOTIFY(message_complete);
+						///state = NEW_MESSAGE();
+						state = http_should_keep_alive() ? start_state() : State.s_dead;
+						
+						///CALLBACK_NOTIFY(message_complete);
+						{                                                                 
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							///if (settings->on_##FOR) 
+							{                                          
+								if (0 != on_message_complete()) {                           
+									SET_ERRNO(http_errno.HPE_CB_message_complete);                                       
+								}                                                                
+
+								/* We either errored above or got paused; get out */             
+								if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                       
+									///return (ER);    
+									return (p + 1);
+								}                                                                
+							}                                                                  
+						}
 						break;
 					}
 
-					parser->state = s_headers_done;
+					state = State.s_headers_done;
 
 					/* Set this here so that on_headers_complete() callbacks can see it */
-					parser->upgrade =
-							(parser->flags & F_UPGRADE || parser->method == HTTP_CONNECT);
+					upgrade =
+							((flags & Flags.F_UPGRADE.flag)!=0 || method == http_method.HTTP_CONNECT);
 
 					/* Here we call the headers_complete callback. This is somewhat
 					 * different than other callbacks because if the user returns 1, we
@@ -1849,64 +2747,154 @@ struct http_parser_settings {
 					 * We'd like to use CALLBACK_NOTIFY_NOADVANCE() here but we cannot, so
 					 * we have to simulate it by handling a change in errno below.
 					 */
-					if (settings->on_headers_complete) {
-						switch (settings->on_headers_complete(parser)) {
+					// TBD...
+					///if (settings->on_headers_complete) 
+					{
+						///switch (settings->on_headers_complete(parser)) {
+						switch (on_headers_complete()) {
 						case 0:
 							break;
 
 						case 1:
-							parser->flags |= F_SKIPBODY;
+							flags |= Flags.F_SKIPBODY.flag;
 							break;
 
 						default:
-							SET_ERRNO(HPE_CB_headers_complete);
-							return p - data; /* Error */
+							SET_ERRNO(http_errno.HPE_CB_headers_complete);
+							///return p - data; /* Error */
+							return p;
 						}
 					}
 
-					if (HTTP_PARSER_ERRNO(parser) != HPE_OK) {
-						return p - data;
+					if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {
+						///return p - data;
+						return p;
 					}
 
-					goto reexecute_byte;
+					///goto reexecute_byte;
+					continue;
 				}
 
 				case s_headers_done:
 				{
-					STRICT_CHECK(ch != LF);
+					///STRICT_CHECK(ch != '\n');
+					if (ch != '\n') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
 
-					parser->nread = 0;
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					nread = 0;
 
 					/* Exit, the rest of the connect is in a different protocol. */
-					if (parser->upgrade) {
-						parser->state = NEW_MESSAGE();
-						CALLBACK_NOTIFY(message_complete);
-						return (p - data) + 1;
+					if (upgrade) {
+						///state = NEW_MESSAGE();
+						state = http_should_keep_alive() ? start_state() : State.s_dead;
+						
+						///CALLBACK_NOTIFY(message_complete);
+						{                                                                 
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							///if (settings->on_##FOR) 
+							{                                          
+								if (0 != on_message_complete()) {                           
+									SET_ERRNO(http_errno.HPE_CB_message_complete);                                       
+								}                                                                
+
+								/* We either errored above or got paused; get out */             
+								if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                       
+									///return (ER);    
+									return (p + 1);
+								}                                                                
+							}                                                                  
+						}
+						///return (p - data) + 1;
+						return p + 1;
 					}
 
-					if (parser->flags & F_SKIPBODY) {
-						parser->state = NEW_MESSAGE();
-						CALLBACK_NOTIFY(message_complete);
-					} else if (parser->flags & F_CHUNKED) {
+					if ((flags & Flags.F_SKIPBODY.flag)!=0) {
+						///state = NEW_MESSAGE();
+						state = http_should_keep_alive() ? start_state() : State.s_dead;
+						
+						///CALLBACK_NOTIFY(message_complete);
+						{                                                                 
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							///if (settings->on_##FOR) 
+							{                                          
+								if (0 != on_message_complete()) {                           
+									SET_ERRNO(http_errno.HPE_CB_message_complete);                                       
+								}                                                                
+
+								/* We either errored above or got paused; get out */             
+								if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                       
+									///return (ER);    
+									return (p + 1);
+								}                                                                
+							}                                                                  
+						}
+					} else if ((flags & Flags.F_CHUNKED.flag)!=0) {
 						/* chunked encoding - ignore Content-Length header */
-						parser->state = s_chunk_size_start;
+						state = State.s_chunk_size_start;
 					} else {
-						if (parser->content_length == 0) {
+						if (content_length == 0) {
 							/* Content-Length header given but zero: Content-Length: 0\r\n */
-							parser->state = NEW_MESSAGE();
-							CALLBACK_NOTIFY(message_complete);
-						} else if (parser->content_length != ULLONG_MAX) {
+							///state = NEW_MESSAGE();
+							state = http_should_keep_alive() ? start_state() : State.s_dead;
+							
+							///CALLBACK_NOTIFY(message_complete);
+							{                                                                 
+								assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+								///if (settings->on_##FOR) 
+								{                                          
+									if (0 != on_message_complete()) {                           
+										SET_ERRNO(http_errno.HPE_CB_message_complete);                                       
+									}                                                                
+
+									/* We either errored above or got paused; get out */             
+									if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                       
+										///return (ER);    
+										return (p + 1);
+									}                                                                
+								}                                                                  
+							}
+						} else if (content_length != ULLONG_MAX()) {
 							/* Content-Length header given and non-zero */
-							parser->state = s_body_identity;
+							state = State.s_body_identity;
 						} else {
-							if (parser->type == HTTP_REQUEST ||
-									!http_message_needs_eof(parser)) {
+							if (type == http_parser_type.HTTP_REQUEST ||
+								!http_message_needs_eof()) {
 								/* Assume content-length 0 - read the next */
-								parser->state = NEW_MESSAGE();
-								CALLBACK_NOTIFY(message_complete);
+								///state = NEW_MESSAGE();
+								state = http_should_keep_alive() ? start_state() : State.s_dead;
+								
+								///CALLBACK_NOTIFY(message_complete);
+								{                                                                 
+									assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+									///if (settings->on_##FOR) 
+									{                                          
+										if (0 != on_message_complete()) {                           
+											SET_ERRNO(http_errno.HPE_CB_message_complete);                                       
+										}                                                                
+
+										/* We either errored above or got paused; get out */             
+										if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                       
+											///return (ER);    
+											return (p + 1);
+										}                                                                
+									}                                                                  
+								}
 							} else {
 								/* Read body until EOF */
-								parser->state = s_body_identity_eof;
+								state = State.s_body_identity_eof;
 							}
 						}
 					}
@@ -1916,23 +2904,26 @@ struct http_parser_settings {
 
 				case s_body_identity:
 				{
-					uint64_t to_read = MIN(parser->content_length,
-							(uint64_t) ((data + len) - p));
-
-					assert(parser->content_length != 0
-							&& parser->content_length != ULLONG_MAX);
+					///long to_read = MIN(content_length,
+					///		(long) ((data + len) - p));
+					long to_read = MIN(content_length, len - p);
+					
+					assert(content_length != 0
+							&& content_length != ULLONG_MAX());
 
 					/* The difference between advancing content_length and p is because
 					 * the latter will automaticaly advance on the next loop iteration.
 					 * Further, if content_length ends up at 0, we want to see the last
 					 * byte again for our message complete callback.
 					 */
-					MARK(body);
-					parser->content_length -= to_read;
+					///MARK(body);
+				    if (body_mark == -1) body_mark = p;
+
+					content_length -= to_read;
 					p += to_read - 1;
 
-					if (parser->content_length == 0) {
-						parser->state = s_message_done;
+					if (content_length == 0) {
+						state = State.s_message_done;
 
 						/* Mimic CALLBACK_DATA_NOADVANCE() but with one extra byte.
 						 *
@@ -1943,8 +2934,39 @@ struct http_parser_settings {
 						 * complete-on-length. It's not clear that this distinction is
 						 * important for applications, but let's keep it for now.
 						 */
-						CALLBACK_DATA_(body, p - body_mark + 1, p - data);
-						goto reexecute_byte;
+						///CALLBACK_DATA_(body, p - body_mark + 1, p - data);
+						{
+							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+							if (body_mark != -1) {                                                  
+								///if (settings->on_##FOR) 
+								{          
+									// slice data ByteBuffer
+									ByteBuffer bb = data;
+									int opos = bb.position(); bb.position(body_mark);
+									int olmt = bb.limit(); bb.limit(p+1);
+
+									ByteBuffer rb = bb.slice();
+									bb.limit(olmt); bb.position(opos);
+
+									///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+									if (0 != on_body(rb)) {
+										SET_ERRNO(http_errno.HPE_CB_body);                                     
+									}                                                              
+
+									/* We either errored above or got paused; get out */          
+									if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+										///return (ER);
+										return (p);
+									}                                                              
+								}                                                                
+								///FOR##_mark = NULL;
+								body_mark = -1;
+							}                                                  
+						}
+						
+						///goto reexecute_byte;
+						continue;
 					}
 
 					break;
@@ -1952,75 +2974,120 @@ struct http_parser_settings {
 
 				/* read until EOF */
 				case s_body_identity_eof:
-					MARK(body);
-					p = data + len - 1;
+					///MARK(body);
+				    if (body_mark == -1) body_mark = p;
+
+					///p = data + len - 1;
+				    p = len - 1;
 
 					break;
 
 				case s_message_done:
-					parser->state = NEW_MESSAGE();
-					CALLBACK_NOTIFY(message_complete);
+					///state = NEW_MESSAGE();
+					state = http_should_keep_alive() ? start_state() : State.s_dead;
+					
+					///CALLBACK_NOTIFY(message_complete);
+					{                                                                 
+						assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+						///if (settings->on_##FOR) 
+						{                                          
+							if (0 != on_message_complete()) {                           
+								SET_ERRNO(http_errno.HPE_CB_message_complete);                                       
+							}                                                                
+
+							/* We either errored above or got paused; get out */             
+							if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                       
+								///return (ER);    
+								return (p + 1);
+							}                                                                
+						}                                                                  
+					}
 					break;
 
 				case s_chunk_size_start:
 				{
-					assert(parser->nread == 1);
-					assert(parser->flags & F_CHUNKED);
+					assert(nread == 1);
+					assert(0!=(flags & Flags.F_CHUNKED.flag));
 
-					unhex_val = unhex[(unsigned char)ch];
+					unhex_val = unhex[ch & 0xffff];
 					if (unhex_val == -1) {
-						SET_ERRNO(HPE_INVALID_CHUNK_SIZE);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_CHUNK_SIZE);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					parser->content_length = unhex_val;
-					parser->state = s_chunk_size;
+					content_length = unhex_val;
+					state = State.s_chunk_size;
 					break;
 				}
 
 				case s_chunk_size:
 				{
-					uint64_t t;
+					long t;
 
-					assert(parser->flags & F_CHUNKED);
+					assert(0!=(flags & Flags.F_CHUNKED.flag));
 
-					if (ch == CR) {
-						parser->state = s_chunk_size_almost_done;
+					if (ch == '\r') {
+						state = State.s_chunk_size_almost_done;
 						break;
 					}
 
-					unhex_val = unhex[(unsigned char)ch];
+					unhex_val = unhex[ch & 0xffff];
 
 					if (unhex_val == -1) {
 						if (ch == ';' || ch == ' ') {
-							parser->state = s_chunk_parameters;
+							state = State.s_chunk_parameters;
 							break;
 						}
 
-						SET_ERRNO(HPE_INVALID_CHUNK_SIZE);
-						goto error;
+						SET_ERRNO(http_errno.HPE_INVALID_CHUNK_SIZE);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					t = parser->content_length;
+					t = content_length;
 					t *= 16;
 					t += unhex_val;
 
 					/* Overflow? Test against a conservative limit for simplicity. */
-					if ((ULLONG_MAX - 16) / 16 < parser->content_length) {
-						SET_ERRNO(HPE_INVALID_CONTENT_LENGTH);
-						goto error;
+					if ((ULLONG_MAX() - 16) / 16 < content_length) {
+						SET_ERRNO(http_errno.HPE_INVALID_CONTENT_LENGTH);
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
+
+							///return (p - data);
+							return p;
+						}
 					}
 
-					parser->content_length = t;
+					content_length = t;
 					break;
 				}
 
 				case s_chunk_parameters:
 				{
-					assert(parser->flags & F_CHUNKED);
+					assert(0!=(flags & Flags.F_CHUNKED.flag));
 					/* just ignore this shit. TODO check for overflow */
-					if (ch == CR) {
-						parser->state = s_chunk_size_almost_done;
+					if (ch == '\r') {
+						state = State.s_chunk_size_almost_done;
 						break;
 					}
 					break;
@@ -2028,63 +3095,146 @@ struct http_parser_settings {
 
 				case s_chunk_size_almost_done:
 				{
-					assert(parser->flags & F_CHUNKED);
-					STRICT_CHECK(ch != LF);
+					assert(0!=(flags & Flags.F_CHUNKED.flag));
+					///STRICT_CHECK(ch != '\n');
+					if (ch != '\n') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
 
-					parser->nread = 0;
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
 
-					if (parser->content_length == 0) {
-						parser->flags |= F_TRAILING;
-						parser->state = s_header_field_start;
+						///return (p - data);
+						return p;
+					}
+					
+					nread = 0;
+
+					if (content_length == 0) {
+						flags |= Flags.F_TRAILING.flag;
+						state = State.s_header_field_start;
 					} else {
-						parser->state = s_chunk_data;
+						state = State.s_chunk_data;
 					}
 					break;
 				}
 
 				case s_chunk_data:
 				{
-					uint64_t to_read = MIN(parser->content_length,
-							(uint64_t) ((data + len) - p));
-
-					assert(parser->flags & F_CHUNKED);
-					assert(parser->content_length != 0
-							&& parser->content_length != ULLONG_MAX);
+					///long to_read = MIN(content_length,
+					///		(long) ((data + len) - p));
+					long to_read = MIN(content_length, len - p);
+					
+					assert(0!=(flags & Flags.F_CHUNKED.flag));
+					assert(content_length != 0
+							&& content_length != ULLONG_MAX());
 
 					/* See the explanation in s_body_identity for why the content
 					 * length and data pointers are managed this way.
 					 */
-					MARK(body);
-					parser->content_length -= to_read;
+					///MARK(body);
+				    if (body_mark == -1) body_mark = p;
+
+					content_length -= to_read;
 					p += to_read - 1;
 
-					if (parser->content_length == 0) {
-						parser->state = s_chunk_data_almost_done;
+					if (content_length == 0) {
+						state = State.s_chunk_data_almost_done;
 					}
 
 					break;
 				}
 
 				case s_chunk_data_almost_done:
-					assert(parser->flags & F_CHUNKED);
-					assert(parser->content_length == 0);
-					STRICT_CHECK(ch != CR);
-					parser->state = s_chunk_data_done;
-					CALLBACK_DATA(body);
+					assert(0!=(flags & Flags.F_CHUNKED.flag));
+					assert(content_length == 0);
+					
+					///STRICT_CHECK(ch != '\r');
+					if (ch != '\r') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
+
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					state = State.s_chunk_data_done;
+					
+					///CALLBACK_DATA(body);
+					{
+						assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+						if (body_mark != -1) {                                                  
+							///if (settings->on_##FOR) 
+							{          
+								// slice data ByteBuffer
+								ByteBuffer bb = data;
+								int opos = bb.position(); bb.position(body_mark);
+								int olmt = bb.limit(); bb.limit(p);
+
+								ByteBuffer rb = bb.slice();
+								bb.limit(olmt); bb.position(opos);
+
+								///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+								if (0 != on_body(rb)) {
+									SET_ERRNO(http_errno.HPE_CB_body);                                     
+								}                                                              
+
+								/* We either errored above or got paused; get out */          
+								if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+									///return (ER);
+									return (p + 1);
+								}                                                              
+							}                                                                
+							///FOR##_mark = NULL;
+							body_mark = -1;
+						}                                                  
+					}
+					
 					break;
 
 				case s_chunk_data_done:
-					assert(parser->flags & F_CHUNKED);
-					STRICT_CHECK(ch != LF);
-					parser->nread = 0;
-					parser->state = s_chunk_size_start;
+					assert(0!=(flags & Flags.F_CHUNKED.flag));
+					///STRICT_CHECK(ch != '\n');
+					if (ch != '\n') {                                                       
+						SET_ERRNO(http_errno.HPE_STRICT);  
+
+						///goto error;
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
+					
+					nread = 0;
+					state = State.s_chunk_size_start;
 					break;
 
 				default:
-					assert(0 && "unhandled state");
-					SET_ERRNO(HPE_INVALID_INTERNAL_STATE);
-					goto error;
+					///assert(0 && "unhandled state");
+					assert("unhandled state"==null);
+					SET_ERRNO(http_errno.HPE_INVALID_INTERNAL_STATE);
+					///goto error;
+					{
+						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+							SET_ERRNO(http_errno.HPE_UNKNOWN);
+						}
+
+						///return (p - data);
+						return p;
+					}
 				}
+				
+				// break while loop
+				break;
+		}
 		}
 
 		/* Run callbacks for any marks that we have leftover after we ran our of
@@ -2097,26 +3247,175 @@ struct http_parser_settings {
 		 * value that's in-bounds).
 		 */
 
-		assert(((header_field_mark ? 1 : 0) +
-				(header_value_mark ? 1 : 0) +
-				(url_mark ? 1 : 0)  +
-				(body_mark ? 1 : 0) +
-				(status_mark ? 1 : 0)) <= 1);
+		assert(((header_field_mark!=-1 ? 1 : 0) +
+				(header_value_mark!=-1 ? 1 : 0) +
+				(url_mark!=-1 ? 1 : 0)  +
+				(body_mark!=-1 ? 1 : 0) +
+				(status_mark!=-1 ? 1 : 0)) <= 1);
 
-		CALLBACK_DATA_NOADVANCE(header_field);
-		CALLBACK_DATA_NOADVANCE(header_value);
-		CALLBACK_DATA_NOADVANCE(url);
-		CALLBACK_DATA_NOADVANCE(body);
-		CALLBACK_DATA_NOADVANCE(status);
+		///CALLBACK_DATA_NOADVANCE(header_field);
+		{
+			assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+			if (header_field_mark != -1) {                                                  
+				///if (settings->on_##FOR) 
+				{          
+					// slice data ByteBuffer
+					ByteBuffer bb = data;
+					int opos = bb.position(); bb.position(header_field_mark);
+					int olmt = bb.limit(); bb.limit(p);
+
+					ByteBuffer rb = bb.slice();
+					bb.limit(olmt); bb.position(opos);
+
+					///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+					if (0 != on_header_field(rb)) {
+						SET_ERRNO(http_errno.HPE_CB_header_field);                                     
+					}                                                              
+
+					/* We either errored above or got paused; get out */          
+					if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+						///return (ER);
+						return (p);
+					}                                                              
+				}                                                                
+				///FOR##_mark = NULL;
+				header_field_mark = -1;
+			}                                                  
+		}
+		
+		///CALLBACK_DATA_NOADVANCE(header_value);
+		{
+			assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+			if (header_value_mark != -1) {                                                  
+				///if (settings->on_##FOR) 
+				{          
+					// slice data ByteBuffer
+					ByteBuffer bb = data;
+					int opos = bb.position(); bb.position(header_value_mark);
+					int olmt = bb.limit(); bb.limit(p);
+
+					ByteBuffer rb = bb.slice();
+					bb.limit(olmt); bb.position(opos);
+
+					///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+					if (0 != on_header_value(rb)) {
+						SET_ERRNO(http_errno.HPE_CB_header_value);                                     
+					}                                                              
+
+					/* We either errored above or got paused; get out */          
+					if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+						///return (ER);
+						return (p);
+					}                                                              
+				}                                                                
+				///FOR##_mark = NULL;
+				header_value_mark = -1;
+			}                                                  
+		}
+		
+		///CALLBACK_DATA_NOADVANCE(url);
+		{
+			assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+			if (url_mark != -1) {                                                  
+				///if (settings->on_##FOR) 
+				{          
+					// slice data ByteBuffer
+					ByteBuffer bb = data;
+					int opos = bb.position(); bb.position(url_mark);
+					int olmt = bb.limit(); bb.limit(p);
+
+					ByteBuffer rb = bb.slice();
+					bb.limit(olmt); bb.position(opos);
+
+					///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+					if (0 != on_url(rb)) {
+						SET_ERRNO(http_errno.HPE_CB_url);                                     
+					}                                                              
+
+					/* We either errored above or got paused; get out */          
+					if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+						///return (ER);
+						return (p);
+					}                                                              
+				}                                                                
+				///FOR##_mark = NULL;
+				url_mark = -1;
+			}                                                  
+		}
+		
+		///CALLBACK_DATA_NOADVANCE(body);
+		{
+			assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+			if (body_mark != -1) {                                                  
+				///if (settings->on_##FOR) 
+				{          
+					// slice data ByteBuffer
+					ByteBuffer bb = data;
+					int opos = bb.position(); bb.position(body_mark);
+					int olmt = bb.limit(); bb.limit(p);
+
+					ByteBuffer rb = bb.slice();
+					bb.limit(olmt); bb.position(opos);
+
+					///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+					if (0 != on_body(rb)) {
+						SET_ERRNO(http_errno.HPE_CB_body);                                     
+					}                                                              
+
+					/* We either errored above or got paused; get out */          
+					if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+						///return (ER);
+						return (p);
+					}                                                              
+				}                                                                
+				///FOR##_mark = NULL;
+				body_mark = -1;
+			}                                                  
+		}
+		
+		///CALLBACK_DATA_NOADVANCE(status);
+		{
+			assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
+
+			if (status_mark != -1) {                                                  
+				///if (settings->on_##FOR) 
+				{          
+					// slice data ByteBuffer
+					ByteBuffer bb = data;
+					int opos = bb.position(); bb.position(status_mark);
+					int olmt = bb.limit(); bb.limit(p);
+
+					ByteBuffer rb = bb.slice();
+					bb.limit(olmt); bb.position(opos);
+
+					///if (0 != on_##FOR(FOR##_mark, (LEN))) {  
+					if (0 != on_status(rb)) {
+						SET_ERRNO(http_errno.HPE_CB_status);                                     
+					}                                                              
+
+					/* We either errored above or got paused; get out */          
+					if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {                    
+						///return (ER);
+						return (p);
+					}                                                              
+				}                                                                
+				///FOR##_mark = NULL;
+				status_mark = -1;
+			}                                                  
+		}
 
 		return len;
 
-		error:
+		/*error:
 			if (HTTP_PARSER_ERRNO(parser) == HPE_OK) {
-				SET_ERRNO(HPE_UNKNOWN);
+				SET_ERRNO(http_errno.HPE_UNKNOWN);
 			}
 
-		return (p - data);
+		return (p - data);*/
 	}
 
 	/* If http_should_keep_alive() in the on_headers_complete or
@@ -2144,19 +3443,19 @@ struct http_parser_settings {
 
 	/* Returns a string version of the HTTP method. */
 	///const char *http_method_str(enum http_method m);
-	public static String http_method_str(http_method m) {
+	protected static String http_method_str(http_method m) {
 		return m.desc;
 	}
 
 	/* Return a string name of the given error */
 	///const char *http_errno_name(enum http_errno err);
-	public static String http_errno_name(http_errno err) {
+	protected static String http_errno_name(http_errno err) {
 		return err.name();
 	}
 
 	/* Return a string description of the given error */
 	///const char *http_errno_description(enum http_errno err);
-	public static String http_errno_description(http_errno err) {
+	protected static String http_errno_description(http_errno err) {
 		return err.desc;
 	}
 
@@ -2164,26 +3463,282 @@ struct http_parser_settings {
 	///int http_parser_parse_url(const char *buf, size_t buflen,
 	///                          int is_connect,
 	///                          struct http_parser_url *u);
-	protected int parse_url(ByteBuffer buf, boolean is_connect, http_parser_url url) {
+	protected int parse_url(char [] buf, boolean is_connect, http_parser_url u) {
+		State s;
+		///const char *p;
+		int p = 0;
+		http_parser_url_fields uf, old_uf;
+		int found_at = 0;
+		int buflen = buf != null ? buf.length : 0;
+
+		u.port = u.field_set = 0;
+		s = is_connect ? State.s_req_server_start : State.s_req_spaces_before_url;
+		uf = old_uf = http_parser_url_fields.UF_MAX;
+
+		///for (p = buf; p < buf + buflen; p++) {
+		for (p = 0; p < buflen; p++) {
+			s = parse_url_char(s, buf[p]);
+
+			/* Figure out the next field that we're operating on */
+			switch (s) {
+			case s_dead:
+				return 1;
+
+				/* Skip delimeters */
+			case s_req_schema_slash:
+			case s_req_schema_slash_slash:
+			case s_req_server_start:
+			case s_req_query_string_start:
+			case s_req_fragment_start:
+				continue;
+
+			case s_req_schema:
+				uf = http_parser_url_fields.UF_SCHEMA;
+				break;
+
+			case s_req_server_with_at:
+				found_at = 1;
+
+				/* FALLTROUGH */
+			case s_req_server:
+				uf = http_parser_url_fields.UF_HOST;
+				break;
+
+			case s_req_path:
+				uf = http_parser_url_fields.UF_PATH;
+				break;
+
+			case s_req_query_string:
+				uf = http_parser_url_fields.UF_QUERY;
+				break;
+
+			case s_req_fragment:
+				uf = http_parser_url_fields.UF_FRAGMENT;
+				break;
+
+			default:
+				assert(null=="Unexpected state");
+				return 1;
+			}
+
+			/* Nothing's changed; soldier on */
+			if (uf == old_uf) {
+				u.field_data[uf.field].len++;
+				continue;
+			}
+
+			u.field_data[uf.field].off = p; ///p - buf;
+			u.field_data[uf.field].len = 1;
+
+			u.field_set |= (1 << uf.field);
+			old_uf = uf;
+		}
+
+		/* host must be present if there is a schema */
+		/* parsing http:///toto will fail */
+		if ((u.field_set & 
+			((1 << http_parser_url_fields.UF_SCHEMA.field) |
+			 (1 << http_parser_url_fields.UF_HOST.field))) != 0) {
+			if (http_parse_host(buf, u, found_at) != 0) {
+				return 1;
+			}
+		}
+
+		/* CONNECT requests can only contain "hostname:port" */
+		if (is_connect && u.field_set != 
+			((1 << http_parser_url_fields.UF_HOST.field) | 
+			 (1 << http_parser_url_fields.UF_PORT.field))) {
+			return 1;
+		}
+
+		if (0!=(u.field_set & (1 << http_parser_url_fields.UF_PORT.field))) {
+			/* Don't bother with endp; we've already validated the string */
+			///unsigned long v = strtoul(buf + u.field_data[UF_PORT].off, NULL, 10);
+			int v = Integer.parseInt(
+					new String(buf).substring(u.field_data[http_parser_url_fields.UF_PORT.field].off, 
+						                      u.field_data[http_parser_url_fields.UF_PORT.field].len),
+						                      10);
+			
+			/* Ports have a max value of 2^16 */
+			if (v > 0xffff) {
+				return 1;
+			}
+
+			u.port = v;
+		}
+
 		return 0;
+	}
+
+	private static http_host_state
+	http_parse_host_char(http_host_state s, final char ch) {
+		switch(s) {
+		case s_http_userinfo:
+		case s_http_userinfo_start:
+			if (ch == '@') {
+				return http_host_state.s_http_host_start;
+			}
+
+			if (IS_USERINFO_CHAR(ch)) {
+				return http_host_state.s_http_userinfo;
+			}
+			break;
+
+		case s_http_host_start:
+			if (ch == '[') {
+				return http_host_state.s_http_host_v6_start;
+			}
+
+			if (IS_HOST_CHAR(ch)) {
+				return http_host_state.s_http_host;
+			}
+
+			break;
+
+		case s_http_host:
+			if (IS_HOST_CHAR(ch)) {
+				return http_host_state.s_http_host;
+			}
+
+			/* FALLTHROUGH */
+		case s_http_host_v6_end:
+			if (ch == ':') {
+				return http_host_state.s_http_host_port_start;
+			}
+
+			break;
+
+		case s_http_host_v6:
+			if (ch == ']') {
+				return http_host_state.s_http_host_v6_end;
+			}
+
+			/* FALLTHROUGH */
+		case s_http_host_v6_start:
+			if (IS_HEX(ch) || ch == ':' || ch == '.') {
+				return http_host_state.s_http_host_v6;
+			}
+
+			break;
+
+		case s_http_host_port:
+		case s_http_host_port_start:
+			if (IS_NUM(ch)) {
+				return http_host_state.s_http_host_port;
+			}
+
+			break;
+
+		default:
+			break;
+		}
+		return http_host_state.s_http_host_dead;
+	}
+
+	static int
+	http_parse_host(final char [] buf, http_parser_url u, int found_at) {
+	  http_host_state s;
+
+	  ///const char *p;
+	  int p = 0;
+	  ///size_t buflen = u.field_data[UF_HOST].off + u.field_data[UF_HOST].len;
+	  int buflen = u.field_data[http_parser_url_fields.UF_HOST.field].off + 
+			       u.field_data[http_parser_url_fields.UF_HOST.field].len;
+
+	  u.field_data[http_parser_url_fields.UF_HOST.field].len = 0;
+
+	  s = found_at!=0 ? http_host_state.s_http_userinfo_start : 
+		                http_host_state.s_http_host_start;
+
+	  ///for (p = buf + u.field_data[UF_HOST].off; p < buf + buflen; p++) {
+	  for (p = u.field_data[http_parser_url_fields.UF_HOST.field].off;
+		   p < buflen; p++) {
+	    http_host_state new_s = http_parse_host_char(s, buf[p]);
+
+	    if (new_s == http_host_state.s_http_host_dead) {
+	      return 1;
+	    }
+
+	    switch(new_s) {
+	      case s_http_host:
+	        if (s != http_host_state.s_http_host) {
+	          u.field_data[http_parser_url_fields.UF_HOST.field].off = p;///p - buf;
+	        }
+	        u.field_data[http_parser_url_fields.UF_HOST.field].len++;
+	        break;
+
+	      case s_http_host_v6:
+	        if (s != http_host_state.s_http_host_v6) {
+	          u.field_data[http_parser_url_fields.UF_HOST.field].off = p;///p - buf;
+	        }
+	        u.field_data[http_parser_url_fields.UF_HOST.field].len++;
+	        break;
+
+	      case s_http_host_port:
+	        if (s != http_host_state.s_http_host_port) {
+	          u.field_data[http_parser_url_fields.UF_PORT.field].off = p;///p - buf;
+	          u.field_data[http_parser_url_fields.UF_PORT.field].len = 0;
+	          u.field_set |= (1 << http_parser_url_fields.UF_PORT.field);
+	        }
+	        u.field_data[http_parser_url_fields.UF_PORT.field].len++;
+	        break;
+
+	      case s_http_userinfo:
+	        if (s != http_host_state.s_http_userinfo) {
+	          u.field_data[http_parser_url_fields.UF_USERINFO.field].off = p;///p - buf ;
+	          u.field_data[http_parser_url_fields.UF_USERINFO.field].len = 0;
+	          u.field_set |= (1 << http_parser_url_fields.UF_USERINFO.field);
+	        }
+	        u.field_data[http_parser_url_fields.UF_USERINFO.field].len++;
+	        break;
+
+	      default:
+	        break;
+	    }
+	    s = new_s;
+	  }
+
+	  /* Make sure we don't end somewhere unexpected */
+	  switch (s) {
+	    case s_http_host_start:
+	    case s_http_host_v6_start:
+	    case s_http_host_v6:
+	    case s_http_host_port_start:
+	    case s_http_userinfo:
+	    case s_http_userinfo_start:
+	      return 1;
+	    default:
+	      break;
+	  }
+
+	  return 0;
 	}
 
 	/* Pause or un-pause the parser; a nonzero value pauses */
 	///void http_parser_pause(http_parser *parser, int paused);
-	protected void pause(int paused) {
-
+	protected void pause(boolean paused) {
+		/* Users should only be pausing/unpausing a parser that is not in an error
+		 * state. In non-debug builds, there's not much that we can do about this
+		 * other than ignore it.
+		 */
+		if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK ||
+			HTTP_PARSER_ERRNO() == http_errno.HPE_PAUSED) {
+			SET_ERRNO((paused) ? http_errno.HPE_PAUSED : http_errno.HPE_OK);
+		} else {
+			assert(null == "Attempting to pause parser in error state");
+		}
 	}
 
 	/* Checks if this is the final chunk of the body. */
 	///int http_body_is_final(const http_parser *parser);
 	protected boolean http_body_is_final() {
-		return false;
+		return state == State.s_message_done;
 	}
 
 	///struct http_parser {
 	/** PRIVATE **/
 	private http_parser_type type;      /* enum http_parser_type */
-	private int flags;                  /* F_* values from 'flags' enum; semi-public */
+	private int flags;                  /* F_* values from 'flags' enum; semi-protected */
 	private State state;                /* enum State from http_parser.c */
 	private header_states header_state; /* enum header_state from http_parser.c */
 	private int index;                  /* index into current matcher */
@@ -2195,7 +3750,7 @@ struct http_parser_settings {
 	private int http_major;
 	private int http_minor;
 	private int status_code;     /* responses only */
-	private int method;          /* requests only */
+	private http_method method;  /* requests only */
 	private http_errno http_errno;
 
 	/* 1 = Upgrade header was present and the parser has exited because of that.
@@ -2203,11 +3758,10 @@ struct http_parser_settings {
 	 * Should be checked when http_parser_execute() returns in addition to
 	 * error checking.
 	 */
-	private int upgrade;
+	private boolean upgrade;
 
 	/** PUBLIC **/
-	public final Object data; /* A pointer to get hook to the "connection" or "socket" object */
+	protected final Object data; /* A pointer to get hook to the "connection" or "socket" object */
 	///};
-
-
+	
 }
