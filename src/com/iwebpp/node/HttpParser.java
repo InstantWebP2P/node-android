@@ -541,7 +541,7 @@ public abstract class HttpParser {
 				(c) == '$' || (c) == ',');
 	}
 	
-	private static char TOKEN(char c) {
+	private static char TOKEN(int c) {
 		return (tokens[c]);
 	}
 
@@ -788,6 +788,7 @@ struct http_parser_settings {
 
 	protected int execute(ByteBuffer data) throws Exception {
 		char c, ch;
+		int uc;
 		
 		/*int8_t unhex_val;
 		const char *p = data;
@@ -851,8 +852,10 @@ struct http_parser_settings {
 
 		if (state == State.s_header_field)
 			header_field_mark = 0;///data;
+		
 		if (state == State.s_header_value)
 			header_value_mark = 0;///data;
+		
 		switch (state) {
 		case s_req_path:
 		case s_req_schema:
@@ -877,7 +880,8 @@ struct http_parser_settings {
 		///for (p=data; p != data + len; p++) {
 		for (p = 0; p < len; p ++) {
 			///ch = *p;
-			ch = ASCII[data.get(p) & 0xff];
+			uc = data.get(p) & 0xff;
+			ch = ASCII[uc];
 
 			///if (PARSING_HEADER(state)) {
 			if (PARSING_HEADER()) {
@@ -2051,7 +2055,9 @@ struct http_parser_settings {
 						continue;
 					}
 
-					c = TOKEN(ch);
+					// Java char is 16bits, not ASCII/UTF-8 char
+					///c = TOKEN(ch);
+					c = TOKEN(uc);
 
 					if (0==c) {
 						SET_ERRNO(http_errno.HPE_INVALID_HEADER_TOKEN);
@@ -2098,7 +2104,9 @@ struct http_parser_settings {
 
 				case s_header_field:
 				{
-					c = TOKEN(ch);
+					// Java char is 16bits, not ASCII/UTF-8 char
+					///c = TOKEN(ch);
+					c = TOKEN(uc);
 
 					if (c != 0) {
 						switch (header_state) {
@@ -3010,7 +3018,9 @@ struct http_parser_settings {
 					assert(nread == 1);
 					assert(0!=(flags & Flags.F_CHUNKED.flag));
 
-					unhex_val = unhex[ch & 0xffff];
+					///unhex_val = unhex[ch & 0xffff];
+					unhex_val = unhex[uc];
+					
 					if (unhex_val == -1) {
 						SET_ERRNO(http_errno.HPE_INVALID_CHUNK_SIZE);
 						///goto error;
@@ -3040,7 +3050,8 @@ struct http_parser_settings {
 						break;
 					}
 
-					unhex_val = unhex[ch & 0xffff];
+					///unhex_val = unhex[ch & 0xffff];
+					unhex_val = unhex[uc];
 
 					if (unhex_val == -1) {
 						if (ch == ';' || ch == ' ') {
