@@ -59,7 +59,12 @@ public final class HttpParserTest extends EventEmitter2 {
 
 		@Override
 		protected int on_headers_complete() {
-			Log.d(TAG, "on_headers_complete");
+			Log.d(TAG, "on_headers_complete:");
+			
+			if (getType() == http_parser_type.HTTP_REQUEST)
+				Log.d(TAG, "\t\trequest method: "+getMethod().desc());
+			else 
+				Log.d(TAG, "\t\tresponse status code: "+getStatus_code());
 			
 			return 0;
 		}
@@ -551,8 +556,8 @@ public final class HttpParserTest extends EventEmitter2 {
 				         "\r\n" ,
 				         
 						// EMPTY_REASON_PHRASE_AFTER_SPACE 20
-						"HTTP/1.1 200 \r\n" +
-				         "\r\n",
+				         "HTTP/1.1 200 \r\n" +
+				         "\r\n"
 						
 				};
 				

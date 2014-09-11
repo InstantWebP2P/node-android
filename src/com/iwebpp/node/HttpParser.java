@@ -198,6 +198,10 @@ public abstract class HttpParser {
 		private http_method(String desc) {
 			this.desc = desc;
 		}
+		
+		public String desc() {
+			return desc.substring(0, desc.length()-1);
+		}
 	}
 	
 	/* Define HPE_* values for each errno value above */
@@ -3798,6 +3802,19 @@ struct http_parser_settings {
 	///struct http_parser {
 	/** PRIVATE **/
 	private http_parser_type type;      /* enum http_parser_type */
+	/**
+	 * @return the type
+	 */
+	public http_parser_type getType() {
+		return type;
+	}
+	/**
+	 * @return the nread
+	 */
+	public int getNread() {
+		return nread;
+	}
+
 	private int flags = 0;              /* F_* values from 'flags' enum; semi-protected */
 	private State state;                /* enum State from http_parser.c */
 	private header_states header_state; /* enum header_state from http_parser.c */
