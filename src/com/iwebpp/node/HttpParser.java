@@ -2,6 +2,7 @@ package com.iwebpp.node;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 import android.util.Log;
 
@@ -18,7 +19,7 @@ public abstract class HttpParser {
 	@SuppressWarnings("unused")
 	private HttpParser() {this.data = null;}
 
-	protected static enum http_parser_type {
+	public static enum http_parser_type {
 		HTTP_REQUEST, HTTP_RESPONSE, HTTP_BOTH;
 	}
 	
@@ -187,8 +188,12 @@ public abstract class HttpParser {
 		
 		/* RFC-5789 */
 		HTTP_PATCH       ("PATCH"),
-		HTTP_PURGE       ("PURGE");
+		HTTP_PURGE       ("PURGE"),
 
+		// unknown
+		HTTP_UNKNOWN     ("UNKNOWN");
+		
+		
 		private String desc;
 		private http_method(String desc) {
 			this.desc = desc;
@@ -774,14 +779,14 @@ struct http_parser_settings {
   http_cb      on_message_complete;
 };
 	 * */
-	protected abstract int on_message_begin();
-	protected abstract int on_url(ByteBuffer url);
-	protected abstract int on_status(ByteBuffer status);
-	protected abstract int on_header_field(ByteBuffer field);
-	protected abstract int on_header_value(ByteBuffer field);
-	protected abstract int on_headers_complete();
-	protected abstract int on_body(ByteBuffer body);
-	protected abstract int on_message_complete();
+	protected abstract int on_message_begin() throws Exception;
+	protected abstract int on_url(ByteBuffer url) throws Exception;
+	protected abstract int on_status(ByteBuffer status) throws Exception;
+	protected abstract int on_header_field(ByteBuffer field) throws Exception;
+	protected abstract int on_header_value(ByteBuffer vaule) throws Exception;
+	protected abstract int on_headers_complete() throws Exception;
+	protected abstract int on_body(ByteBuffer body) throws Exception;
+	protected abstract int on_message_complete() throws Exception;
 
 	/* Returns the library version. Bits 16-23 contain the major version number,
 	 * bits 8-15 the minor version number and bits 0-7 the patch level.
@@ -797,7 +802,7 @@ struct http_parser_settings {
 	private final static long HTTP_PARSER_VERSION_MINOR = 3;
 	private final static long HTTP_PARSER_VERSION_PATCH = 0;
 
-	protected long version() {
+	protected long http_parser_version() {
 		return HTTP_PARSER_VERSION_MAJOR * 0x10000 |
 			   HTTP_PARSER_VERSION_MINOR * 0x00100 |
 			   HTTP_PARSER_VERSION_PATCH * 0x00001;
@@ -808,7 +813,7 @@ struct http_parser_settings {
 	
 	///void http_parser_init(http_parser *parser, enum http_parser_type type);
 
-	protected int execute(ByteBuffer data) throws Exception {
+	public int http_parser_execute(ByteBuffer data) throws Exception {
 		char c, ch;
 		int uc;
 		
@@ -827,12 +832,17 @@ struct http_parser_settings {
 		int url_mark = -1;
 		int body_mark = -1;
 		int status_mark = -1;
-		int len = data.capacity();
+		int len = data != null ? data.capacity() : 0;
+		int reexecute_byte = 0;
+
+		Log.d(TAG, "http_parser_execute .");
 		
 		/* We're in an error state. Don't bother doing anything. */
 		if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {
 			return 0;
 		}
+		
+		Log.d(TAG, "http_parser_execute ..");
 
 		if (len == 0) {
 			switch (state) {
@@ -898,6 +908,8 @@ struct http_parser_settings {
 		default:
 			break;
 		}
+		
+		Log.d(TAG, "http_parser_execute ...");
 
 		///for (p=data; p != data + len; p++) {
 		for (p = 0; p < len; p ++) {
@@ -941,7 +953,6 @@ struct http_parser_settings {
 			}
 
 			///reexecute_byte:
-			int reexecute_byte = 0;
 			while (true) {
 				Log.d(TAG, "reexecute_byte "+reexecute_byte++);
 
@@ -1461,7 +1472,7 @@ struct http_parser_settings {
 						}
 					}
 
-					method = http_method.HTTP_DELETE;
+					method = http_method.HTTP_UNKNOWN;
 					index = 1;
 					switch (ch) {
 					case 'C': method = http_method.HTTP_CONNECT; /* or COPY, CHECKOUT */ break;
@@ -1469,7 +1480,7 @@ struct http_parser_settings {
 					case 'G': method = http_method.HTTP_GET; break;
 					case 'H': method = http_method.HTTP_HEAD; break;
 					case 'L': method = http_method.HTTP_LOCK; break;
-					case 'M': method = http_method. HTTP_MKCOL; /* or MOVE, MKACTIVITY, MERGE, M-SEARCH */ break;
+					case 'M': method = http_method.HTTP_MKCOL; /* or MOVE, MKACTIVITY, MERGE, M-SEARCH */ break;
 					case 'N': method = http_method.HTTP_NOTIFY; break;
 					case 'O': method = http_method.HTTP_OPTIONS; break;
 					case 'P': method = http_method.HTTP_POST;
@@ -3496,7 +3507,7 @@ struct http_parser_settings {
 	///int http_parser_parse_url(const char *buf, size_t buflen,
 	///                          int is_connect,
 	///                          struct http_parser_url *u);
-	protected static int parse_url(char [] buf, boolean is_connect, http_parser_url u) 
+	public static int http_parser_parse_url(char [] buf, boolean is_connect, http_parser_url u) 
 			throws UnsupportedEncodingException {
 		State s;
 		///const char *p;
@@ -3753,7 +3764,7 @@ struct http_parser_settings {
 
 	/* Pause or un-pause the parser; a nonzero value pauses */
 	///void http_parser_pause(http_parser *parser, int paused);
-	protected void pause(boolean paused) {
+	protected void http_parser_pause(boolean paused) {
 		/* Users should only be pausing/unpausing a parser that is not in an error
 		 * state. In non-debug builds, there's not much that we can do about this
 		 * other than ignore it.
@@ -3785,6 +3796,49 @@ struct http_parser_settings {
 
 	/** READ-ONLY **/
 	private int http_major;
+	/**
+	 * @return the http_major
+	 */
+	public int getHttp_major() {
+		return http_major;
+	}
+	/**
+	 * @return the http_minor
+	 */
+	public int getHttp_minor() {
+		return http_minor;
+	}
+	/**
+	 * @return the status_code
+	 */
+	public int getStatus_code() {
+		return status_code;
+	}
+	/**
+	 * @return the method
+	 */
+	public http_method getMethod() {
+		return method;
+	}
+	/**
+	 * @return the http_errno
+	 */
+	public http_errno getHttp_errno() {
+		return http_errno;
+	}
+	/**
+	 * @return the upgrade
+	 */
+	public boolean isUpgrade() {
+		return upgrade;
+	}
+	/**
+	 * @return the data
+	 */
+	public Object getData() {
+		return data;
+	}
+
 	private int http_minor;
 	private int status_code;     /* responses only */
 	private http_method method;  /* requests only */
