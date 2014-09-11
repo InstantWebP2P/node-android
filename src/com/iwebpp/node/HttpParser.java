@@ -1,8 +1,12 @@
 package com.iwebpp.node;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
+import android.util.Log;
+
 public abstract class HttpParser {
+	private final static String TAG = "HttpParser";
 
 	protected HttpParser(http_parser_type type, Object data) {
         this.data = data;
@@ -324,7 +328,9 @@ public abstract class HttpParser {
 		return ((a) < (b) ? (a) : (b));
 	}
 	
-	private static boolean BIT_AT(char [] a, char i) {
+	private static boolean BIT_AT(int [] a, int i) {
+		i &= 0xff;
+		
 		return (0 != (a[i >> 3] &                  
 				     (1 << (i & 7))));
 	}
@@ -423,7 +429,7 @@ public abstract class HttpParser {
     };
 	
 	// strict parse mode
-	private final static char normal_url_char[] = {
+	private final static int normal_url_char[] = {
 		/*   0 nul    1 soh    2 stx    3 etx    4 eot    5 enq    6 ack    7 bel  */
 		        0    |   0    |   0    |   0    |   0    |   0    |   0    |   0,
 		/*   8 bs     9 ht    10 nl    11 vt    12 np    13 cr    14 so    15 si   */
@@ -541,12 +547,23 @@ public abstract class HttpParser {
 				(c) == '$' || (c) == ',');
 	}
 	
-	private static char TOKEN(int c) {
-		return (tokens[c]);
+	private static char TOKEN(int uc) {
+		uc &= 0xff;
+		
+		Log.d(TAG, "TOKEN uc: "+uc);
+
+		return (tokens[uc]);
 	}
 
-	private static boolean IS_URL_CHAR(char c) {     
-		return (BIT_AT(normal_url_char, c));
+	private static boolean IS_URL_CHAR(char c) 
+			throws UnsupportedEncodingException {   
+		// convert to ASICII / UTF-8 char
+		String cstr = "" + c; 
+		int uc = cstr.getBytes("utf-8")[0] & 0xff;
+		
+		Log.d(TAG, "IS_URL_CHAR cstr: "+cstr+", uc: "+uc);
+
+		return (BIT_AT(normal_url_char, uc));
 	}
 	
 	private static boolean IS_HOST_CHAR(char c) {
@@ -555,6 +572,10 @@ public abstract class HttpParser {
 	
 	private State start_state() {
 		return (type == http_parser_type.HTTP_REQUEST ? State.s_start_req : State.s_start_res);
+	}
+	
+	private State NEW_MESSAGE() {
+		return http_should_keep_alive() ? start_state() : State.s_dead;
 	}
 	
 	/* Our URL parser.
@@ -568,7 +589,8 @@ public abstract class HttpParser {
 	 * assumed that the caller cares about (and can detect) the transition between
 	 * URL and non-URL states by looking for these.
 	 */
-	private State parse_url_char(State s, final char ch)
+	private static State parse_url_char(State s, final char ch) 
+			throws UnsupportedEncodingException
 	{
 	  if (ch == ' ' || ch == '\r' || ch == '\n') {
 	    return State.s_dead;
@@ -883,8 +905,12 @@ struct http_parser_settings {
 			uc = data.get(p) & 0xff;
 			ch = ASCII[uc];
 
+			Log.d(TAG, "uc: "+uc+", ch: "+ch);
+			
 			///if (PARSING_HEADER(state)) {
 			if (PARSING_HEADER()) {
+				Log.d(TAG, "PARSING_HEADER");
+				
 				///++nread;
 				nread++;
 				
@@ -915,10 +941,12 @@ struct http_parser_settings {
 			}
 
 			///reexecute_byte:
+			int reexecute_byte = 0;
 			while (true) {
-				
+				Log.d(TAG, "reexecute_byte "+reexecute_byte++);
+
 				switch (state) {
-				
+
 				case s_dead:
 					/* this state is used after a 'Connection: close' message
 					 * the parser will error out if it reads another message
@@ -936,12 +964,12 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 				case s_start_req_or_res:
 				{
 					if (ch == '\r' || ch == '\n')
 						break;
-					
+
 					flags = 0;
 					content_length = ULLONG_MAX();
 
@@ -965,7 +993,7 @@ struct http_parser_settings {
 								}                                                                
 							}                                                                  
 						}
-						
+
 					} else {
 						type = http_parser_type.HTTP_REQUEST;
 						state = State.s_start_req;
@@ -1078,7 +1106,7 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					state = State.s_res_HTT;
 					break;
 
@@ -1095,7 +1123,7 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					state = State.s_res_HTTP;
 					break;
 
@@ -1112,7 +1140,7 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					state = State.s_res_first_http_major;
 					break;
 
@@ -1316,8 +1344,8 @@ struct http_parser_settings {
 					}
 
 					///MARK(status);
-				    if (status_mark == -1) status_mark = p;
-					
+					if (status_mark == -1) status_mark = p;
+
 					state = State.s_res_status;
 					index = 0;
 					break;
@@ -1409,7 +1437,7 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					state = State.s_header_field_start;
 					break;
 
@@ -1482,7 +1510,7 @@ struct http_parser_settings {
 							}                                                                
 						}                                                                  
 					}
-					
+
 					break;
 				}
 
@@ -1646,7 +1674,7 @@ struct http_parser_settings {
 					if (ch == ' ') break;
 
 					///MARK(url);
-				    if (url_mark == -1) url_mark = p;
+					if (url_mark == -1) url_mark = p;
 
 					if (method == http_method.HTTP_CONNECT) {
 						state = State.s_req_server_start;
@@ -1680,15 +1708,15 @@ struct http_parser_settings {
 					case '\r':
 					case '\n':
 						SET_ERRNO(http_errno.HPE_INVALID_URL);
-					///goto error;
-					{
-						if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
-							SET_ERRNO(http_errno.HPE_UNKNOWN);
-						}
+						///goto error;
+						{
+							if (HTTP_PARSER_ERRNO() == http_errno.HPE_OK) {
+								SET_ERRNO(http_errno.HPE_UNKNOWN);
+							}
 
-						///return (p - data);
-						return p;
-					}
+							///return (p - data);
+							return p;
+						}
 					default:
 						state = parse_url_char(state, ch);
 						if (state == State.s_dead) {
@@ -1756,7 +1784,7 @@ struct http_parser_settings {
 						http_minor = 9;
 						state = (ch == '\r') ?
 								State.s_req_line_almost_done :
-								State.s_header_field_start;
+									State.s_header_field_start;
 						///CALLBACK_DATA(url);
 						{
 							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
@@ -1840,7 +1868,7 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					state = State.s_req_http_HT;
 					break;
 
@@ -1857,7 +1885,7 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					state = State.s_req_http_HTT;
 					break;
 
@@ -1874,7 +1902,7 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					state = State.s_req_http_HTTP;
 					break;
 
@@ -1891,7 +1919,7 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					state = State.s_req_first_http_major;
 					break;
 
@@ -2073,7 +2101,7 @@ struct http_parser_settings {
 					}
 
 					///MARK(header_field);
-				    if (header_field_mark == -1) header_field_mark = p;
+					if (header_field_mark == -1) header_field_mark = p;
 
 					index = 0;
 					state = State.s_header_field;
@@ -2144,9 +2172,9 @@ struct http_parser_settings {
 							index++;
 							///if (index > sizeof(CONNECTION)-1
 							if (index > CONNECTION.length()-1
-								|| c != CONNECTION.toCharArray()[index]) {
+									|| c != CONNECTION.toCharArray()[index]) {
 								header_state = header_states.h_general;
-							///} else if (index == sizeof(CONNECTION)-2) {
+								///} else if (index == sizeof(CONNECTION)-2) {
 							} else if (index == CONNECTION.length()-2) {
 								header_state = header_states.h_connection;
 							}
@@ -2158,9 +2186,9 @@ struct http_parser_settings {
 							index++;
 							///if (index > sizeof(PROXY_CONNECTION)-1
 							if (index > PROXY_CONNECTION.length()-1
-								|| c != PROXY_CONNECTION.toCharArray()[index]) {
+									|| c != PROXY_CONNECTION.toCharArray()[index]) {
 								header_state = header_states.h_general;
-							///} else if (index == sizeof(PROXY_CONNECTION)-2) {
+								///} else if (index == sizeof(PROXY_CONNECTION)-2) {
 							} else if (index == (PROXY_CONNECTION).length()-2) {	
 								header_state = header_states.h_connection;
 							}
@@ -2171,7 +2199,7 @@ struct http_parser_settings {
 						case h_matching_content_length:
 							index++;
 							if (index > (CONTENT_LENGTH).length()-1
-								|| c != CONTENT_LENGTH.toCharArray()[index]) {
+									|| c != CONTENT_LENGTH.toCharArray()[index]) {
 								header_state = header_states.h_general;
 							} else if (index == (CONTENT_LENGTH).length()-2) {
 								header_state = header_states.h_content_length;
@@ -2183,7 +2211,7 @@ struct http_parser_settings {
 						case h_matching_transfer_encoding:
 							index++;
 							if (index > (TRANSFER_ENCODING).length()-1
-								|| c != TRANSFER_ENCODING.toCharArray()[index]) {
+									|| c != TRANSFER_ENCODING.toCharArray()[index]) {
 								header_state = header_states.h_general;
 							} else if (index == (TRANSFER_ENCODING).length()-2) {
 								header_state = header_states.h_transfer_encoding;
@@ -2195,7 +2223,7 @@ struct http_parser_settings {
 						case h_matching_upgrade:
 							index++;
 							if (index > (UPGRADE).length()-1
-								|| c != UPGRADE.toCharArray()[index]) {
+									|| c != UPGRADE.toCharArray()[index]) {
 								header_state = header_states.h_general;
 							} else if (index == (UPGRADE).length()-2) {
 								header_state = header_states.h_upgrade;
@@ -2352,7 +2380,7 @@ struct http_parser_settings {
 				case s_header_value_start:
 				{
 					///MARK(header_value);
-				    if (header_value_mark == -1) header_value_mark = p;
+					if (header_value_mark == -1) header_value_mark = p;
 
 					state = State.s_header_value;
 					index = 0;
@@ -2450,7 +2478,7 @@ struct http_parser_settings {
 
 					if (ch == '\n') {
 						state = State.s_header_almost_done;
-						
+
 						///CALLBACK_DATA_NOADVANCE(header_value);
 						{
 							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
@@ -2481,7 +2509,7 @@ struct http_parser_settings {
 								header_value_mark = -1;
 							}                                                  
 						}
-						
+
 						///goto reexecute_byte;
 						continue;
 					}
@@ -2543,7 +2571,7 @@ struct http_parser_settings {
 					case h_matching_transfer_encoding_chunked:
 						index++;
 						if (index > (CHUNKED).length()-1
-							|| c != CHUNKED.toCharArray()[index]) {
+								|| c != CHUNKED.toCharArray()[index]) {
 							header_state = header_states.h_general;
 						} else if (index == (CHUNKED).length()-2) {
 							header_state = header_states.h_transfer_encoding_chunked;
@@ -2554,7 +2582,7 @@ struct http_parser_settings {
 					case h_matching_connection_keep_alive:
 						index++;
 						if (index > (KEEP_ALIVE).length()-1
-							|| c != KEEP_ALIVE.toCharArray()[index]) {
+								|| c != KEEP_ALIVE.toCharArray()[index]) {
 							header_state = header_states.h_general;
 						} else if (index == (KEEP_ALIVE).length()-2) {
 							header_state = header_states.h_connection_keep_alive;
@@ -2565,7 +2593,7 @@ struct http_parser_settings {
 					case h_matching_connection_close:
 						index++;
 						if (index > (CLOSE).length()-1 
-							|| c != CLOSE.toCharArray()[index]) {
+								|| c != CLOSE.toCharArray()[index]) {
 							header_state = header_states.h_general;
 						} else if (index == (CLOSE).length()-2) {
 							header_state = header_states.h_connection_close;
@@ -2600,7 +2628,7 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					state = State.s_header_value_lws;
 					break;
 				}
@@ -2647,7 +2675,7 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					state = State.s_header_value_discard_lws;
 					break;
 				}
@@ -2660,10 +2688,10 @@ struct http_parser_settings {
 					} else {
 						/* header value was empty */
 						///MARK(header_value);
-					    if (header_value_mark == -1) header_value_mark = p;
-						
+						if (header_value_mark == -1) header_value_mark = p;
+
 						state = State.s_header_field_start;
-						
+
 						///CALLBACK_DATA_NOADVANCE(header_value);
 						{
 							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
@@ -2694,7 +2722,7 @@ struct http_parser_settings {
 								header_value_mark = -1;
 							}                                                  
 						}
-						
+
 						///goto reexecute_byte;
 						continue;
 					}
@@ -2714,12 +2742,11 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					if (0!=(flags & Flags.F_TRAILING.flag)) {
 						/* End of a chunked request */
-						///state = NEW_MESSAGE();
-						state = http_should_keep_alive() ? start_state() : State.s_dead;
-						
+						state = NEW_MESSAGE();
+
 						///CALLBACK_NOTIFY(message_complete);
 						{                                                                 
 							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
@@ -2797,14 +2824,13 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					nread = 0;
 
 					/* Exit, the rest of the connect is in a different protocol. */
 					if (upgrade) {
-						///state = NEW_MESSAGE();
-						state = http_should_keep_alive() ? start_state() : State.s_dead;
-						
+						state = NEW_MESSAGE();
+
 						///CALLBACK_NOTIFY(message_complete);
 						{                                                                 
 							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
@@ -2827,9 +2853,8 @@ struct http_parser_settings {
 					}
 
 					if ((flags & Flags.F_SKIPBODY.flag)!=0) {
-						///state = NEW_MESSAGE();
-						state = http_should_keep_alive() ? start_state() : State.s_dead;
-						
+						state = NEW_MESSAGE();
+
 						///CALLBACK_NOTIFY(message_complete);
 						{                                                                 
 							assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
@@ -2853,9 +2878,8 @@ struct http_parser_settings {
 					} else {
 						if (content_length == 0) {
 							/* Content-Length header given but zero: Content-Length: 0\r\n */
-							///state = NEW_MESSAGE();
-							state = http_should_keep_alive() ? start_state() : State.s_dead;
-							
+							state = NEW_MESSAGE();
+
 							///CALLBACK_NOTIFY(message_complete);
 							{                                                                 
 								assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
@@ -2878,11 +2902,10 @@ struct http_parser_settings {
 							state = State.s_body_identity;
 						} else {
 							if (type == http_parser_type.HTTP_REQUEST ||
-								!http_message_needs_eof()) {
+									!http_message_needs_eof()) {
 								/* Assume content-length 0 - read the next */
-								///state = NEW_MESSAGE();
-								state = http_should_keep_alive() ? start_state() : State.s_dead;
-								
+								state = NEW_MESSAGE();
+
 								///CALLBACK_NOTIFY(message_complete);
 								{                                                                 
 									assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
@@ -2915,7 +2938,7 @@ struct http_parser_settings {
 					///long to_read = MIN(content_length,
 					///		(long) ((data + len) - p));
 					long to_read = MIN(content_length, len - p);
-					
+
 					assert(content_length != 0
 							&& content_length != ULLONG_MAX());
 
@@ -2925,7 +2948,7 @@ struct http_parser_settings {
 					 * byte again for our message complete callback.
 					 */
 					///MARK(body);
-				    if (body_mark == -1) body_mark = p;
+					if (body_mark == -1) body_mark = p;
 
 					content_length -= to_read;
 					p += to_read - 1;
@@ -2972,7 +2995,7 @@ struct http_parser_settings {
 								body_mark = -1;
 							}                                                  
 						}
-						
+
 						///goto reexecute_byte;
 						continue;
 					}
@@ -2983,17 +3006,16 @@ struct http_parser_settings {
 				/* read until EOF */
 				case s_body_identity_eof:
 					///MARK(body);
-				    if (body_mark == -1) body_mark = p;
+					if (body_mark == -1) body_mark = p;
 
 					///p = data + len - 1;
-				    p = len - 1;
+					p = len - 1;
 
 					break;
 
 				case s_message_done:
-					///state = NEW_MESSAGE();
-					state = http_should_keep_alive() ? start_state() : State.s_dead;
-					
+					state = NEW_MESSAGE();
+
 					///CALLBACK_NOTIFY(message_complete);
 					{                                                                 
 						assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
@@ -3020,7 +3042,7 @@ struct http_parser_settings {
 
 					///unhex_val = unhex[ch & 0xffff];
 					unhex_val = unhex[uc];
-					
+
 					if (unhex_val == -1) {
 						SET_ERRNO(http_errno.HPE_INVALID_CHUNK_SIZE);
 						///goto error;
@@ -3119,7 +3141,7 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					nread = 0;
 
 					if (content_length == 0) {
@@ -3136,7 +3158,7 @@ struct http_parser_settings {
 					///long to_read = MIN(content_length,
 					///		(long) ((data + len) - p));
 					long to_read = MIN(content_length, len - p);
-					
+
 					assert(0!=(flags & Flags.F_CHUNKED.flag));
 					assert(content_length != 0
 							&& content_length != ULLONG_MAX());
@@ -3145,7 +3167,7 @@ struct http_parser_settings {
 					 * length and data pointers are managed this way.
 					 */
 					///MARK(body);
-				    if (body_mark == -1) body_mark = p;
+					if (body_mark == -1) body_mark = p;
 
 					content_length -= to_read;
 					p += to_read - 1;
@@ -3160,7 +3182,7 @@ struct http_parser_settings {
 				case s_chunk_data_almost_done:
 					assert(0!=(flags & Flags.F_CHUNKED.flag));
 					assert(content_length == 0);
-					
+
 					///STRICT_CHECK(ch != '\r');
 					if (ch != '\r') {                                                       
 						SET_ERRNO(http_errno.HPE_STRICT);  
@@ -3173,9 +3195,9 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					state = State.s_chunk_data_done;
-					
+
 					///CALLBACK_DATA(body);
 					{
 						assert(HTTP_PARSER_ERRNO() == http_errno.HPE_OK);                       
@@ -3206,7 +3228,7 @@ struct http_parser_settings {
 							body_mark = -1;
 						}                                                  
 					}
-					
+
 					break;
 
 				case s_chunk_data_done:
@@ -3223,7 +3245,7 @@ struct http_parser_settings {
 						///return (p - data);
 						return p;
 					}
-					
+
 					nread = 0;
 					state = State.s_chunk_size_start;
 					break;
@@ -3242,10 +3264,10 @@ struct http_parser_settings {
 						return p;
 					}
 				}
-				
+
 				// break while loop
 				break;
-		}
+			}
 		}
 
 		/* Run callbacks for any marks that we have leftover after we ran our of
@@ -3474,12 +3496,13 @@ struct http_parser_settings {
 	///int http_parser_parse_url(const char *buf, size_t buflen,
 	///                          int is_connect,
 	///                          struct http_parser_url *u);
-	protected int parse_url(char [] buf, boolean is_connect, http_parser_url u) {
+	protected static int parse_url(char [] buf, boolean is_connect, http_parser_url u) 
+			throws UnsupportedEncodingException {
 		State s;
 		///const char *p;
 		int p = 0;
 		http_parser_url_fields uf, old_uf;
-		int found_at = 0;
+		boolean found_at = false;
 		int buflen = buf != null ? buf.length : 0;
 
 		u.port = u.field_set = 0;
@@ -3508,7 +3531,7 @@ struct http_parser_settings {
 				break;
 
 			case s_req_server_with_at:
-				found_at = 1;
+				found_at = true;
 
 				/* FALLTROUGH */
 			case s_req_server:
@@ -3565,10 +3588,13 @@ struct http_parser_settings {
 		if (0!=(u.field_set & (1 << http_parser_url_fields.UF_PORT.field))) {
 			/* Don't bother with endp; we've already validated the string */
 			///unsigned long v = strtoul(buf + u.field_data[UF_PORT].off, NULL, 10);
-			int v = Integer.parseInt(
-					new String(buf).substring(u.field_data[http_parser_url_fields.UF_PORT.field].off, 
-						                      u.field_data[http_parser_url_fields.UF_PORT.field].len),
-						                      10);
+			String pstr = new String(buf).
+					          substring(u.field_data[http_parser_url_fields.UF_PORT.field].off, 
+		                                u.field_data[http_parser_url_fields.UF_PORT.field].len);
+			
+			int v = Integer.parseInt(pstr, 10);
+			
+			Log.d(TAG, "port str: "+pstr+", port: "+v);
 			
 			/* Ports have a max value of 2^16 */
 			if (v > 0xffff) {
@@ -3646,8 +3672,8 @@ struct http_parser_settings {
 		return http_host_state.s_http_host_dead;
 	}
 
-	static int
-	http_parse_host(final char [] buf, http_parser_url u, int found_at) {
+	private static int
+	http_parse_host(final char [] buf, http_parser_url u, boolean found_at) {
 	  http_host_state s;
 
 	  ///const char *p;
@@ -3658,8 +3684,8 @@ struct http_parser_settings {
 
 	  u.field_data[http_parser_url_fields.UF_HOST.field].len = 0;
 
-	  s = found_at!=0 ? http_host_state.s_http_userinfo_start : 
-		                http_host_state.s_http_host_start;
+	  s = found_at ? http_host_state.s_http_userinfo_start : 
+		             http_host_state.s_http_host_start;
 
 	  ///for (p = buf + u.field_data[UF_HOST].off; p < buf + buflen; p++) {
 	  for (p = u.field_data[http_parser_url_fields.UF_HOST.field].off;
