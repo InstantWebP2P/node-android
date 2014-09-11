@@ -153,45 +153,45 @@ public abstract class HttpParser {
 
 	/* Request Methods */
 	protected static enum http_method {
-		HTTP_DELETE      ("DELETE"),
-		HTTP_GET         ("GET"),
-		HTTP_HEAD        ("HEAD"),
-		HTTP_POST        ("POST"),
-		HTTP_PUT         ("PUT"),
+		HTTP_DELETE      ("DELETE\0"),
+		HTTP_GET         ("GET\0"),
+		HTTP_HEAD        ("HEAD\0"),
+		HTTP_POST        ("POST\0"),
+		HTTP_PUT         ("PUT\0"),
 		
 		/* pathological */               
-		HTTP_CONNECT     ("CONNECT"),
-		HTTP_OPTIONS     ("OPTIONS"),
-		HTTP_TRACE       ("TRACE"),
+		HTTP_CONNECT     ("CONNECT\0"),
+		HTTP_OPTIONS     ("OPTIONS\0"),
+		HTTP_TRACE       ("TRACE\0"),
 		
 		/* webdav */                  
-		HTTP_COPY        ("COPY"),
-		HTTP_LOCK        ("LOCK"),
-		HTTP_MKCOL       ("MKCOL"),
-		HTTP_MOVE        ("MOVE"),
-		HTTP_PROPFIND    ("PROPFIND"),
-		HTTP_PROPPATCH   ("PROPPATCH"),
-		HTTP_SEARCH      ("SEARCH"),
-		HTTP_UNLOCK      ("UNLOCK"),
+		HTTP_COPY        ("COPY\0"),
+		HTTP_LOCK        ("LOCK\0"),
+		HTTP_MKCOL       ("MKCOL\0"),
+		HTTP_MOVE        ("MOVE\0"),
+		HTTP_PROPFIND    ("PROPFIND\0"),
+		HTTP_PROPPATCH   ("PROPPATCH\0"),
+		HTTP_SEARCH      ("SEARCH\0"),
+		HTTP_UNLOCK      ("UNLOCK\0"),
 		
 		/* subversion */  
-		HTTP_REPORT      ("REPORT"),
-		HTTP_MKACTIVITY  ("MKACTIVITY"),
-		HTTP_CHECKOUT    ("CHECKOUT"),
-		HTTP_MERGE       ("MERGE"),
+		HTTP_REPORT      ("REPORT\0"),
+		HTTP_MKACTIVITY  ("MKACTIVITY\0"),
+		HTTP_CHECKOUT    ("CHECKOUT\0"),
+		HTTP_MERGE       ("MERGE\0"),
 		
 		/* upnp */
-		HTTP_MSEARCH     ("MSEARCH"),
-		HTTP_NOTIFY      ("NOTIFY"),
-		HTTP_SUBSCRIBE   ("SUBSCRIBE"),
-		HTTP_UNSUBSCRIBE ("UNSUBSCRIBE"),
+		HTTP_MSEARCH     ("M-SEARCH\0"),
+		HTTP_NOTIFY      ("NOTIFY\0"),
+		HTTP_SUBSCRIBE   ("SUBSCRIBE\0"),
+		HTTP_UNSUBSCRIBE ("UNSUBSCRIBE\0"),
 		
 		/* RFC-5789 */
-		HTTP_PATCH       ("PATCH"),
-		HTTP_PURGE       ("PURGE"),
+		HTTP_PATCH       ("PATCH\0"),
+		HTTP_PURGE       ("PURGE\0"),
 
-		// unknown
-		HTTP_UNKNOWN     ("UNKNOWN");
+		// invalid
+		HTTP_INVALID     ("INVALID\0");
 		
 		
 		private String desc;
@@ -316,14 +316,14 @@ public abstract class HttpParser {
 		}
 	}
 
-	private final static String PROXY_CONNECTION  = "proxy-connection";
-	private final static String CONNECTION        = "connection";
-	private final static String CONTENT_LENGTH    = "content-length";
-	private final static String TRANSFER_ENCODING = "transfer-encoding";
-	private final static String UPGRADE           = "upgrade";
-	private final static String CHUNKED           = "chunked";
-	private final static String KEEP_ALIVE        = "keep-alive";
-	private final static String CLOSE             = "close";
+	private final static String PROXY_CONNECTION  = "proxy-connection\0";
+	private final static String CONNECTION        = "connection\0";
+	private final static String CONTENT_LENGTH    = "content-length\0";
+	private final static String TRANSFER_ENCODING = "transfer-encoding\0";
+	private final static String UPGRADE           = "upgrade\0";
+	private final static String CHUNKED           = "chunked\0";
+	private final static String KEEP_ALIVE        = "keep-alive\0";
+	private final static String CLOSE             = "close\0";
 
 	private static long ULLONG_MAX() {
 		return Long.MAX_VALUE; 
@@ -353,23 +353,23 @@ public abstract class HttpParser {
 	 */
 	private final static char tokens[] = {
 		/*   0 nul    1 soh    2 stx    3 etx    4 eot    5 enq    6 ack    7 bel  */
-		0,       0,       0,       0,       0,       0,       0,       0,
+		  0,       0,       0,       0,       0,       0,       0,       0,
 		/*   8 bs     9 ht    10 nl    11 vt    12 np    13 cr    14 so    15 si   */
-		0,       0,       0,       0,       0,       0,       0,       0,
+		  0,       0,       0,       0,       0,       0,       0,       0,
 		/*  16 dle   17 dc1   18 dc2   19 dc3   20 dc4   21 nak   22 syn   23 etb */
-		0,       0,       0,       0,       0,       0,       0,       0,
+		  0,       0,       0,       0,       0,       0,       0,       0,
 		/*  24 can   25 em    26 sub   27 esc   28 fs    29 gs    30 rs    31 us  */
-		0,       0,       0,       0,       0,       0,       0,       0,
+		  0,       0,       0,       0,       0,       0,       0,       0,
 		/*  32 sp    33  !    34  "    35  #    36  $    37  %    38  &    39  '  */
-		0,      '!',      0,      '#',     '$',     '%',     '&',    '\'',
+		  0,      '!',      0,      '#',     '$',     '%',     '&',    '\'',
 		/*  40  (    41  )    42  *    43  +    44  ,    45  -    46  .    47  /  */
-		0,       0,      '*',     '+',      0,      '-',     '.',      0,
+		  0,       0,      '*',     '+',      0,      '-',     '.',      0,
 		/*  48  0    49  1    50  2    51  3    52  4    53  5    54  6    55  7  */
 		'0',     '1',     '2',     '3',     '4',     '5',     '6',     '7',
 		/*  56  8    57  9    58  :    59  ;    60  <    61  =    62  >    63  ?  */
 		'8',     '9',      0,       0,       0,       0,       0,       0,
 		/*  64  @    65  A    66  B    67  C    68  D    69  E    70  F    71  G  */
-		0,      'a',     'b',     'c',     'd',     'e',     'f',     'g',
+	 	  0,      'a',     'b',     'c',     'd',     'e',     'f',     'g',
 		/*  72  H    73  I    74  J    75  K    76  L    77  M    78  N    79  O  */
 		'h',     'i',     'j',     'k',     'l',     'm',     'n',     'o',
 		/*  80  P    81  Q    82  R    83  S    84  T    85  U    86  V    87  W  */
@@ -399,7 +399,7 @@ public abstract class HttpParser {
 	/*  32 sp    33  !    34  "    35  #    36  $    37  %    38  &    39  '  */
 		' ',     '!',      '"',     '#',    '$',      '%',     '&',   '\'',
 	/*  40  (    41  )    42  *    43  +    44  ,    45  -    46  .    47  /  */
-		'(',     ')',      '*',     '+',    ',',      '-',     '.',      0,
+		'(',     ')',      '*',     '+',    ',',      '-',     '.',    '/',
 	/*  48  0    49  1    50  2    51  3    52  4    53  5    54  6    55  7  */
 		'0',     '1',     '2',     '3',     '4',     '5',     '6',     '7',
 	/*  56  8    57  9    58  :    59  ;    60  <    61  =    62  >    63  ?  */
@@ -529,16 +529,28 @@ public abstract class HttpParser {
 		return Character.toLowerCase(c);
 	}
 	private static boolean IS_ALPHA(char c) {
-		return (LOWER(c) >= 'a' && LOWER(c) <= 'z');
+		boolean yes = (LOWER(c) >= 'a' && LOWER(c) <= 'z');
+		
+		if (!yes) Log.d(TAG, "\n\n\nNot alpha: "+c);
+		
+		return yes;
 	}
 	private static boolean IS_NUM(char c) {
-		return ((c) >= '0' && (c) <= '9');
+		boolean yes = ((c) >= '0' && (c) <= '9');
+
+		if (!yes) Log.d(TAG, "\n\n\nNot num: "+c);
+
+		return yes;
 	}
 	private static boolean IS_ALPHANUM(char c) {
 		return (IS_ALPHA(c) || IS_NUM(c));
 	}
 	private static boolean IS_HEX(char c) {
-		return (IS_NUM(c) || (LOWER(c) >= 'a' && LOWER(c) <= 'f'));
+		boolean yes = (IS_NUM(c) || (LOWER(c) >= 'a' && LOWER(c) <= 'f'));
+		
+		if (!yes) Log.d(TAG, "\n\n\nNot HEX: "+c);
+
+		return yes;
 	}
 	private static boolean IS_MARK(char c) {
 		return ((c) == '-' || (c) == '_' || (c) == '.' || 
@@ -802,7 +814,7 @@ struct http_parser_settings {
 	private final static long HTTP_PARSER_VERSION_MINOR = 3;
 	private final static long HTTP_PARSER_VERSION_PATCH = 0;
 
-	protected long http_parser_version() {
+	protected long version() {
 		return HTTP_PARSER_VERSION_MAJOR * 0x10000 |
 			   HTTP_PARSER_VERSION_MINOR * 0x00100 |
 			   HTTP_PARSER_VERSION_PATCH * 0x00001;
@@ -813,7 +825,7 @@ struct http_parser_settings {
 	
 	///void http_parser_init(http_parser *parser, enum http_parser_type type);
 
-	public int http_parser_execute(ByteBuffer data) throws Exception {
+	public int execute(ByteBuffer data) throws Exception {
 		char c, ch;
 		int uc;
 		
@@ -1472,7 +1484,7 @@ struct http_parser_settings {
 						}
 					}
 
-					method = http_method.HTTP_UNKNOWN;
+					method = http_method.HTTP_INVALID;
 					index = 1;
 					switch (ch) {
 					case 'C': method = http_method.HTTP_CONNECT; /* or COPY, CHECKOUT */ break;
@@ -1563,7 +1575,7 @@ struct http_parser_settings {
 								return p;
 							}
 						}
-					} else if (method == http_method.HTTP_MKCOL) {
+					} else if (method == http_method.HTTP_MKCOL) {					
 						if (index == 1 && ch == 'O') {
 							method = http_method.HTTP_MOVE;
 						} else if (index == 1 && ch == 'E') {
@@ -2183,7 +2195,7 @@ struct http_parser_settings {
 							index++;
 							///if (index > sizeof(CONNECTION)-1
 							if (index > CONNECTION.length()-1
-									|| c != CONNECTION.toCharArray()[index]) {
+								|| c != CONNECTION.toCharArray()[index]) {
 								header_state = header_states.h_general;
 								///} else if (index == sizeof(CONNECTION)-2) {
 							} else if (index == CONNECTION.length()-2) {
@@ -2197,7 +2209,7 @@ struct http_parser_settings {
 							index++;
 							///if (index > sizeof(PROXY_CONNECTION)-1
 							if (index > PROXY_CONNECTION.length()-1
-									|| c != PROXY_CONNECTION.toCharArray()[index]) {
+								|| c != PROXY_CONNECTION.toCharArray()[index]) {
 								header_state = header_states.h_general;
 								///} else if (index == sizeof(PROXY_CONNECTION)-2) {
 							} else if (index == (PROXY_CONNECTION).length()-2) {	
@@ -2210,7 +2222,7 @@ struct http_parser_settings {
 						case h_matching_content_length:
 							index++;
 							if (index > (CONTENT_LENGTH).length()-1
-									|| c != CONTENT_LENGTH.toCharArray()[index]) {
+								|| c != CONTENT_LENGTH.toCharArray()[index]) {
 								header_state = header_states.h_general;
 							} else if (index == (CONTENT_LENGTH).length()-2) {
 								header_state = header_states.h_content_length;
@@ -2222,7 +2234,7 @@ struct http_parser_settings {
 						case h_matching_transfer_encoding:
 							index++;
 							if (index > (TRANSFER_ENCODING).length()-1
-									|| c != TRANSFER_ENCODING.toCharArray()[index]) {
+								|| c != TRANSFER_ENCODING.toCharArray()[index]) {
 								header_state = header_states.h_general;
 							} else if (index == (TRANSFER_ENCODING).length()-2) {
 								header_state = header_states.h_transfer_encoding;
@@ -2234,7 +2246,7 @@ struct http_parser_settings {
 						case h_matching_upgrade:
 							index++;
 							if (index > (UPGRADE).length()-1
-									|| c != UPGRADE.toCharArray()[index]) {
+								|| c != UPGRADE.toCharArray()[index]) {
 								header_state = header_states.h_general;
 							} else if (index == (UPGRADE).length()-2) {
 								header_state = header_states.h_upgrade;
@@ -2582,7 +2594,7 @@ struct http_parser_settings {
 					case h_matching_transfer_encoding_chunked:
 						index++;
 						if (index > (CHUNKED).length()-1
-								|| c != CHUNKED.toCharArray()[index]) {
+							|| c != CHUNKED.toCharArray()[index]) {
 							header_state = header_states.h_general;
 						} else if (index == (CHUNKED).length()-2) {
 							header_state = header_states.h_transfer_encoding_chunked;
@@ -2593,7 +2605,7 @@ struct http_parser_settings {
 					case h_matching_connection_keep_alive:
 						index++;
 						if (index > (KEEP_ALIVE).length()-1
-								|| c != KEEP_ALIVE.toCharArray()[index]) {
+							|| c != KEEP_ALIVE.toCharArray()[index]) {
 							header_state = header_states.h_general;
 						} else if (index == (KEEP_ALIVE).length()-2) {
 							header_state = header_states.h_connection_keep_alive;
@@ -2604,7 +2616,7 @@ struct http_parser_settings {
 					case h_matching_connection_close:
 						index++;
 						if (index > (CLOSE).length()-1 
-								|| c != CLOSE.toCharArray()[index]) {
+							|| c != CLOSE.toCharArray()[index]) {
 							header_state = header_states.h_general;
 						} else if (index == (CLOSE).length()-2) {
 							header_state = header_states.h_connection_close;
@@ -3507,7 +3519,7 @@ struct http_parser_settings {
 	///int http_parser_parse_url(const char *buf, size_t buflen,
 	///                          int is_connect,
 	///                          struct http_parser_url *u);
-	public static int http_parser_parse_url(char [] buf, boolean is_connect, http_parser_url u) 
+	public static int parse_url(char [] buf, boolean is_connect, http_parser_url u) 
 			throws UnsupportedEncodingException {
 		State s;
 		///const char *p;
@@ -3764,7 +3776,7 @@ struct http_parser_settings {
 
 	/* Pause or un-pause the parser; a nonzero value pauses */
 	///void http_parser_pause(http_parser *parser, int paused);
-	protected void http_parser_pause(boolean paused) {
+	protected void pause(boolean paused) {
 		/* Users should only be pausing/unpausing a parser that is not in an error
 		 * state. In non-debug builds, there's not much that we can do about this
 		 * other than ignore it.
@@ -3786,13 +3798,13 @@ struct http_parser_settings {
 	///struct http_parser {
 	/** PRIVATE **/
 	private http_parser_type type;      /* enum http_parser_type */
-	private int flags;                  /* F_* values from 'flags' enum; semi-protected */
+	private int flags = 0;              /* F_* values from 'flags' enum; semi-protected */
 	private State state;                /* enum State from http_parser.c */
 	private header_states header_state; /* enum header_state from http_parser.c */
-	private int index;                  /* index into current matcher */
+	private int index = 0;              /* index into current matcher */
 
-	private int nread;           /* # bytes read in various scenarios */
-	private long content_length; /* # bytes in body (0 if no Content-Length header) */
+	private int nread = 0;              /* # bytes read in various scenarios */
+	private long content_length = 0;    /* # bytes in body (0 if no Content-Length header) */
 
 	/** READ-ONLY **/
 	private int http_major;
@@ -3839,9 +3851,9 @@ struct http_parser_settings {
 		return data;
 	}
 
-	private int http_minor;
-	private int status_code;     /* responses only */
-	private http_method method;  /* requests only */
+	private int http_minor = 0;
+	private int status_code = 0;     /* responses only */
+	private http_method method;      /* requests only */
 	private http_errno http_errno;
 
 	/* 1 = Upgrade header was present and the parser has exited because of that.
@@ -3849,7 +3861,7 @@ struct http_parser_settings {
 	 * Should be checked when http_parser_execute() returns in addition to
 	 * error checking.
 	 */
-	private boolean upgrade;
+	private boolean upgrade = false;
 
 	/** PUBLIC **/
 	protected final Object data; /* A pointer to get hook to the "connection" or "socket" object */
