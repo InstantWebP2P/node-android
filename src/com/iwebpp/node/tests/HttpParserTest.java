@@ -558,8 +558,7 @@ public final class HttpParserTest extends EventEmitter2 {
 				
 				try {
 					// parse request
-					///for (int i = 0; i < messages_request.length; i ++) 
-					int i = 20;
+					for (int i = 0; i < messages_request.length; i ++) 
 					{
 						Log.d(TAG, "\n\n\n\tOn request message " + i);
 
@@ -568,12 +567,13 @@ public final class HttpParserTest extends EventEmitter2 {
 					}
 					
 					// parse response
-					/*for (int i = 0; i < messages_response.length; i ++) {
+					for (int i = 0; i < messages_response.length; i ++)
+					{
 						Log.d(TAG, "\n\n\n\tOn response message " + i);
 						
 						if (!testParseResponse(ByteBuffer.wrap(messages_response[i].getBytes("utf-8"))))
 							Log.d(TAG, "\n\n\t!!!Parse response failed on "+messages_response[i]);
-					}*/
+					}
 					
 				} catch (UnsupportedEncodingException e) {
 					// TODO Auto-generated catch block
