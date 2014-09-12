@@ -237,7 +237,7 @@ implements Writable {
     	stream.emit("error", "write after end");
     	//TBD...
     	///process.nextTick(function() {
-    	Util.nextTick(context, new Util.nexTickCallback() {
+    	context.nextTick(new NodeContext.nexTickCallback() {
 
     		@Override
     		public void onNextTick() throws Exception {
@@ -263,7 +263,7 @@ implements Writable {
     		stream.emit("error", er);
     		//TBD...
     		///process.nextTick(function() {
-    		Util.nextTick(context, new Util.nexTickCallback() {
+    		context.nextTick(new NodeContext.nexTickCallback() {
 
     			@Override
     			public void onNextTick() throws Exception {
@@ -344,7 +344,7 @@ implements Writable {
     	if (cb != null) {
     		if (state.finished)
     			///process.nextTick(cb);
-    			Util.nextTick(context, new Util.nexTickCallback() {
+    			context.nextTick(new NodeContext.nexTickCallback() {
 
     				@Override
     				public void onNextTick() throws Exception {   
@@ -443,7 +443,7 @@ implements Writable {
 			if (sync) {
 				///TBD
 				///process.nextTick(function() {
-				Util.nextTick(context, new Util.nexTickCallback() {
+				context.nextTick(new NodeContext.nexTickCallback() {
 
 					@Override
 					public void onNextTick() throws Exception {
@@ -576,7 +576,7 @@ implements Writable {
 		if (sync) {
 			/// TBD
 			///process.nextTick(function() {
-			Util.nextTick(context, new Util.nexTickCallback() {
+			context.nextTick(new NodeContext.nexTickCallback() {
 
 				@Override
 				public void onNextTick() throws Exception {

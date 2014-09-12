@@ -141,34 +141,5 @@ public final class Util {
     	
 		return "invalid chunk";
     }
-    
-    public static interface nexTickCallback {
-    	void onNextTick() throws Exception;
-    }
-    
-    // fire on next tick
-    public static void nextTick(NodeContext ctx, final nexTickCallback next) {
-        final TimerHandle timer = new TimerHandle(ctx.getLoop());
-
-        timer.setCloseCallback(new TimerCallback() {
-            @Override
-            public void onTimer(final int i) throws Exception {
-                Log.d(TAG, "nextTick timer closed");
-            }
-        });
-
-        timer.setTimerFiredCallback(new TimerCallback() {
-            @Override
-            public void onTimer(final int status) throws Exception {
-                Log.d(TAG, "nextTick timer fired");
-
-                next.onNextTick();
-                
-                timer.close();
-            }
-        });
-
-        timer.start(0, 0);
-    }
         
 }

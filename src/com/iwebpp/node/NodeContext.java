@@ -98,6 +98,34 @@ public final class NodeContext {
         timer.close();
     }
     
+    // fire on next tick
+    public void nextTick(final nexTickCallback next) {
+        final TimerHandle timer = new TimerHandle(loop);
+
+        timer.setCloseCallback(new TimerCallback() {
+            @Override
+            public void onTimer(final int i) throws Exception {
+                Log.d(TAG, "nextTick timer closed");
+            }
+        });
+
+        timer.setTimerFiredCallback(new TimerCallback() {
+            @Override
+            public void onTimer(final int status) throws Exception {
+                Log.d(TAG, "nextTick timer fired");
+
+                next.onNextTick();
+                
+                timer.close();
+            }
+        });
+
+        timer.start(0, 0);
+    }
+    public static interface nexTickCallback {
+    	void onNextTick() throws Exception;
+    }
+    
     
 }
 

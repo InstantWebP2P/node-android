@@ -848,7 +848,7 @@ struct http_parser_settings {
 		int url_mark = -1;
 		int body_mark = -1;
 		int status_mark = -1;
-		int len = data != null ? data.capacity() : 0;
+		int len = (data == null) ? 0 : data.capacity();
 		int reexecute_byte = 0;
 
 		Log.d(TAG, "http_parser_execute .");
