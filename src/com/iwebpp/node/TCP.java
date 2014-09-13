@@ -47,6 +47,8 @@ public final class TCP {
 		
 		private NodeContext context;
 
+		public boolean _paused;
+
 		public static class Options {
 
 			public TCPHandle handle;
