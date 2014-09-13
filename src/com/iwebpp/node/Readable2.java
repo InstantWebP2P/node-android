@@ -759,7 +759,7 @@ this._readableState.encoding = enc;
 		  final Listener onend = new Listener() {
 
 			  @Override
-			  public void invoke(Object readable) throws Exception {
+			  public void onListen(Object readable) throws Exception {
 				  Log.d(TAG, "onend");
 				  dest.end(null, null, null);
 			  }
@@ -776,7 +776,7 @@ this._readableState.encoding = enc;
           final Listener ondata = new Listener() {
 
 			@Override
-			public void invoke(Object chunk) throws Exception {
+			public void onListen(Object chunk) throws Exception {
 			    Log.d(TAG, "ondata");
 			    boolean ret = dest.write(chunk, null, null);
 			    if (false == ret) {
@@ -794,7 +794,7 @@ this._readableState.encoding = enc;
           final Listener onerror = new Listener() {
 
         	  @Override
-        	  public void invoke(Object er) throws Exception {
+        	  public void onListen(Object er) throws Exception {
         		  Log.d(TAG, "onerror " + er);
         		  unpipe(src, (Writable2) dest);
         		  dest.removeListener("error", this);
@@ -820,7 +820,7 @@ this._readableState.encoding = enc;
 		  final Listener onclose = new Listener() {
 
         	  @Override
-        	  public void invoke(Object er) throws Exception {
+        	  public void onListen(Object er) throws Exception {
       		    ///dest.removeListener("finish", onfinish);
         		dest.removeListener("finish");
     		    unpipe(src, (Writable2) dest);
@@ -832,7 +832,7 @@ this._readableState.encoding = enc;
 		  final Listener onfinish = new Listener() {
 
         	  @Override
-        	  public void invoke(Object er) throws Exception {
+        	  public void onListen(Object er) throws Exception {
       		    Log.d(TAG, "onfinish");
     		    dest.removeListener("close", onclose);
     		    unpipe(src, (Writable2) dest);
@@ -853,7 +853,7 @@ this._readableState.encoding = enc;
 		  final Listener cleanup = new Listener() {
 
 			  @Override
-			  public void invoke(Object data) throws Exception {
+			  public void onListen(Object data) throws Exception {
 				  Log.d(TAG, "cleanup");
 
 				  // cleanup event handlers once the pipe is broken
@@ -875,7 +875,7 @@ this._readableState.encoding = enc;
 				  ///if (state.awaitDrain &&
 				  ///(!dest._writableState || dest._writableState.needDrain))
 				  if (state.awaitDrain>0 && wdest.isNeedDrain())
-					  ondrain.invoke(null);
+					  ondrain.onListen(null);
 			  }
 
 		  };
@@ -883,10 +883,10 @@ this._readableState.encoding = enc;
 		  final Listener onunpipe = new Listener() {
 
 			  @Override
-			  public void invoke(Object readable) throws Exception {
+			  public void onListen(Object readable) throws Exception {
 				  Log.d(TAG, "onunpipe");
 				  if (readable.equals(src)) {
-					  cleanup.invoke(null);
+					  cleanup.onListen(null);
 				  }
 			  }
 
@@ -901,7 +901,7 @@ this._readableState.encoding = enc;
 
 				  @Override
 				  public void onNextTick() throws Exception {	
-					  endFn.invoke(null);
+					  endFn.onListen(null);
 				  }
 				  
 			  });
@@ -919,7 +919,7 @@ this._readableState.encoding = enc;
 	private  Listener pipeOnDrain(final Readable2 src) {
 		return new Listener () {
 			@Override
-			public void invoke(Object data) throws Exception {
+			public void onListen(Object data) throws Exception {
 				State state = src._readableState;
 
 				Log.d(TAG, "pipeOnDrain "+state.awaitDrain);

@@ -23,7 +23,7 @@ public class EventEmitter2 implements EventEmitter {
 	public boolean emit(String event) throws Exception {
 		if (events.containsKey(event)) {
 			for (Listener cb : events.get(event))
-				cb.invoke(null);
+				cb.onListen(null);
 		} else {
 			Log.d(TAG, "unknown event "+event);
 			return false;
@@ -35,7 +35,7 @@ public class EventEmitter2 implements EventEmitter {
 	public boolean emit(String event, Object data) throws Exception {
 		if (events.containsKey(event)) {
 			for (Listener cb : events.get(event))
-				cb.invoke(data);
+				cb.onListen(data);
 		} else {
 			Log.d(TAG, "unknown event "+event+" data "+data.toString());
 			return false;
@@ -89,9 +89,9 @@ public class EventEmitter2 implements EventEmitter {
 		return addListener(event, new Listener(){
 
 			@Override
-			public void invoke(final Object data) throws Exception {
+			public void onListen(final Object data) throws Exception {
 				// TODO Auto-generated method stub
-				ocb.invoke(data);
+				ocb.onListen(data);
 
 				// remove listener
 				removeListener(event, this);

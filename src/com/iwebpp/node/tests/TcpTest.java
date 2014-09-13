@@ -72,7 +72,7 @@ public final class TcpTest {
 					cln.on("close", new Listener(){
 
 						@Override
-						public void invoke(Object data) throws Exception {
+						public void onListen(Object data) throws Exception {
 							Log.d(TAG, "client closed");							
 						}
 
@@ -144,7 +144,7 @@ public final class TcpTest {
 			srv.on("connection", new Listener(){
 
 				@Override
-				public void invoke(Object data) throws Exception {
+				public void onListen(Object data) throws Exception {
 					Socket peer = (Socket)data;
 					
 					peer.pipe(peer, true);
@@ -169,7 +169,7 @@ public final class TcpTest {
 					cln.on("readable", new Listener(){
 
 						@Override
-						public void invoke(Object data) throws Exception {
+						public void onListen(Object data) throws Exception {
 		    				Object chunk;
 
 		    				while (null != (chunk = cln.read(68))) {
@@ -193,7 +193,7 @@ public final class TcpTest {
 					cln.on("drain", new Listener(){
 
 						@Override
-						public void invoke(Object data) throws Exception {
+						public void onListen(Object data) throws Exception {
 							Log.d(TAG, "client write drained");
 
                             ///while (cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null));
@@ -234,7 +234,7 @@ public final class TcpTest {
 			srv.on("connection", new Listener(){
 
 				@Override
-				public void invoke(Object data) throws Exception {
+				public void onListen(Object data) throws Exception {
 					Socket peer = (Socket)data;
 					
 					peer.pipe(peer, true);
@@ -259,7 +259,7 @@ public final class TcpTest {
 					cln.on("readable", new Listener(){
 
 						@Override
-						public void invoke(Object data) throws Exception {
+						public void onListen(Object data) throws Exception {
 		    				Object chunk;
 
 		    				while (null != (chunk = cln.read(68))) {
@@ -283,7 +283,7 @@ public final class TcpTest {
 					cln.on("drain", new Listener(){
 
 						@Override
-						public void invoke(Object data) throws Exception {
+						public void onListen(Object data) throws Exception {
 							Log.d(TAG, "client write drained");
 
                             ///while (cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null));

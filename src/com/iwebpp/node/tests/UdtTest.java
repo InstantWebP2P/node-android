@@ -93,7 +93,7 @@ public final class UdtTest {
 					cln.on("close", new Listener(){
 
 						@Override
-						public void invoke(Object data) throws Exception {
+						public void onListen(Object data) throws Exception {
 							Log.d(TAG, "client closed");							
 						}
 
@@ -144,7 +144,7 @@ public final class UdtTest {
 			srv.on("connection", new Listener(){
 
 				@Override
-				public void invoke(Object data) throws Exception {
+				public void onListen(Object data) throws Exception {
 					Socket peer = (Socket)data;
 					
 					peer.pipe(peer, true);
@@ -169,7 +169,7 @@ public final class UdtTest {
 					cln.on("readable", new Listener(){
 
 						@Override
-						public void invoke(Object data) throws Exception {
+						public void onListen(Object data) throws Exception {
 		    				Object chunk;
 
 		    				while (null != (chunk = cln.read(68))) {
@@ -224,7 +224,7 @@ public final class UdtTest {
 			srv.on("connection", new Listener(){
 
 				@Override
-				public void invoke(Object data) throws Exception {
+				public void onListen(Object data) throws Exception {
 					Socket peer = (Socket)data;
 					
 					peer.pipe(peer, true);
@@ -249,7 +249,7 @@ public final class UdtTest {
 					cln.on("readable", new Listener(){
 
 						@Override
-						public void invoke(Object data) throws Exception {
+						public void onListen(Object data) throws Exception {
 		    				Object chunk;
 
 		    				while (null != (chunk = cln.read(68))) {

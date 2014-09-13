@@ -81,7 +81,7 @@ extends Duplex {
 		this.once("prefinish", new Listener() {
 
 			@Override
-			public void invoke(Object data) throws Exception {
+			public void onListen(Object data) throws Exception {
 				/*if (util.isFunction(stream._flush))
 					  this._flush(function(er) {
 						  done(stream, er);
@@ -184,11 +184,11 @@ extends Duplex {
 		void afterTransform(String error, Object data) throws Exception;
 	}
 	protected abstract void _transform(final Object chunk, String encoding, 
-			afterTransformCallback callback) throws Exception;
+			afterTransformCallback cb) throws Exception;
 
 	protected static interface flushCallback {
 		void onFlush(String error) throws Exception;
 	}
-	protected abstract void _flush(flushCallback callback) throws Exception;
+	protected abstract void _flush(flushCallback cb) throws Exception;
 
 }

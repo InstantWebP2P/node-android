@@ -7,7 +7,7 @@ public interface EventEmitter {
 	boolean emit(final String event, final Object data) throws Exception;
 
 	interface Listener {
-		void invoke(final Object data) throws Exception;
+		void onListen(final Object data) throws Exception;
 	};
 
 	boolean on(final String event, final Listener cb) throws Exception;
