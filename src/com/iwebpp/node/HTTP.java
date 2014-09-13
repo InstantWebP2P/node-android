@@ -745,6 +745,9 @@ public final class HTTP {
 		public String httpVersion() {
 			return this.httpVersion;
 		}
+		public void httpVersion(String httpVersion) {
+			this.httpVersion = httpVersion;
+		}
 		
 		public Map<String, List<String>> headers() {
 			return this.headers;
@@ -760,15 +763,22 @@ public final class HTTP {
 			return this.method;
 			
 		}
+		public void method(String method) {
+			this.method = method;
+		}
 		
 		public String url() {
 			return this.url;
-			
+		}
+		public void url(String url) {
+			this.url = url;
 		}
 		
 		public int statusCode() {
 			return this.statusCode;
-			
+		}
+		public void statusCode(int statusCode) {
+		    this.statusCode = statusCode;
 		}
 		
 		public TCP.Socket socket() {
@@ -800,6 +810,206 @@ public final class HTTP {
 		
 	}
 
+	private class IncomingParser 
+	extends HttpParser {
+
+		private TCP.Socket socket;
+		
+		  String [] fields_;///[32];  // header fields
+		  String [] values_;///[32];  // header values
+		  String url_;
+		  String status_message_;
+		  int num_fields_;
+		  int num_values_;
+		  boolean have_flushed_;
+		  boolean got_exception_;
+		  ByteBuffer current_buffer_;
+
+		private int maxHeaderPairs;
+
+		private List<String> _headers;
+
+		private String _url;
+		  
+		public IncomingParser(http_parser_type type, TCP.Socket socket) {
+			super(type, socket);
+			// TODO Auto-generated constructor stub
+			this.socket = socket;
+			this._headers = new ArrayList<String>();
+			
+			this.fields_ = new String[32];
+			this.values_ = new String[32];
+            this.url_ = "";
+            this._url = "";
+            this.status_message_ = "";
+            this.num_fields_ = this.num_values_ = 0;
+            this.have_flushed_ = this.got_exception_ = false;
+            
+            this.current_buffer_ = null;
+		}
+		private IncomingParser(){super(null, null);}
+
+
+		private void Init(http_parser_type type) {
+			super.reset(type);
+			
+			this._headers.clear();
+			
+			url_ = "";
+			_url = "";
+			status_message_ = "";
+			num_fields_ = 0;
+			num_values_ = 0;
+			have_flushed_ = false;
+			got_exception_ = false;
+		}
+
+		// spill headers and request path to JS land
+		private void Flush() {
+			parserOnHeaders(CreateHeaders(), url_);
+
+			///if (r.IsEmpty())
+			///	got_exception_ = true;
+
+			url_ = "";
+			have_flushed_ = true;
+		}
+
+		private List<String> CreateHeaders() {
+			// num_values_ is either -1 or the entry # of the last header
+			// so num_values_ == 0 means there's a single header
+			List<String> headers = new ArrayList<String>();
+
+			for (int i = 0; i < this.num_values_; i ++) {
+				headers.add(this.fields_[i]);
+				headers.add(this.values_[i]);
+			}
+
+			return headers;
+		}
+
+		public void Pause(boolean should_pause) {
+			pause(should_pause);
+		}
+		
+		public void Reinitialize(http_parser_type type) {
+		    Init(type);
+		}
+		
+		public int Finish() throws Exception {
+			got_exception_ = false;
+
+			int rv = execute(null);
+
+			if (got_exception_)
+				return 0;
+
+			if (rv != 0) {
+				http_errno err = HTTP_PARSER_ERRNO();
+
+				throw new Exception(err.desc());
+			}
+
+			return rv;
+		}
+		
+		// var bytesParsed = parser->execute(buffer);
+		public int Execute(ByteBuffer buffer_obj) throws Exception {
+			int buffer_len = buffer_obj.capacity();
+			
+			// This is a hack to get the current_buffer to the callbacks with the least
+			// amount of overhead. Nothing else will run while http_parser_execute()
+			// runs, therefore this pointer can be set and used for the execution.
+			current_buffer_ = buffer_obj;
+			got_exception_ = false;
+
+			int nparsed = execute(current_buffer_);
+
+			// Unassign the 'buffer_' variable
+			current_buffer_.clear();
+			
+			// If there was an exception in one of the callbacks
+			if (got_exception_)
+				return 0;
+
+			// If there was a parse error in one of the callbacks
+			// TODO(bnoordhuis) What if there is an error on EOF?
+			if (!isUpgrade() && nparsed != buffer_len) {
+				http_errno err = HTTP_PARSER_ERRNO();
+				
+				throw new Exception(err.desc());
+			}
+			
+			return nparsed;
+		}
+		  
+		// Only called in the slow case where slow means
+		// that the request headers were either fragmented
+		// across multiple TCP packets or too large to be
+		// processed in a single run. This method is also
+		// called to process trailing HTTP headers.
+		private void parserOnHeaders(List<String> headers, String url) {
+		  // Once we exceeded headers limit - stop collecting them
+		  if (this.maxHeaderPairs <= 0 ||
+		      this._headers.size() < this.maxHeaderPairs) {
+		    ///this._headers = this._headers.concat(headers);
+			 this._headers.addAll(headers);
+		  }
+		  this._url += url != null ? url : "";
+		}
+		
+		
+		
+		@Override
+		protected int on_message_begin() throws Exception {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		protected int on_url(ByteBuffer url) throws Exception {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		protected int on_status(ByteBuffer status) throws Exception {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		protected int on_header_field(ByteBuffer field) throws Exception {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		protected int on_header_value(ByteBuffer vaule) throws Exception {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		protected int on_headers_complete() throws Exception {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		protected int on_body(ByteBuffer body) throws Exception {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		protected int on_message_complete() throws Exception {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+		
+	}
+	
 	// http.createServer([requestListener])
 	public static final int createServer(Server.requestListener onreq) {
 

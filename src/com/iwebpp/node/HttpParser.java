@@ -11,10 +11,8 @@ public abstract class HttpParser {
 
 	protected HttpParser(http_parser_type type, Object data) {
         this.data = data;
-        this.type = type;
-        this.http_errno = http_errno.HPE_OK;
-        this.state = (type == http_parser_type.HTTP_REQUEST ? State.s_start_req : 
-        	         (type == http_parser_type.HTTP_RESPONSE ? State.s_start_res : State.s_start_req_or_res));
+        
+        reset(type);
 	}
 	@SuppressWarnings("unused")
 	private HttpParser() {this.data = null;}
@@ -281,10 +279,14 @@ public abstract class HttpParser {
 		private http_errno(String desc) {
 			this.desc = desc;
 		}
+		
+		protected String desc() {
+			return this.desc;
+		}
 	}
 	
 	/* Get an http_errno value from an http_parser */
-	private http_errno HTTP_PARSER_ERRNO() {
+	protected http_errno HTTP_PARSER_ERRNO() {
 		return this.http_errno;
 	}
 	
@@ -829,6 +831,22 @@ struct http_parser_settings {
 	
 	///void http_parser_init(http_parser *parser, enum http_parser_type type);
 
+	public void reset(http_parser_type type) {
+        this.type = type;
+        this.http_errno = http_errno.HPE_OK;
+        this.state = (type == http_parser_type.HTTP_REQUEST ? State.s_start_req : 
+        	         (type == http_parser_type.HTTP_RESPONSE ? State.s_start_res : State.s_start_req_or_res));
+	
+        // zero fields
+        this.content_length = 0;
+        this.flags = 0;
+        this.http_major = this.http_minor = 0;
+        this.index = 0;
+        this.nread = 0;
+        this.status_code = 0;
+        this.upgrade = false;
+	}
+	
 	public int execute(ByteBuffer data) throws Exception {
 		char c, ch;
 		int uc;
