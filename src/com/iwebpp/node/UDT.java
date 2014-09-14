@@ -400,7 +400,7 @@ public final class UDT {
 					if (exception!=null && !self._writableState.errorEmitted) {
 						// TBD...
 						///process.nextTick(function() {
-						context.nextTick(new NodeContext.nexTickCallback() {
+						context.nextTick(new NodeContext.nextTickCallback() {
 							
 					    	public void onNextTick() throws Exception {
 								self.emit("error", exception);
@@ -667,7 +667,7 @@ public final class UDT {
 			///if (util.isFunction(cb)) {
 			if (cb != null) {
 				///process.nextTick(function() {
-				context.nextTick(new NodeContext.nexTickCallback() {
+				context.nextTick(new NodeContext.nextTickCallback() {
 
 					@Override
 					public void onNextTick() throws Exception {	
@@ -1402,7 +1402,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			// TBD...
 			///process.nextTick(function() {
-			context.nextTick(new NodeContext.nexTickCallback() {
+			context.nextTick(new NodeContext.nextTickCallback() {
 
 				@Override
 				public void onNextTick() throws Exception {
@@ -1541,7 +1541,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				if (rval == null) {
 					final String error = "err listen";
 					///process.nextTick(function() {
-					context.nextTick(new NodeContext.nexTickCallback() {
+					context.nextTick(new NodeContext.nextTickCallback() {
 						
 						@Override
 						public void onNextTick() throws Exception {
@@ -1620,7 +1620,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				self._handle.close();
 				self._handle = null;
 				///process.nextTick(function() {
-				context.nextTick(new NodeContext.nexTickCallback() {
+				context.nextTick(new NodeContext.nextTickCallback() {
 					
 					@Override
 					public void onNextTick() throws Exception {
@@ -1638,7 +1638,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			this._connectionKey = addressType + ':' + address + ':' + port;
 
 			///process.nextTick(function() {
-			context.nextTick(new NodeContext.nexTickCallback() {
+			context.nextTick(new NodeContext.nextTickCallback() {
 
 				@Override
 				public void onNextTick() throws Exception {

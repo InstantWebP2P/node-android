@@ -6,6 +6,13 @@ implements Writable {
 	private Writable2 _writable;
 	protected Writable2.State _writableState;
 	
+	/**
+	 * @return the _writableState
+	 */
+	public Writable2.State get_writableState() {
+		return _writableState;
+	}
+
 	private class DuplexWritable extends Writable2 {
 		private Duplex hold;
 		protected DuplexWritable(NodeContext context, Options options, Duplex hold) {

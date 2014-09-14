@@ -1,5 +1,7 @@
 package com.iwebpp.node;
 
+import java.util.Date;
+
 import android.util.Log;
 
 import com.iwebpp.libuvpp.LibUV;
@@ -99,7 +101,7 @@ public final class NodeContext {
     }
     
     // fire on next tick
-    public void nextTick(final nexTickCallback next) {
+    public void nextTick(final nextTickCallback next) {
         final TimerHandle timer = new TimerHandle(loop);
 
         timer.setCloseCallback(new TimerCallback() {
@@ -122,10 +124,30 @@ public final class NodeContext {
 
         timer.start(0, 0);
     }
-    public static interface nexTickCallback {
+    public static interface nextTickCallback {
     	void onNextTick() throws Exception;
     }
-    
+
+    // 
+    private volatile String dateCached = null;
+    String utcDate() {
+    	if (null == dateCached) {
+    		Date d = new Date();
+    		// TBD... GTC 
+    		dateCached = d.toString();
+
+    		setTimeout(new TimeoutCallback() {
+
+    			@Override
+    			public void onTimeout() throws Exception {
+    				dateCached = null;					
+    			}
+
+    		}, 1000);
+    	}
+
+    	return dateCached;
+    }
     
 }
 

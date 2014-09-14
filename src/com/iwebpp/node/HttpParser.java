@@ -22,7 +22,9 @@ public abstract class HttpParser {
 	}
 	
 	private enum State {
-	  	  s_dead                                (1) /* important that this is > 0 */
+		  s_unknown                             (0)
+		  
+	  	, s_dead                                (1) /* important that this is > 0 */
 
 		, s_start_req_or_res                    (2) 
 		, s_res_or_resp_H                       (3)
@@ -150,7 +152,7 @@ public abstract class HttpParser {
 	}
 
 	/* Request Methods */
-	protected static enum http_method {
+	public static enum http_method {
 		HTTP_DELETE      ("DELETE\0"),
 		HTTP_GET         ("GET\0"),
 		HTTP_HEAD        ("HEAD\0"),
@@ -203,7 +205,7 @@ public abstract class HttpParser {
 	}
 	
 	/* Define HPE_* values for each errno value above */
-	protected static enum http_errno {
+	public static enum http_errno {
 		/* No error */                                                     
 		///XX(OK, "success")                                                  
 		HPE_OK("success"),    
@@ -280,7 +282,7 @@ public abstract class HttpParser {
 			this.desc = desc;
 		}
 		
-		protected String desc() {
+		public String desc() {
 			return this.desc;
 		}
 	}
@@ -3879,6 +3881,10 @@ struct http_parser_settings {
 	public boolean isUpgrade() {
 		return upgrade;
 	}
+	public void ugrade(boolean upgrade) {
+		this.upgrade = upgrade;
+	}
+	
 	/**
 	 * @return the data
 	 */
