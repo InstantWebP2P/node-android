@@ -13,7 +13,7 @@ public abstract class Readable2
 extends EventEmitter2 
 implements Readable {
 	private final static String TAG = "Readable2";
-	protected State _readableState;
+	private State _readableState;
 	private boolean readable;
 	private NodeContext context;
 
@@ -82,7 +82,7 @@ implements Readable {
 		boolean readingMore;
 		CharsetDecoder decoder;
 		String encoding;
-		boolean resumeScheduled;
+		private boolean resumeScheduled;
 
 
 		protected State(Options options, final Readable2 stream) {
@@ -185,6 +185,18 @@ implements Readable {
 		 */
 		public void setObjectMode(boolean objectMode) {
 			this.objectMode = objectMode;
+		}
+		/**
+		 * @return the resumeScheduled
+		 */
+		public boolean isResumeScheduled() {
+			return resumeScheduled;
+		}
+		/**
+		 * @param resumeScheduled the resumeScheduled to set
+		 */
+		public void setResumeScheduled(boolean resumeScheduled) {
+			this.resumeScheduled = resumeScheduled;
 		}
 	}
 
@@ -1049,8 +1061,8 @@ this._readableState.encoding = enc;
 	}
 
 	private  void resume(final Readable2 stream, final State state) throws Exception {
-		if (!state.resumeScheduled) {
-			state.resumeScheduled = true;
+		if (!state.isResumeScheduled()) {
+			state.setResumeScheduled(true);
 			// TBD...
 			///process.nextTick(function() {
 			context.nextTick(new NodeContext.nextTickCallback() {
@@ -1075,7 +1087,7 @@ this._readableState.encoding = enc;
 			}
 		}
 
-		state.resumeScheduled = false;
+		state.setResumeScheduled(false);
 
 		stream.emit("resume");
 		flow(stream);
@@ -1109,7 +1121,7 @@ this._readableState.encoding = enc;
 	// This returns true if the highWaterMark has not been hit yet,
 	// similar to how Writable.write() returns true if you should
 	// write() some more.
-	protected boolean push(Object chunk, String encoding) throws Exception {
+	public boolean push(Object chunk, String encoding) throws Exception {
 		State state = this._readableState;
 
 		if (Util.isString(chunk) && !state.isObjectMode()) {
@@ -1130,4 +1142,16 @@ this._readableState.encoding = enc;
 	// for virtual (non-string, non-buffer) streams, "length" is somewhat
 	// arbitrary, and perhaps not very meaningful.
 	protected abstract void _read(int size) throws Exception;
+	/**
+	 * @return the _readableState
+	 */
+	public State get_readableState() {
+		return _readableState;
+	}
+	/**
+	 * @param _readableState the _readableState to set
+	 */
+	public void set_readableState(State _readableState) {
+		this._readableState = _readableState;
+	}
 }

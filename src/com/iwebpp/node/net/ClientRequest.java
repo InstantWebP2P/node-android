@@ -9,12 +9,10 @@ import com.iwebpp.node.NodeContext.nextTickCallback;
 import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
 import com.iwebpp.node.EventEmitter.Listener;
-import com.iwebpp.node.stream.Writable2;
-import com.iwebpp.node.stream.Writable.WriteCB;
-import com.iwebpp.node.stream.Writable2.Options;
+import com.iwebpp.node.Writable2;
 
 public class ClientRequest 
-extends Writable2 {
+extends OutgoingMessage {
 	private final static String TAG = "ClientRequest";
 
 	public IncomingMessage res;
@@ -220,7 +218,7 @@ extends Writable2 {
 			///COUNTER_HTTP_CLIENT_RESPONSE();
 			req.res = res;
 			res.req = req;
-
+			
 			// add our listener first, so that we guarantee socket cleanup
 			Listener responseOnEnd = new Listener() {
 
@@ -244,8 +242,9 @@ extends Writable2 {
 						///  req.timeoutCb = null;
 						///}
 
-						socket.removeListener("close", socketCloseListener);
-						socket.removeListener("error", socketErrorListener);
+						// TBD...
+						///socket.removeListener("close", socketCloseListener);
+						///socket.removeListener("error", socketErrorListener);
 						// Mark this socket as available, AFTER user-added end
 						// handlers have a chance to run.
 						///process.nextTick(function() {

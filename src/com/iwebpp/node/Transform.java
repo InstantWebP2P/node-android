@@ -50,7 +50,7 @@ extends Duplex {
 			if (cb != null)
 				cb.writeDone(er);
 
-			State rs = stream._readableState;
+			State rs = stream.get_readableState();
 			rs.reading = false;
 			if (rs.needReadable || rs.length < rs.highWaterMark) {
 				stream._read(rs.highWaterMark);
@@ -70,12 +70,12 @@ extends Duplex {
 		final Transform stream = this;
 
 		// start out asking for a readable event once data is transformed.
-		this._readableState.needReadable = true;
+		this.get_readableState().needReadable = true;
 
 		// we have implemented the _read method, and done the other things
 		// that Readable wants before the first _read call, so unset the
 		// sync guard flag.
-		this._readableState.sync = false;
+		this.get_readableState().sync = false;
 
 		///this.once("prefinish", function() {
 		this.once("prefinish", new Listener() {
@@ -116,7 +116,7 @@ extends Duplex {
 		ts.writechunk = chunk;
 		ts.writeencoding = encoding;
 		if (!ts.transforming) {
-			State rs = this._readableState;
+			State rs = this.get_readableState();
 			if (ts.needTransform ||
 				rs.needReadable ||
 				rs.length < rs.highWaterMark)

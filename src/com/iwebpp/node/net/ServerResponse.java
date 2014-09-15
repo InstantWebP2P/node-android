@@ -4,19 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.iwebpp.node.IncomingMessage;
-import com.iwebpp.node.IncomingParser;
-import com.iwebpp.node.Listener;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.Options;
 import com.iwebpp.node.TCP;
-import com.iwebpp.node.http_parser_type;
-import com.iwebpp.node.var;
-import com.iwebpp.node.HTTP.ServerResponse;
-import com.iwebpp.node.HTTP.ServerResponse.closeListener;
-import com.iwebpp.node.HTTP.ServerResponse.finishListener;
 import com.iwebpp.node.TCP.Socket;
-import com.iwebpp.node.stream.Writable.WriteCB;
+import com.iwebpp.node.Util;
 
 public class ServerResponse 
 extends OutgoingMessage {
@@ -146,7 +137,7 @@ extends OutgoingMessage {
 		private List<IncomingMessage> incomings;
 		private NodeContext context;
 		
-		private List<ServerResponse> outgoing;
+		private List<ServerResponse> outgoings;
 		
 		
 		public parserOnIncoming(NodeContext ctx, http_parser_type type, TCP.Socket socket) {
@@ -158,7 +149,7 @@ extends OutgoingMessage {
 		private parserOnIncoming() {super(null, null);}
 
 		@Override
-		protected boolean onIncoming(IncomingMessage req,
+		protected boolean onIncoming(final IncomingMessage req,
 				boolean shouldKeepAlive) throws Exception {
 			incomings.add(req);
 
@@ -177,7 +168,7 @@ extends OutgoingMessage {
 			}
 
 			// TBD...
-			ServerResponse res = new ServerResponse(context, null, req);
+			final ServerResponse res = new ServerResponse(context, null, req);
 
 			res.setShouldKeepAlive(shouldKeepAlive);
 			//DTRACE_HTTP_SERVER_REQUEST(req, socket);
@@ -185,15 +176,13 @@ extends OutgoingMessage {
 
 			if (socket._httpMessage != null) {
 				// There are already pending outgoing res, append.
-				outgoing.add(res);
+				outgoings.add(res);
 			} else {
 				res.assignSocket(socket);
 			}
 
 			// When we're finished writing the response, check if this is the last
 			// respose, if so destroy the socket.
-			res.on("prefinish", resOnFinish);
-
 			Listener resOnFinish = new Listener() {
 
 				@Override
@@ -201,43 +190,44 @@ extends OutgoingMessage {
 					// Usually the first incoming element should be our request.  it may
 					// be that in the case abortIncoming() was called that the incoming
 					// array will be empty.
-					assert(incoming.length === 0 || incoming[0] === req);
+					assert(incomings.size() == 0 || incomings.get(0) == req);
 
-					incoming.shift();
+					incomings.remove(0);
 
 					// if the user never called req.read(), and didn't pipe() or
 					// .resume() or .on('data'), then we call req._dump() so that the
 					// bytes will be pulled off the wire.
-					if (!req._consuming && !req._readableState.resumeScheduled)
+					if (!req.is_consuming() && !req.get_readableState().isResumeScheduled())
 						req._dump();
 
 					res.detachSocket(socket);
 
-					if (res._last) {
+					if (res.is_last()) {
 						socket.destroySoon();
 					} else {
 						// start sending the next message
-						var m = outgoing.shift();
-						if (m) {
+						ServerResponse m = outgoings.remove(0);
+						if (m != null) {
 							m.assignSocket(socket);
 						}
 					}
 				}
 				
-			};
+			};			
+			res.on("prefinish", resOnFinish);
 			
-			if (!util.isUndefined(req.headers.expect) &&
+			if (!Util.isUndefined(req.headers.expect) &&
 					(req.httpVersionMajor == 1 && req.httpVersionMinor == 1) &&
-					continueExpression.test(req.headers['expect'])) {
+					continueExpression.test(req.headers["expect"])) {
 				res._expect_continue = true;
-				if (EventEmitter.listenerCount(self, 'checkContinue') > 0) {
-					self.emit('checkContinue', req, res);
+				if (EventEmitter.listenerCount(self, "checkContinue") > 0) {
+					self.emit("checkContinue", req, res);
 				} else {
 					res.writeContinue();
-					self.emit('request', req, res);
+					self.emit("request", req, res);
 				}
 			} else {
-				self.emit('request', req, res);
+				self.emit("request", req, res);
 			}
 			return false; // Not a HEAD response. (Not even a response!)
 		}

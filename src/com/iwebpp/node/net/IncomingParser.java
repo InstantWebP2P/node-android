@@ -211,14 +211,14 @@ extends HttpParser {
 
 		if (super.getType() == http_parser_type.HTTP_REQUEST/*isNumber(info.method)*/) {
 			// server only
-			incoming.method = info.method.desc() ;
+			incoming.setMethod(info.method.desc()) ;
 		} else {
 			// client only
-			incoming.statusCode = info.statusCode;
-			incoming.statusMessage = info.statusMessage;
+			incoming.setStatusCode(info.statusCode);
+			incoming.setStatusMessage(info.statusMessage);
 		}
 
-		incoming.upgrade = info.upgrade;
+		incoming.setUpgrade(info.upgrade);
 
 		boolean skipBody = false; // response to HEAD or CONNECT
 
@@ -259,12 +259,12 @@ extends HttpParser {
 		if (null==stream)
 			return;
 
-		Socket socket = stream.socket;
+		Socket socket = stream.socket();
 
 		int len = b == null ? 0 : b.capacity();
 
 		// pretend this was the result of a stream._read call.
-		if (len > 0 && !stream._dumped) {
+		if (len > 0 && !stream.is_dumped()) {
 			///var slice = b.slice(start, start + len);
 			boolean ret = stream.push(b, null);
 			if (!ret)
@@ -278,7 +278,7 @@ extends HttpParser {
 		IncomingMessage stream = parser.incoming;
 
 		if (stream!=null) {
-			stream.complete = true;
+			stream.setComplete(true);
 			// Emit any trailing headers.
 			List<String> headers = parser._headers;
 			if (headers!=null && !headers.isEmpty()) {
@@ -287,12 +287,12 @@ extends HttpParser {
 				_url = "";
 			}
 
-			if (!stream.upgrade)
+			if (!stream.isUpgrade())
 				// For upgraded connections, also emit this after parser.execute
 				stream.push(null, null);
 		}
 
-		if (stream!=null && 0<incoming._pendings.size()) {
+		if (stream!=null && 0<incoming.get_pendings().size()) {
 			// For emit end event
 			stream.push(null, null);
 		}

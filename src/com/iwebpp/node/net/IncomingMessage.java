@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.Readable2;
 import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
-import com.iwebpp.node.stream.Readable2;
 
 public class IncomingMessage 
 extends Readable2 {
@@ -60,7 +60,7 @@ extends Readable2 {
 		this.connection = socket;
 
 		this.httpVersion = null;
-		this.complete = false;
+		this.setComplete(false);
 		this.headers = new Hashtable<String, List<String>>();
 		this.rawHeaders = new ArrayList<String>();
 		this.trailers = new Hashtable<String, List<String>>();
@@ -68,16 +68,16 @@ extends Readable2 {
 
 		this.readable = true;
 
-		this._pendings = new ArrayList<Object>();
+		this.set_pendings(new ArrayList<Object>());
 		this._pendingIndex = 0;
 
 		// request (server) only
 		this.url = "";
-		this.method = null;
+		this.setMethod(null);
 
 		// response (client) only
-		this.statusCode = -1;
-		this.statusMessage = null;
+		this.setStatusCode(-1);
+		this.setStatusMessage(null);
 		this.client = this.socket;
 
 		// flag for backwards compatibility grossness.
@@ -85,7 +85,7 @@ extends Readable2 {
 
 		// flag for when we decide that this message cannot possibly be
 		// read by the user, so there's no point continuing to handle it.
-		this._dumped = false;
+		this.set_dumped(false);
 
 	}
 	private IncomingMessage() {super(null, null);}
@@ -107,7 +107,7 @@ extends Readable2 {
 			this.socket.destroy(error);
 	}
 
-	private void _addHeaderLines(List<String> headers, int n) {
+	protected void _addHeaderLines(List<String> headers, int n) {
 		/*if (headers && headers.length) {
 			var raw, dest;
 			if (this.complete) {
@@ -131,7 +131,7 @@ extends Readable2 {
 			List<String> raw;
 			Map<String, List<String>> dest;
 
-			if (this.complete) {
+			if (this.isComplete()) {
 				raw = this.rawTrailers;
 				dest = this.trailers;
 			} else {
@@ -233,8 +233,8 @@ extends Readable2 {
 	// dump all the data to /dev/null
 	///IncomingMessage.prototype._dump = function() {
 	public void _dump() throws Exception {
-		if (!this._dumped) {
-			this._dumped = true;
+		if (!this.is_dumped()) {
+			this.set_dumped(true);
 			this.resume();
 		}
 	}
@@ -268,11 +268,11 @@ extends Readable2 {
 	// message.setTimeout(msecs, callback)
 
 	public String method() {
-		return this.method;
+		return this.getMethod();
 
 	}
 	public void method(String method) {
-		this.method = method;
+		this.setMethod(method);
 	}
 
 	public String url() {
@@ -283,10 +283,10 @@ extends Readable2 {
 	}
 
 	public int statusCode() {
-		return this.statusCode;
+		return this.getStatusCode();
 	}
 	public void statusCode(int statusCode) {
-		this.statusCode = statusCode;
+		this.setStatusCode(statusCode);
 	}
 
 	public TCP.Socket socket() {
@@ -309,6 +309,90 @@ extends Readable2 {
 			}
 
 		});
+	}
+	/**
+	 * @return the _dumped
+	 */
+	public boolean is_dumped() {
+		return _dumped;
+	}
+	/**
+	 * @param _dumped the _dumped to set
+	 */
+	public void set_dumped(boolean _dumped) {
+		this._dumped = _dumped;
+	}
+	/**
+	 * @return the complete
+	 */
+	public boolean isComplete() {
+		return complete;
+	}
+	/**
+	 * @param complete the complete to set
+	 */
+	public void setComplete(boolean complete) {
+		this.complete = complete;
+	}
+	/**
+	 * @return the _pendings
+	 */
+	public List<Object> get_pendings() {
+		return _pendings;
+	}
+	/**
+	 * @param _pendings the _pendings to set
+	 */
+	public void set_pendings(List<Object> _pendings) {
+		this._pendings = _pendings;
+	}
+	/**
+	 * @return the method
+	 */
+	public String getMethod() {
+		return method;
+	}
+	/**
+	 * @param method the method to set
+	 */
+	public void setMethod(String method) {
+		this.method = method;
+	}
+	/**
+	 * @return the statusCode
+	 */
+	public int getStatusCode() {
+		return statusCode;
+	}
+	/**
+	 * @param statusCode the statusCode to set
+	 */
+	public void setStatusCode(int statusCode) {
+		this.statusCode = statusCode;
+	}
+	/**
+	 * @return the statusMessage
+	 */
+	public String getStatusMessage() {
+		return statusMessage;
+	}
+	/**
+	 * @param statusMessage the statusMessage to set
+	 */
+	public void setStatusMessage(String statusMessage) {
+		this.statusMessage = statusMessage;
+	}
+	/**
+	 * @return the _consuming
+	 */
+	public boolean is_consuming() {
+		return _consuming;
+	}
+	/**
+	 * @param _consuming the _consuming to set
+	 */
+	public void set_consuming(boolean _consuming) {
+		this._consuming = _consuming;
 	}
 	public static interface closeListener {
 		public void onClose() throws Exception;

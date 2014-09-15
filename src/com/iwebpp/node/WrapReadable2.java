@@ -16,7 +16,7 @@ public final class WrapReadable2 extends Readable2 {
 		
 		// TODO Auto-generated constructor stub
 		stream = oldstream;
-		state = _readableState;
+		state = get_readableState();
 		paused = false;
 		
 		final Readable2 self = this;

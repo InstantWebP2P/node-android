@@ -10,7 +10,7 @@ import com.iwebpp.node.TCP;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.NodeContext.nextTickCallback;
 import com.iwebpp.node.TCP.Socket;
-import com.iwebpp.node.stream.Writable2;
+import com.iwebpp.node.Writable2;
 
 public class OutgoingMessage 
 extends Writable2 {
@@ -60,7 +60,7 @@ extends Writable2 {
 
 		this.writable = true;
 
-		this._last = false;
+		this.set_last(false);
 		this.chunkedEncoding = false;
 		this.shouldKeepAlive = true;
 		this.useChunkedEncodingByDefault = true;
@@ -200,6 +200,20 @@ this.socket.setTimeout(msecs);
 			throws Exception {
 		// TODO Auto-generated method stub
 
+	}
+
+	/**
+	 * @return the _last
+	 */
+	public boolean is_last() {
+		return _last;
+	}
+
+	/**
+	 * @param _last the _last to set
+	 */
+	public void set_last(boolean _last) {
+		this._last = _last;
 	}
 
 

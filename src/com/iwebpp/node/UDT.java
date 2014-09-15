@@ -138,8 +138,8 @@ public final class UDT {
 					}
 
 					Log.d(TAG, "onSocketFinish");
-					if (!self.readable || self._readableState.ended) {
-						Log.d(TAG, "oSF: ended, destroy "+self._readableState);
+					if (!self.readable || self.get_readableState().ended) {
+						Log.d(TAG, "oSF: ended, destroy "+self.get_readableState());
 						self.destroy(null);
 						return;
 					}
@@ -166,13 +166,13 @@ public final class UDT {
 							///var self = handle.owner;
 
 							Log.d(TAG, "afterShutdown destroyed="+self.destroyed+","+
-									self._readableState);
+									self.get_readableState());
 
 							// callback may come after call to destroy.
 							if (self.destroyed)
 								return;
 
-							if (self._readableState.ended) {
+							if (self.get_readableState().ended) {
 								Log.d(TAG, "readableState ended, destroying");
 								self.destroy(null);
 							} else {
@@ -211,9 +211,9 @@ public final class UDT {
 					// XXX Should not have to do as much crap in this function.
 					// ended should already be true, since this is called *after*
 					// the EOF errno and onread has eof'ed
-					Log.d(TAG, "onSocketEnd "+self._readableState);
-					self._readableState.ended = true;
-					if (self._readableState.endEmitted) {
+					Log.d(TAG, "onSocketEnd "+self.get_readableState());
+					self.get_readableState().ended = true;
+					if (self.get_readableState().endEmitted) {
 						self.readable = false;
 						maybeDestroy(self);
 					} else {
@@ -346,7 +346,7 @@ public final class UDT {
 
 						Log.d(TAG, "EOF");
 
-						if (self._readableState.length == 0) {
+						if (self.get_readableState().length == 0) {
 							self.readable = false;
 							maybeDestroy(self);
 						}
@@ -641,7 +641,7 @@ public final class UDT {
 		@Override
 		public boolean write(Object chunk, String encoding, WriteCB cb) throws Exception {
 			// check on writeAfterFIN 
-			if (!this.allowHalfOpen && this._readableState.ended) {
+			if (!this.allowHalfOpen && this.get_readableState().ended) {
 				return writeAfterFIN(chunk, encoding, cb);
 			} else {
 				if (!Util.isString(chunk) && !Util.isBuffer(chunk))
@@ -740,7 +740,7 @@ public final class UDT {
 			///DTRACE_NET_STREAM_END(this);
 
 			// just in case we're waiting for an EOF.
-			if (this.readable && !this._readableState.endEmitted)
+			if (this.readable && !this.get_readableState().endEmitted)
 				this.read(0);
 			else
 				maybeDestroy(this);
@@ -934,9 +934,9 @@ Socket.prototype._writev = function(chunks, cb) {
 		public void connect(int port, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
-				this._readableState.reading = false;
-				this._readableState.ended = false;
-				this._readableState.endEmitted = false;
+				this.get_readableState().reading = false;
+				this.get_readableState().ended = false;
+				this.get_readableState().endEmitted = false;
 				this._writableState.ended = false;
 				this._writableState.ending = false;
 				this._writableState.finished = false;
@@ -979,9 +979,9 @@ Socket.prototype._writev = function(chunks, cb) {
 		public void connect(String address ,int port, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
-				this._readableState.reading = false;
-				this._readableState.ended = false;
-				this._readableState.endEmitted = false;
+				this.get_readableState().reading = false;
+				this.get_readableState().ended = false;
+				this.get_readableState().endEmitted = false;
 				this._writableState.ended = false;
 				this._writableState.ending = false;
 				this._writableState.finished = false;
@@ -1026,9 +1026,9 @@ Socket.prototype._writev = function(chunks, cb) {
 				int localPort, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
-				this._readableState.reading = false;
-				this._readableState.ended = false;
-				this._readableState.endEmitted = false;
+				this.get_readableState().reading = false;
+				this.get_readableState().ended = false;
+				this.get_readableState().endEmitted = false;
 				this._writableState.ended = false;
 				this._writableState.ending = false;
 				this._writableState.finished = false;
@@ -1073,9 +1073,9 @@ Socket.prototype._writev = function(chunks, cb) {
 				String localAddress, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
-				this._readableState.reading = false;
-				this._readableState.ended = false;
-				this._readableState.endEmitted = false;
+				this.get_readableState().reading = false;
+				this.get_readableState().ended = false;
+				this.get_readableState().endEmitted = false;
 				this._writableState.ended = false;
 				this._writableState.ending = false;
 				this._writableState.finished = false;
@@ -1120,9 +1120,9 @@ Socket.prototype._writev = function(chunks, cb) {
 				String localAddress, int localPort, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
-				this._readableState.reading = false;
-				this._readableState.ended = false;
-				this._readableState.endEmitted = false;
+				this.get_readableState().reading = false;
+				this.get_readableState().ended = false;
+				this.get_readableState().endEmitted = false;
 				this._writableState.ended = false;
 				this._writableState.ending = false;
 				this._writableState.finished = false;
@@ -1166,9 +1166,9 @@ Socket.prototype._writev = function(chunks, cb) {
 				final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
-				this._readableState.reading = false;
-				this._readableState.ended = false;
-				this._readableState.endEmitted = false;
+				this.get_readableState().reading = false;
+				this.get_readableState().ended = false;
+				this.get_readableState().endEmitted = false;
 				this._writableState.ended = false;
 				this._writableState.ending = false;
 				this._writableState.finished = false;
