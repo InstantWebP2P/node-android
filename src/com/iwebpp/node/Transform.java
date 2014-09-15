@@ -105,7 +105,7 @@ extends Duplex {
 		super(null, null, null);
 	}
 
-	protected boolean push(Object chunk, String encoding) throws Exception {
+	public boolean push(Object chunk, String encoding) throws Exception {
 		this._transformState.needTransform = false;
 		return super.push(chunk, encoding);
 	}
