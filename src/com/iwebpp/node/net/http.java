@@ -1,7 +1,10 @@
 package com.iwebpp.node.net;
 
+import java.nio.ByteBuffer;
 import java.util.Hashtable;
 import java.util.Map;
+
+import com.iwebpp.node.TCP;
 
 
 public final class http {
@@ -81,7 +84,65 @@ public final class http {
 	}
 
 	public static final Agent globalAgent;
+	public static final String CRLF = "\r\n";
 
+	public static final String chunkExpression = "chunk";
+	public static final String continueExpression = "100-continue";
+	
+
+	// POJO beans
+	public static class request_response_t {
+		public IncomingMessage request;
+		public ServerResponse  response;
+		
+		public request_response_t(IncomingMessage request, ServerResponse response) {
+			this.request  = request;
+			this.response = response;
+		}
+		@SuppressWarnings("unused")
+		private request_response_t(){}
+	}
+	
+	public static class request_socket_head_t {
+		public IncomingMessage request;
+		public TCP.Socket      socket;
+		public ByteBuffer      head;
+		
+		public request_socket_head_t(IncomingMessage request, TCP.Socket socket, ByteBuffer head) {
+			this.request = request;
+			this.socket  = socket;
+			this.head    = head;
+		}
+		@SuppressWarnings("unused")
+		private request_socket_head_t(){}
+	}
+	
+	public static class exception_socket_t {
+		public String     exception;
+		public TCP.Socket socket;
+		
+		public exception_socket_t(String exception, TCP.Socket socket) {
+			this.exception = exception;
+			this.socket    = socket;
+		}
+		@SuppressWarnings("unused")
+		private exception_socket_t(){}
+	}
+	
+	public static class response_socket_head_t {
+		public IncomingMessage response;
+		public TCP.Socket      socket;
+		public ByteBuffer      head;
+		
+		public response_socket_head_t(IncomingMessage response, TCP.Socket socket, ByteBuffer head) {
+			this.response = response;
+			this.socket   = socket;
+			this.head     = head;
+		}
+		@SuppressWarnings("unused")
+		private response_socket_head_t(){}
+	}
+	
 	// http.createServer([requestListener])
 	public static final int createServer(Server.requestListener onreq) {
 

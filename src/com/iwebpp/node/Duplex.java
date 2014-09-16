@@ -44,8 +44,8 @@ implements Writable {
 		return _writable.write(chunk, encoding, cb);
 	}
 	@Override
-	public void end(Object chunk, String encoding, WriteCB cb) throws Exception {
-		_writable.end(chunk, encoding, cb);
+	public boolean end(Object chunk, String encoding, WriteCB cb) throws Exception {
+		return _writable.end(chunk, encoding, cb);
 	}
 	@Override
 	public boolean writable() {

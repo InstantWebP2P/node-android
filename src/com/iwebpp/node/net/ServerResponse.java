@@ -3,11 +3,14 @@ package com.iwebpp.node.net;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
 import com.iwebpp.node.Util;
+import com.iwebpp.node.net.http.request_response_t; ;
 
 public class ServerResponse 
 extends OutgoingMessage {
@@ -18,9 +21,38 @@ extends OutgoingMessage {
 
 	public ClientRequest req;
 
+	private boolean _sent100;
+
+	private int statusCode;
+
+	private String statusMessage;
+
+	private boolean _expect_continue;
+	
+	private Listener onServerResponseClose;
+	
 	protected ServerResponse(NodeContext context, Options options, IncomingMessage req) {
 		super(context, options);
-		
+
+		this.statusCode = 200;
+		this.statusMessage = null;
+
+		if (req.method() == "HEAD") this._hasBody = false;
+
+		this.sendDate = true;
+
+		if (req.httpVersionMajor < 1 || req.httpVersionMinor < 1) {
+			// TBD...
+			///this.useChunkedEncodingByDefault = http.chunkExpression.test(req.headers.te);
+			this.useChunkedEncodingByDefault = true;///Pattern.matches(http.chunkExpression, req.headers.get("te").get(0));
+			this.shouldKeepAlive = false;
+		}
+	}
+
+	protected void _finish() throws Exception {
+		///DTRACE_HTTP_SERVER_RESPONSE(this.connection);
+		///COUNTER_HTTP_SERVER_RESPONSE();
+		super._finish();
 	}
 
 	@Override
@@ -30,77 +62,7 @@ extends OutgoingMessage {
 
 	}
 
-	public int writeContinue() {
-		return 0;
-
-	}
-
-	public int writeHead(int statusCode, String reasonPhrase, Map<String, String> headers) {
-
-		return 0;
-	}
-
-	public int writeHead(int statusCode) {
-
-		return 0;
-	}
-
-	public int writeHead(int statusCode, Map<String, String> headers) {
-
-		return 0;
-	}
-	
 	// response.setTimeout(msecs, callback)
-
-	public int setHeader(String name, String value) {
-
-		return 0;
-	}
-
-	public int setHeader(String name, List<String> values) {
-
-		for (String value : values) 
-			setHeader(name, value);
-
-		return 0;
-	}
-
-	public boolean headersSent() {
-		return false;
-
-	}
-
-	public void sendDate(boolean send) {
-
-	}
-	public boolean sendDate() {
-		return false;
-	}
-
-	public String getHeader(String name) {
-		return null;
-	}
-
-	public boolean removeHeader(String name) {
-
-		return false;
-	}
-
-	///response.write(chunk, [encoding])
-	public boolean write(Object chunk, String encoding) {
-
-		return false;
-	}
-
-	public int addTrailers(Map<String, String> headers) {
-
-		return 0;
-	}
-
-	///response.end([data], [encoding])
-	public void end(Object chunk, String encoding) {
-
-	}
 
 	// Event listeners
 	public void onClose(final closeListener cb) throws Exception {
@@ -132,20 +94,21 @@ extends OutgoingMessage {
 	}
 
 	// Parser on request
-	private class parserOnIncoming 
+	public static class parserOnIncoming 
 	extends IncomingParser {
 		private List<IncomingMessage> incomings;
 		private NodeContext context;
-		
+
 		private List<ServerResponse> outgoings;
-		
-		
-		public parserOnIncoming(NodeContext ctx, http_parser_type type, TCP.Socket socket) {
-			super(type, socket);
+
+
+		public parserOnIncoming(NodeContext ctx, TCP.Socket socket) {
+			super(http_parser_type.HTTP_REQUEST, socket);
 			this.context = ctx;
-			
+
 			incomings = new ArrayList<IncomingMessage>();
 		}
+		@SuppressWarnings("unused")
 		private parserOnIncoming() {super(null, null);}
 
 		@Override
@@ -212,32 +175,34 @@ extends OutgoingMessage {
 						}
 					}
 				}
-				
+
 			};			
 			res.on("prefinish", resOnFinish);
-			
-			if (!Util.isUndefined(req.headers.expect) &&
-					(req.httpVersionMajor == 1 && req.httpVersionMinor == 1) &&
-					continueExpression.test(req.headers["expect"])) {
+
+			if ( req.headers.containsKey("expect") &&
+				(req.httpVersionMajor == 1 && req.httpVersionMinor == 1) &&
+					///http.continueExpression == req.headers.get("expect").get(0)) {
+					Pattern.matches(http.continueExpression, req.headers.get("expect").get(0))) {
 				res._expect_continue = true;
-				if (EventEmitter.listenerCount(self, "checkContinue") > 0) {
-					self.emit("checkContinue", req, res);
+				if (listenerCount("checkContinue") > 0) {
+					this.emit("checkContinue", new request_response_t(req, res));
 				} else {
-					res.writeContinue();
-					self.emit("request", req, res);
+					res.writeContinue(null);
+					this.emit("request", new request_response_t(req, res));
 				}
 			} else {
-				self.emit("request", req, res);
+				this.emit("request",  new request_response_t(req, res));
 			}
+
 			return false; // Not a HEAD response. (Not even a response!)
 		}
 	}
 
-	public void assignSocket(final TCP.Socket socket) {
+	public void assignSocket(final TCP.Socket socket) throws Exception {
 		assert(null == socket._httpMessage);
 		socket._httpMessage = this;
 
-		Listener onServerResponseClose = new Listener() {
+		onServerResponseClose = new Listener() {
 
 			@Override
 			public void onListen(Object data) throws Exception {
@@ -270,5 +235,80 @@ extends OutgoingMessage {
 		this.emit("socket", socket);
 		this._flush();
 	}
+
+
+	public void detachSocket(TCP.Socket socket) {
+		assert(socket._httpMessage == this);
+		socket.removeListener("close", onServerResponseClose);
+		socket._httpMessage = null;
+		this.socket = this.connection = null;
+	}
+
+	public void writeContinue(WriteCB cb) throws Exception {
+		this._writeRaw("HTTP/1.1 100 Continue" + http.CRLF + http.CRLF, "utf-8", cb);
+		this._sent100 = true;
+	}
+
+	public void _implicitHeader() throws Exception {
+		this.writeHead(this.statusCode, null, null);
+	}
+
+	public void writeHead(int statusCode, String statusMessage, Map<String, List<String>> obj) throws Exception {
+		Map<String, List<String>> headers;
+
+		if (Util.zeroString(statusMessage)) {
+			this.statusMessage = http.STATUS_CODES.containsKey(statusCode) ?
+					http.STATUS_CODES.get(statusCode) : "unknown";
+		} else {
+			this.statusMessage = statusMessage;
+		}
+
+		this.statusCode = statusCode;
+
+		if (this._headers != null) {
+			// Slow-case: when progressive API and header fields are passed.
+			if (obj != null) {
+				for (Entry<String, List<String>> entry : obj.entrySet())
+					if (!Util.zeroString(entry.getKey()))
+						this.setHeader(entry.getKey(), entry.getValue());
+			}
+			// only progressive api is used
+			headers = this._renderHeaders();
+		} else {
+			// only writeHead() called
+			headers = obj;
+		}
+
+		String statusLine = "HTTP/1.1 " + statusCode + " " +
+				this.statusMessage + http.CRLF;
+
+		if (statusCode == 204 || statusCode == 304 ||
+				(100 <= statusCode && statusCode <= 199)) {
+			// RFC 2616, 10.2.5:
+			// The 204 response MUST NOT include a message-body, and thus is always
+			// terminated by the first empty line after the header fields.
+			// RFC 2616, 10.3.5:
+			// The 304 response MUST NOT contain a message-body, and thus is always
+			// terminated by the first empty line after the header fields.
+			// RFC 2616, 10.1 Informational 1xx:
+			// This class of status code indicates a provisional response,
+			// consisting only of the Status-Line and optional headers, and is
+			// terminated by an empty line.
+			this._hasBody = false;
+		}
+
+		// don't keep alive connections where the client expects 100 Continue
+		// but we sent a final status; they may put extra bytes on the wire.
+		if (this._expect_continue && !this._sent100) {
+			setShouldKeepAlive(false);
+		}
+
+		this._storeHeader(statusLine, headers);
+	}
+
+	public void writeHeader(int statusCode, String statusMessage, Map<String, List<String>> headers) throws Exception {
+		this.writeHead(statusCode, statusMessage, headers);
+	}
+
 
 }

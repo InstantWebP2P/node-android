@@ -1,9 +1,14 @@
 package com.iwebpp.node.net;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
+
+import android.util.Log;
 
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.TCP;
@@ -12,15 +17,36 @@ import com.iwebpp.node.NodeContext.nextTickCallback;
 import com.iwebpp.node.TCP.Socket;
 import com.iwebpp.node.Writable2;
 
-public class OutgoingMessage 
+public abstract class OutgoingMessage 
 extends Writable2 {
+	protected final static String TAG = "OutgoingMessage";
 
-	private List<Object> output;
-	private List<String> outputEncodings;
-	private List<WriteCB> outputCallbacks;
-	private boolean writable;
-	private boolean _last;
-	private boolean shouldKeepAlive;
+	protected static final String connectionExpression = "Connection";
+	protected static final String transferEncodingExpression = "Transfer-Encoding";
+	protected static final String closeExpression = "close";
+	protected static final String contentLengthExpression = "Content-Length";
+	protected static final String dateExpression = "Date";
+	protected static final String expectExpression = "Expect";
+
+	protected static final List<String> automaticHeaders;
+
+	static {
+		automaticHeaders = new ArrayList<String>();
+		
+		automaticHeaders.add("connection");
+		automaticHeaders.add("content-length");
+		automaticHeaders.add("transfer-encoding");
+		automaticHeaders.add("date");
+
+
+	}
+
+	protected List<Object> output;
+	protected List<String> outputEncodings;
+	protected List<WriteCB> outputCallbacks;
+	protected boolean writable;
+	protected boolean _last;
+	protected boolean shouldKeepAlive;
 	/**
 	 * @return the shouldKeepAlive
 	 */
@@ -36,19 +62,41 @@ extends Writable2 {
 	}
 
 
-	private boolean chunkedEncoding;
-	private boolean useChunkedEncodingByDefault;
-	private boolean sendDate;
-	private boolean _hasBody;
-	private String _trailer;
-	private boolean finished;
-	private boolean _hangupClose;
-	private TCP.Socket socket;
-	private Socket connection;
-	private Map<String, String> _removedHeader;
-	private boolean _headerSent;
-	private String _header;
+	protected boolean chunkedEncoding;
+	protected boolean useChunkedEncodingByDefault;
+	protected boolean sendDate;
+	protected boolean _hasBody;
+	/**
+	 * @return the _hasBody
+	 */
+	public boolean is_hasBody() {
+		return _hasBody;
+	}
+
+	/**
+	 * @param _hasBody the _hasBody to set
+	 */
+	public void set_hasBody(boolean _hasBody) {
+		this._hasBody = _hasBody;
+	}
+
+
+	protected String _trailer;
+	protected boolean finished;
+	protected boolean _hangupClose;
+	protected TCP.Socket socket;
+	protected Socket connection;
+	protected Map<String, Boolean> _removedHeader;
+	protected boolean _headerSent;
+	protected String _header;
 	protected NodeContext context;
+	protected int statusCode;
+
+	protected Agent agent;
+
+	protected Map<String, List<String>> _headers;
+
+	protected Map<String, String> _headerNames;
 
 	public OutgoingMessage(NodeContext ctx, Options options) {
 		super(ctx, options);
@@ -60,12 +108,12 @@ extends Writable2 {
 
 		this.writable = true;
 
-		this.set_last(false);
+		this._last = false;
 		this.chunkedEncoding = false;
 		this.shouldKeepAlive = true;
 		this.useChunkedEncodingByDefault = true;
 		this.sendDate = false;
-		this._removedHeader = new Hashtable<String, String>();
+		this._removedHeader = new Hashtable<String, Boolean>();
 
 		this._hasBody = true;
 		this._trailer = "";
@@ -125,7 +173,7 @@ this.socket.setTimeout(msecs);
 				///this.output.unshift(this._header);
 				///this.outputEncodings.unshift("binary");
 				///this.outputCallbacks.unshift(null);
-				this.output.add(0, data);
+				this.output.add(0, this._header);
 				this.outputEncodings.add(0, encoding);
 				this.outputCallbacks.add(0, null);
 			}
@@ -170,7 +218,7 @@ this.socket.setTimeout(msecs);
 				Object c = this.output.remove(0);
 				String e = this.outputEncodings.remove(0);
 				WriteCB cb = this.outputCallbacks.remove(0);
-				
+
 				this.connection.write(c, e, cb);
 			}
 
@@ -187,14 +235,474 @@ this.socket.setTimeout(msecs);
 		}
 	}
 
-	private boolean _buffer(Object data, String encoding, WriteCB callback) {
+	protected boolean _buffer(Object data, String encoding, WriteCB callback) {
 		this.output.add(data);
 		this.outputEncodings.add(encoding);
 		this.outputCallbacks.add(callback);
 		return false;
 	}
 
+	// POJO beans
+	protected class _State {
+		boolean sentConnectionHeader;
+		boolean sentContentLengthHeader;
+		boolean sentTransferEncodingHeader;
+		boolean sentDateHeader;
+		boolean sentExpect;
+		String messageHeader;
+
+		public _State(
+				boolean sentConnectionHeader,
+				boolean sentContentLengthHeader,
+				boolean sentTransferEncodingHeader, 
+				boolean sentDateHeader, 
+				boolean sentExpect,
+				String message) {
+			this.sentConnectionHeader = sentConnectionHeader;
+			this.sentContentLengthHeader = sentContentLengthHeader;
+			this.sentTransferEncodingHeader = sentTransferEncodingHeader;
+			this.sentDateHeader = sentDateHeader;
+			this.sentExpect = sentExpect;
+			this.messageHeader = message;
+		}
+		@SuppressWarnings("unused")
+		protected _State(){}
+	}
+
+	protected void _storeHeader(String firstLine, Map<String, List<String>> headers) throws Exception {
+		// firstLine in the case of request is: 'GET /index.html HTTP/1.1\r\n'
+		// in the case of response it is: 'HTTP/1.1 200 OK\r\n'
+		/*var state = {
+				sentConnectionHeader: false,
+				sentContentLengthHeader: false,
+				sentTransferEncodingHeader: false,
+				sentDateHeader: false,
+				sentExpect: false,
+				messageHeader: firstLine
+		};*/
+		_State state = new _State(false, false, false, false, false, firstLine);
+
+		if (headers != null && !headers.isEmpty()) {
+			for (Entry<String, List<String>> entry : headers.entrySet()) {
+				String key = entry.getKey();
+
+				for (String value : entry.getValue())
+					storeHeader(state, key, value);
+			}
+
+			/*
+			var keys = Object.keys(headers);
+			var isArray = util.isArray(headers);
+			var field, value;
+
+			for (var i = 0, l = keys.length; i < l; i++) {
+				var key = keys[i];
+				if (isArray) {
+					field = headers[key][0];
+					value = headers[key][1];
+				} else {
+					field = key;
+					value = headers[key];
+				}
+
+				if (util.isArray(value)) {
+					for (var j = 0; j < value.length; j++) {
+						storeHeader(this, state, field, value[j]);
+					}
+				} else {
+					storeHeader(this, state, field, value);
+				}
+			}*/
+		}
+
+		// Date header
+		if (this.sendDate == true && state.sentDateHeader == false) {
+			state.messageHeader += "Date: " + context.utcDate() + http.CRLF;
+		}
+
+		// Force the connection to close when the response is a 204 No Content or
+		// a 304 Not Modified and the user has set a "Transfer-Encoding: chunked"
+		// header.
+		//
+		// RFC 2616 mandates that 204 and 304 responses MUST NOT have a body but
+		// node.js used to send out a zero chunk anyway to accommodate clients
+		// that don't have special handling for those responses.
+		//
+		// It was pointed out that this might confuse reverse proxies to the point
+		// of creating security liabilities, so suppress the zero chunk and force
+		// the connection to close.
+		int statusCode = this.statusCode;
+		if ((statusCode == 204 || statusCode == 304) &&
+				this.chunkedEncoding == true) {
+			Log.d(TAG, ""+statusCode + " response should not use chunked encoding," +
+					" closing connection.");
+
+			this.chunkedEncoding = false;
+			this.shouldKeepAlive = false;
+		}
+
+		// keep-alive logic
+		///if (this._removedHeader.connection) {
+		if (this._removedHeader.get("connection")) {
+			this._last = true;
+			this.shouldKeepAlive = false;
+		} else if (state.sentConnectionHeader == false) {
+			boolean shouldSendKeepAlive = this.shouldKeepAlive &&
+					(state.sentContentLengthHeader ||
+							this.useChunkedEncodingByDefault ||
+							this.agent!=null);
+			if (shouldSendKeepAlive) {
+				state.messageHeader += "Connection: keep-alive\r\n";
+			} else {
+				this._last = true;
+				state.messageHeader += "Connection: close\r\n";
+			}
+		}
+
+		if (state.sentContentLengthHeader == false &&
+				state.sentTransferEncodingHeader == false) {
+			if (this._hasBody && !this._removedHeader.get("transfer-encoding")) {
+				if (this.useChunkedEncodingByDefault) {
+					state.messageHeader += "Transfer-Encoding: chunked\r\n";
+					this.chunkedEncoding = true;
+				} else {
+					this._last = true;
+				}
+			} else {
+				// Make sure we don't end the 0\r\n\r\n at the end of the message.
+				this.chunkedEncoding = false;
+			}
+		}
+
+		this._header = state.messageHeader + http.CRLF;
+		this._headerSent = false;
+
+		// wait until the first body chunk, or close(), is sent to flush,
+		// UNLESS we're sending Expect: 100-continue.
+		if (state.sentExpect) this._send("", null, null);
+	}
+
+	protected void storeHeader(_State state, String field, String value) {
+		OutgoingMessage self = this;
+		
+		// Protect against response splitting. The if statement is there to
+		// minimize the performance impact in the common case.
+		/// TBD...
+		///if (/[\r\n]/.test(value))
+		///if (value!=null && Pattern.matches("[\r\n]", value))
+		value = value.replaceAll("[\r\n]+[ \t]*", "");
+
+		state.messageHeader += field + ": " + value + http.CRLF;
+
+		///if (connectionExpression == field) {
+		if (Pattern.matches(connectionExpression, field)) {
+			state.sentConnectionHeader = true;
+			if (Pattern.matches(closeExpression, value)) {
+				self._last = true;
+			} else {
+				self.shouldKeepAlive = true;
+			}
+
+		} else if (Pattern.matches(transferEncodingExpression, field)) {
+			state.sentTransferEncodingHeader = true;
+			
+			if (Pattern.matches(http.chunkExpression, value)) 
+				self.chunkedEncoding = true;
+		} else if (Pattern.matches(contentLengthExpression, field)) {
+			state.sentContentLengthHeader = true;
+		} else if (Pattern.matches(dateExpression, field)) {
+			state.sentDateHeader = true;
+		} else if (Pattern.matches(expectExpression, field)) {
+			state.sentExpect = true;
+		}
+	}
+
+	public void setHeader(String name, List<String> value) throws Exception {
+		if (!Util.zeroString(this._header)) {
+			///throw new Error('Can\'t set headers after they are sent.');
+			throw new Exception("Can\'t set headers after they are sent.");
+		}
+
+		String key = name.toLowerCase();
+		this._headers = this._headers!=null ? this._headers : new Hashtable<String, List<String>>();
+		this._headerNames = this._headerNames!=null ? this._headerNames : new Hashtable<String, String>();
+		this._headers.put(key, value);
+		this._headerNames.put(key, name);
+
+		if (automaticHeaders.contains(key)) {
+			this._removedHeader.put(key, false);
+		}
+	}
+
+	public List<String> getHeader(String name) {
+		if (null==this._headers) return null;
+
+		String key = name.toLowerCase();
+		return this._headers.get(key);
+	}
+
+
+	public void removeHeader(String name) throws Exception {
+		if (!Util.zeroString(this._header)) {
+			///throw new Error('Can\'t remove headers after they are sent.');
+			throw new Exception("Can\'t remove headers after they are sent.");
+		}
+
+		String key = name.toLowerCase();
+
+		if (key == "date")
+			this.sendDate = false;
+		else if (automaticHeaders.contains(key))
+			this._removedHeader.put(key, true);
+		
+		if (this._headers != null) {
+			///delete this._headers[key];
+			///delete this._headerNames[key];
+			this._headers.remove(key);
+			this._headerNames.remove(key);
+		}
+	}
+
+	protected Map<String, List<String>> _renderHeaders() throws Exception {
+		if (!Util.zeroString(this._header)) {
+			///throw new Error('Can\'t render headers after they are sent to the client.');
+			throw new Exception("Can\'t render headers after they are sent to the client.");
+		}
+
+		if (null==this._headers || this._headers.isEmpty()) return null;
+
+		Map<String, List<String>> headers = new Hashtable<String, List<String>>();
+
+		for (Entry<String, List<String>> entry : this._headers.entrySet())
+			headers.put(this._headerNames.get(entry.getKey()), entry.getValue());
+
+		return headers;
+	};
+
+	public boolean headersSent() {
+		return !Util.zeroString(this._header); 
+	}
+
+	protected abstract void _implicitHeader() throws Exception;
+
 	
+	public boolean write(Object chunk, String encoding, WriteCB callback) throws Exception {
+		if (Util.zeroString(this._header)) {
+			this._implicitHeader();
+		}
+
+		if (!this._hasBody) {
+			Log.d(TAG, "This type of response MUST NOT have a body. " +
+					"Ignoring write() calls.");
+			return true;
+		}
+
+		if (!Util.isString(chunk) && !Util.isBuffer(chunk)) {
+			///throw new TypeError('first argument must be a string or Buffer');
+			throw new Exception("first argument must be a string or Buffer");
+		}
+
+
+		// If we get an empty string or buffer, then just do nothing, and
+		// signal the user to keep writing.
+		if (Util.chunkLength(chunk) == 0) return true;
+
+		int len;
+		boolean ret;
+		if (this.chunkedEncoding) {
+			if (Util.isString(chunk) &&
+					encoding != "hex" &&
+					encoding != "base64" &&
+					encoding != "binary") {
+				///len = Buffer.byteLength(chunk, encoding);
+				len = ((String)chunk).getBytes(encoding).length;
+
+				///chunk = len.toString(16) + CRLF + chunk + CRLF;
+				chunk = Integer.toString(len, 16) + http.CRLF + chunk + http.CRLF;
+
+				ret = this._send(chunk, encoding, callback);
+			} else {
+				// buffer, or a non-toString-friendly encoding
+				if (Util.isString(chunk))
+					///len = Buffer.byteLength(chunk, encoding);
+					len = ((String)chunk).getBytes(encoding).length;
+				else
+					///len = chunk.length;
+					len = Util.chunkLength(chunk);
+
+				if (this.connection!=null /*&& !this.connection.corked*/ ) {
+					this.connection.cork();
+					final Socket conn = this.connection;
+					///process.nextTick(function connectionCork() {
+					context.nextTick(new nextTickCallback(){
+
+						@Override
+						public void onNextTick() throws Exception {
+							if (conn != null)
+								conn.uncork();					
+						}
+
+					});
+				}
+
+				ByteBuffer crlf_buf = ByteBuffer.wrap("\r\n".getBytes("utf-8"));
+
+				this._send(Integer.toString(len, 16), "binary", null);
+				this._send(crlf_buf, null, null);
+				this._send(chunk, encoding, null);
+				ret = this._send(crlf_buf, null, callback);
+			}
+		} else {
+			ret = this._send(chunk, encoding, callback);
+		}
+
+		Log.d(TAG, "write ret = " + ret);
+		return ret;
+	}
+
+	public void addTrailers(Map<String, String> headers) {
+		this._trailer = "";
+
+		for (Entry<String, String> entry : headers.entrySet())
+			this._trailer += entry.getKey() + ": " + entry.getValue() + http.CRLF;
+	}
+
+	public boolean end(Object data, String encoding, final WriteCB callback) throws Exception {
+		/*if (util.isFunction(data)) {
+    callback = data;
+    data = null;
+  } else if (util.isFunction(encoding)) {
+    callback = encoding;
+    encoding = null;
+  }*/
+
+		if (data!=null && !Util.isString(data) && !Util.isBuffer(data)) {
+			///throw new TypeError('first argument must be a string or Buffer');
+			throw new Exception("first argument must be a string or Buffer");
+		}
+
+		if (this.finished) {
+			return false;
+		}
+
+		final OutgoingMessage self = this;
+
+		WriteCB finish = new WriteCB() {
+
+			@Override
+			public void writeDone(String error) throws Exception {
+				// TODO Auto-generated method stub
+				self.emit("finish");
+			}
+
+		};
+
+		///if (util.isFunction(callback))
+		if (null!=callback)
+			this.once("finish", new Listener(){
+				public void onListen(final Object data) throws Exception {
+					callback.writeDone(null);
+				}
+			});
+
+		if (Util.zeroString(this._header)) {
+			this._implicitHeader();
+		}
+
+		if (data!=null && !this._hasBody) {
+			Log.d(TAG, "This type of response MUST NOT have a body. " +
+					"Ignoring data passed to end().");
+			data = null;
+		}
+
+		if (this.connection!=null && data!=null)
+			this.connection.cork();
+
+		boolean ret;
+		if (data!=null) {
+			// Normal body write.
+			ret = this.write(data, encoding, null);
+		}
+
+		if (this.chunkedEncoding) {
+			ret = this._send("0\r\n" + this._trailer + "\r\n", "binary", finish);
+		} else {
+			// Force a flush, HACK.
+			ret = this._send("", "binary", finish);
+		}
+
+		if (this.connection!=null && data!=null)
+			this.connection.uncork();
+
+		this.finished = true;
+
+		// There is the first message on the outgoing queue, and we've sent
+		// everything to the socket.
+		Log.d(TAG, "outgoing message end.");
+		if (this.output.size() == 0 && this.connection._httpMessage == this) {
+			this._finish();
+		}
+
+		return ret;
+	}
+
+	protected void _finish() throws Exception {
+		assert(this.connection!=null);
+		this.emit("prefinish");
+	}
+
+	// This logic is probably a bit confusing. Let me explain a bit:
+	//
+	// In both HTTP servers and clients it is possible to queue up several
+	// outgoing messages. This is easiest to imagine in the case of a client.
+	// Take the following situation:
+	//
+	//    req1 = client.request('GET', '/');
+	//    req2 = client.request('POST', '/');
+	//
+	// When the user does
+	//
+	//   req2.write('hello world\n');
+	//
+	// it's possible that the first request has not been completely flushed to
+	// the socket yet. Thus the outgoing messages need to be prepared to queue
+	// up data internally before sending it on further to the socket's queue.
+	//
+	// This function, outgoingFlush(), is called by both the Server and Client
+	// to attempt to flush any pending messages out to the socket.
+	protected void _flush() throws Exception {
+		if (this.socket!=null && this.socket.writable()) {
+			boolean ret = false;
+			while (this.output.size() > 0) {
+				///var data = this.output.shift();
+				///var encoding = this.outputEncodings.shift();
+				///var cb = this.outputCallbacks.shift();
+
+				Object data = this.output.remove(0);
+				String encoding = this.outputEncodings.remove(0);
+				WriteCB cb = this.outputCallbacks.remove(0);
+
+				ret = this.socket.write(data, encoding, cb);
+			}
+
+			if (this.finished) {
+				// This is a queue to the server or client to bring in the next this.
+				this._finish();
+			} else if (ret) {
+				// This is necessary to prevent https from breaking
+				this.emit("drain");
+			}
+		}
+	}
+
+	public void flush() throws Exception {
+		if (Util.zeroString(this._header)) {
+			// Force-flush the headers.
+			this._implicitHeader();
+			this._send("", null, null);
+		}
+	}
+
 	@Override
 	protected void _write(Object chunk, String encoding, WriteCB cb)
 			throws Exception {
@@ -215,6 +723,7 @@ this.socket.setTimeout(msecs);
 	public void set_last(boolean _last) {
 		this._last = _last;
 	}
+
 
 
 }

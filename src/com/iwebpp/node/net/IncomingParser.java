@@ -16,27 +16,27 @@ import com.iwebpp.node.net.HttpParser.http_parser_type;
 
 public abstract class IncomingParser 
 extends HttpParser {
-	private final static String TAG = "IncomingParser";
+	protected final static String TAG = "IncomingParser";
 
 	protected TCP.Socket socket;
-	private IncomingMessage incoming;
+	protected IncomingMessage incoming;
 	protected CharsetDecoder decoder;
 
-	private String [] fields_;///[32];  // header fields
-	private String [] values_;///[32];  // header values
-	private String url_;
-	private String status_message_;
-	private int num_fields_;
-	private int num_values_;
-	private boolean have_flushed_;
-	private boolean got_exception_;
-	private ByteBuffer current_buffer_;
+	protected String [] fields_;///[32];  // header fields
+	protected String [] values_;///[32];  // header values
+	protected String url_;
+	protected String status_message_;
+	protected int num_fields_;
+	protected int num_values_;
+	protected boolean have_flushed_;
+	protected boolean got_exception_;
+	protected ByteBuffer current_buffer_;
 
-	private int maxHeaderPairs;
+	protected int maxHeaderPairs;
 
-	private List<String> _headers;
+	protected List<String> _headers;
 
-	private String _url;
+	protected String _url;
 
 	protected IncomingParser(http_parser_type type, TCP.Socket socket) {
 		super(type, socket);
@@ -55,10 +55,10 @@ extends HttpParser {
 
 		this.current_buffer_ = null;
 	}
-	private IncomingParser(){super(null, null);}
+	protected IncomingParser(){super(null, null);}
 
 
-	private void Init(http_parser_type type) {
+	protected void Init(http_parser_type type) {
 		super.reset(type);
 
 		this._headers.clear();
@@ -73,7 +73,7 @@ extends HttpParser {
 	}
 
 	// spill headers and request path to JS land
-	private void Flush() {
+	protected void Flush() {
 		parserOnHeaders(CreateHeaders(), url_);
 
 		///if (r.IsEmpty())
@@ -83,7 +83,7 @@ extends HttpParser {
 		have_flushed_ = true;
 	}
 
-	private List<String> CreateHeaders() {
+	protected List<String> CreateHeaders() {
 		// num_values_ is either -1 or the entry # of the last header
 		// so num_values_ == 0 means there's a single header
 		List<String> headers = new ArrayList<String>();
@@ -156,7 +156,7 @@ extends HttpParser {
 	// across multiple TCP packets or too large to be
 	// processed in a single run. This method is also
 	// called to process trailing HTTP headers.
-	private void parserOnHeaders(List<String> headers, String url) {
+	protected void parserOnHeaders(List<String> headers, String url) {
 		// Once we exceeded headers limit - stop collecting them
 		if (this.maxHeaderPairs <= 0 ||
 				this._headers.size() < this.maxHeaderPairs) {
@@ -172,7 +172,7 @@ extends HttpParser {
 	// info.url is not set for response parsers but that's not
 	// applicable here since all our parsers are request parsers.
 	///function parserOnHeadersComplete(info) {
-	private boolean parserOnHeadersComplete(parseInfo info) throws Exception {
+	protected boolean parserOnHeadersComplete(parseInfo info) throws Exception {
 		///debug('parserOnHeadersComplete', info);
 		Log.d(TAG, "parserOnHeadersComplete "+info);
 
@@ -232,7 +232,7 @@ extends HttpParser {
 		return skipBody;
 	}
 	// POJO bean
-	private class parseInfo {
+	protected class parseInfo {
 
 		public boolean shouldKeepAlive;
 		public boolean upgrade;
@@ -251,7 +251,7 @@ extends HttpParser {
 	// XXX This is a mess.
 	// TODO: http.Parser should be a Writable emits request/response events.
 	///function parserOnBody(b, start, len) {
-	private void parserOnBody(ByteBuffer b) throws Exception {
+	protected void parserOnBody(ByteBuffer b) throws Exception {
 		IncomingParser parser = this;
 		IncomingMessage stream = parser.incoming;
 
@@ -273,7 +273,7 @@ extends HttpParser {
 	}
 
 	///function parserOnMessageComplete() {
-	private void parserOnMessageComplete() throws Exception {
+	protected void parserOnMessageComplete() throws Exception {
 		IncomingParser parser = this;
 		IncomingMessage stream = parser.incoming;
 

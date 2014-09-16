@@ -744,7 +744,7 @@ public final class TCP {
 		}
 
 		@Override
-		public void end(Object data, String encoding, WriteCB cb) throws Exception {
+		public boolean end(Object data, String encoding, WriteCB cb) throws Exception {
 			///stream.Duplex.prototype.end.call(this, data, encoding);
 			super.end(data, encoding, null);
 			this.writable = false;
@@ -755,6 +755,8 @@ public final class TCP {
 				this.read(0);
 			else
 				maybeDestroy(this);
+			
+			return false;
 		}
 
 		/*
@@ -1379,6 +1381,16 @@ Socket.prototype._writev = function(chunks, cb) {
 			    self._destroy(errnoException(err, 'connect'));
 			  }
 			 */
+		}
+
+		public void cork() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void uncork() {
+			// TODO Auto-generated method stub
+			
 		}
 
 	}

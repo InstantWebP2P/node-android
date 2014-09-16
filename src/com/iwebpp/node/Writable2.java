@@ -319,7 +319,7 @@ implements Writable {
     	return ret;
     }
 
-    public void end(Object chunk, String encoding, WriteCB cb) throws Exception {
+    public boolean end(Object chunk, String encoding, WriteCB cb) throws Exception {
     	State state = this._writableState;
 
     	/*if (util.isFunction(chunk)) {
@@ -344,6 +344,8 @@ implements Writable {
     	// ignore unnecessary end() calls.
     	if (!state.ending && !state.finished)
     		endWritable(this, state, cb);
+    	
+    	return false;
     }
 
     private void endWritable(Writable2 stream, State state, final WriteCB cb) throws Exception {

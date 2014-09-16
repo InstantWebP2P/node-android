@@ -15,7 +15,7 @@ extends Readable2 {
 
 	private final static String TAG = "IncomingMessage";
 
-	private Map<String, List<String>> headers;
+	Map<String, List<String>> headers;
 	private Map<String, List<String>> trailers;
 	private Socket socket;
 	private Socket connection;
@@ -36,6 +36,10 @@ extends Readable2 {
 	private boolean upgrade;
 
 	public ClientRequest req;
+
+	public int httpVersionMajor;
+
+	public int httpVersionMinor;
 
 	/**
 	 * @return the upgrade

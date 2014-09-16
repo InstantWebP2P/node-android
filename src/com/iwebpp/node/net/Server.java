@@ -5,6 +5,9 @@ import java.nio.ByteBuffer;
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
+import com.iwebpp.node.net.http.exception_socket_t;
+import com.iwebpp.node.net.http.request_response_t;
+import com.iwebpp.node.net.http.request_socket_head_t;
 
 public class Server 
 extends EventEmitter2 {
@@ -145,21 +148,6 @@ extends EventEmitter2 {
 	}
 	public static interface clientErrorListener {
 		public void onClientError(String exception, Socket socket) throws Exception;
-	}
-
-	// POJO beans
-	private class request_response_t {
-		IncomingMessage request;
-		ServerResponse  response;
-	}
-	private class request_socket_head_t {
-		IncomingMessage request;
-		TCP.Socket      socket;
-		ByteBuffer      head;
-	}
-	private class exception_socket_t {
-		String     exception;
-		TCP.Socket socket;
 	}
 
 }

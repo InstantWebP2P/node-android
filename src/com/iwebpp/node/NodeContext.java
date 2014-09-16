@@ -130,7 +130,7 @@ public final class NodeContext {
 
     // 
     private volatile String dateCached = null;
-    String utcDate() {
+    public String utcDate() {
     	if (null == dateCached) {
     		Date d = new Date();
     		// TBD... GTC 

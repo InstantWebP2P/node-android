@@ -10,6 +10,7 @@ import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.Writable2;
+import com.iwebpp.node.net.http.response_socket_head_t;
 
 public class ClientRequest 
 extends OutgoingMessage {
@@ -143,13 +144,6 @@ extends OutgoingMessage {
 		public void onContinue() throws Exception;
 	}
 
-	// POJO beans
-	private class response_socket_head_t {
-		IncomingMessage response;
-		TCP.Socket      socket;
-		ByteBuffer      head;
-	}
-
 	// Parser on response
 	private class parserOnIncomingClient 
 	extends IncomingParser {
@@ -273,5 +267,11 @@ extends OutgoingMessage {
 			return isHeadResponse;
 		}
 
+	}
+
+	@Override
+	protected void _implicitHeader() {
+		// TODO Auto-generated method stub
+		
 	}
 }

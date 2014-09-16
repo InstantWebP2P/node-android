@@ -6,6 +6,6 @@ public interface Writable extends EventEmitter {
 		void writeDone(final String error) throws Exception;
 	}
 	boolean write(Object chunk, String encoding, WriteCB cb) throws Exception;
-	void end(Object chunk, String encoding, WriteCB cb) throws Exception;
+	boolean end(Object chunk, String encoding, WriteCB cb) throws Exception;
 	boolean writable();
 }

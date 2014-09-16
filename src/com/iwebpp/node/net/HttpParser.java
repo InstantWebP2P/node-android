@@ -4,9 +4,12 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import com.iwebpp.node.EventEmitter2;
+
 import android.util.Log;
 
-public abstract class HttpParser {
+public abstract class HttpParser 
+extends EventEmitter2 {
 	private final static String TAG = "HttpParser";
 
 	protected HttpParser(http_parser_type type, Object data) {
