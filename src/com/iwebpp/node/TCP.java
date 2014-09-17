@@ -17,6 +17,8 @@ import com.iwebpp.libuvpp.cb.StreamWriteCallback;
 import com.iwebpp.libuvpp.handles.LoopHandle;
 import com.iwebpp.libuvpp.handles.TCPHandle;
 import com.iwebpp.node.Writable2.WriteReq;
+import com.iwebpp.node.http.IncomingMessage;
+import com.iwebpp.node.http.IncomingParser;
 
 public final class TCP {
 	
@@ -56,7 +58,9 @@ public final class TCP {
 
 		public boolean _paused;
 
-		public Object _httpMessage;
+		public EventEmitter _httpMessage;
+
+		public IncomingParser parser;
 
 		public static class Options {
 
@@ -1396,7 +1400,7 @@ Socket.prototype._writev = function(chunks, cb) {
 	}
 	
 	// /* [ options, ] listener */
-	public static final class Server extends EventEmitter2 {
+	public static class Server extends EventEmitter2 {
 		private final static String TAG = "TCP:Server";
 
 		private int _connections;

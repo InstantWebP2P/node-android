@@ -1,4 +1,4 @@
-package com.iwebpp.node.net;
+package com.iwebpp.node.http;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +9,9 @@ import java.util.regex.Pattern;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
+import com.iwebpp.node.Writable2.Options;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.net.http.request_response_t; ;
+import com.iwebpp.node.http.http.request_response_t;
 
 public class ServerResponse 
 extends OutgoingMessage {
@@ -27,12 +28,12 @@ extends OutgoingMessage {
 
 	private String statusMessage;
 
-	private boolean _expect_continue;
+	boolean _expect_continue;
 	
 	private Listener onServerResponseClose;
 	
-	protected ServerResponse(NodeContext context, Options options, IncomingMessage req) {
-		super(context, options);
+	protected ServerResponse(NodeContext context, IncomingMessage req) {
+		super(context, new Options(-1, false, "utf8", false));
 
 		this.statusCode = 200;
 		this.statusMessage = null;
@@ -69,7 +70,7 @@ extends OutgoingMessage {
 		this.on("close", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {                   
+			public void onListen(Object data) throws Exception {                   
 				cb.onClose();
 			}
 
@@ -83,7 +84,7 @@ extends OutgoingMessage {
 		this.on("finish", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {                   
+			public void onListen(Object data) throws Exception {                   
 				cb.onFinish();
 			}
 
@@ -91,111 +92,6 @@ extends OutgoingMessage {
 	}
 	public static interface finishListener {
 		public void onFinish() throws Exception;
-	}
-
-	// Parser on request
-	public static class parserOnIncoming 
-	extends IncomingParser {
-		private List<IncomingMessage> incomings;
-		private NodeContext context;
-
-		private List<ServerResponse> outgoings;
-
-
-		public parserOnIncoming(NodeContext ctx, TCP.Socket socket) {
-			super(http_parser_type.HTTP_REQUEST, socket);
-			this.context = ctx;
-
-			incomings = new ArrayList<IncomingMessage>();
-		}
-		@SuppressWarnings("unused")
-		private parserOnIncoming() {super(null, null);}
-
-		@Override
-		protected boolean onIncoming(final IncomingMessage req,
-				boolean shouldKeepAlive) throws Exception {
-			incomings.add(req);
-
-			// If the writable end isn't consuming, then stop reading
-			// so that we don't become overwhelmed by a flood of
-			// pipelined requests that may never be resolved.
-			if (!socket._paused) {
-				boolean needPause = socket.get_writableState().isNeedDrain();
-				if (needPause) {
-					socket._paused = true;
-					// We also need to pause the parser, but don't do that until after
-					// the call to execute, because we may still be processing the last
-					// chunk.
-					socket.pause();
-				}
-			}
-
-			// TBD...
-			final ServerResponse res = new ServerResponse(context, null, req);
-
-			res.setShouldKeepAlive(shouldKeepAlive);
-			//DTRACE_HTTP_SERVER_REQUEST(req, socket);
-			//COUNTER_HTTP_SERVER_REQUEST();
-
-			if (socket._httpMessage != null) {
-				// There are already pending outgoing res, append.
-				outgoings.add(res);
-			} else {
-				res.assignSocket(socket);
-			}
-
-			// When we're finished writing the response, check if this is the last
-			// respose, if so destroy the socket.
-			Listener resOnFinish = new Listener() {
-
-				@Override
-				public void onListen(Object data) throws Exception {
-					// Usually the first incoming element should be our request.  it may
-					// be that in the case abortIncoming() was called that the incoming
-					// array will be empty.
-					assert(incomings.size() == 0 || incomings.get(0) == req);
-
-					incomings.remove(0);
-
-					// if the user never called req.read(), and didn't pipe() or
-					// .resume() or .on('data'), then we call req._dump() so that the
-					// bytes will be pulled off the wire.
-					if (!req.is_consuming() && !req.get_readableState().isResumeScheduled())
-						req._dump();
-
-					res.detachSocket(socket);
-
-					if (res.is_last()) {
-						socket.destroySoon();
-					} else {
-						// start sending the next message
-						ServerResponse m = outgoings.remove(0);
-						if (m != null) {
-							m.assignSocket(socket);
-						}
-					}
-				}
-
-			};			
-			res.on("prefinish", resOnFinish);
-
-			if ( req.headers.containsKey("expect") &&
-				(req.httpVersionMajor == 1 && req.httpVersionMinor == 1) &&
-					///http.continueExpression == req.headers.get("expect").get(0)) {
-					Pattern.matches(http.continueExpression, req.headers.get("expect").get(0))) {
-				res._expect_continue = true;
-				if (listenerCount("checkContinue") > 0) {
-					this.emit("checkContinue", new request_response_t(req, res));
-				} else {
-					res.writeContinue(null);
-					this.emit("request", new request_response_t(req, res));
-				}
-			} else {
-				this.emit("request",  new request_response_t(req, res));
-			}
-
-			return false; // Not a HEAD response. (Not even a response!)
-		}
 	}
 
 	public void assignSocket(final TCP.Socket socket) throws Exception {
@@ -310,5 +206,8 @@ extends OutgoingMessage {
 		this.writeHead(statusCode, statusMessage, headers);
 	}
 
+	public void writeHead(int statusCode) throws Exception {
+		this.writeHead(statusCode, null, null);
+	}
 
 }

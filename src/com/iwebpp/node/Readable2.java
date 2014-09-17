@@ -70,6 +70,18 @@ implements Readable {
 		List<Writable> pipes;
 		int pipesCount;
 		boolean flowing;
+		/**
+		 * @param flowing the flowing to set
+		 */
+		public void setFlowing(boolean flowing) {
+			this.flowing = flowing;
+		}
+		/**
+		 * @return the flowing
+		 */
+		public boolean isFlowing() {
+			return flowing;
+		}
 		boolean ended;
 		boolean endEmitted;
 		boolean reading;

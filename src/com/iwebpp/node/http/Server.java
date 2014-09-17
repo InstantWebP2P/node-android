@@ -1,0 +1,555 @@
+package com.iwebpp.node.http;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import android.util.Log;
+
+import com.iwebpp.node.EventEmitter2;
+import com.iwebpp.node.HttpParser.http_parser_type;
+import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.TCP;
+import com.iwebpp.node.Util;
+import com.iwebpp.node.TCP.Socket;
+import com.iwebpp.node.http.http.exception_socket_t;
+import com.iwebpp.node.http.http.request_response_t;
+import com.iwebpp.node.http.http.request_socket_head_t;
+
+public class Server 
+extends TCP.Server {
+
+	private int timeout;
+	private boolean httpAllowHalfOpen;
+	private NodeContext context;
+	
+	private class connectionListenerImpl implements connectionListener {
+		private final static String TAG = "connectionListenerImpl";
+
+		private Server self;
+
+		private NodeContext context;
+
+		private int maxHeadersCount = 4000;
+
+		public connectionListenerImpl(NodeContext ctx, Server srv) {
+			this.context = ctx;
+			this.self = srv;
+		}
+		@SuppressWarnings("unused")
+		private connectionListenerImpl(){}
+
+		@Override
+		public void onConnection(final Socket socket) throws Exception {
+			
+			Log.d(TAG, "SERVER new http connection");
+
+			http.httpSocketSetup(socket);
+
+			// If the user has added a listener to the server,
+			// request, or response, then it's their responsibility.
+			// otherwise, destroy on timeout by default
+			// TBD...
+			/*if (self.timeout > 0)
+				socket.setTimeout(self.timeout);
+			
+			socket.on('timeout', function() {
+				var req = socket.parser && socket.parser.incoming;
+				var reqTimeout = req && !req.complete && req.emit('timeout', socket);
+				var res = socket._httpMessage;
+				var resTimeout = res && res.emit('timeout', socket);
+				var serverTimeout = self.emit('timeout', socket);
+
+				if (!reqTimeout && !resTimeout && !serverTimeout)
+					socket.destroy();
+			});*/
+
+			///var parser = parsers.alloc();
+			final parserOnIncoming parser = new parserOnIncoming(context, self, socket);
+					
+			parser.Reinitialize(http_parser_type.HTTP_REQUEST);
+			parser.socket = socket;
+			socket.parser = parser;
+			parser.incoming = null;
+
+			// Propagate headers limit from server instance to parser
+			///if (util.isNumber(this.maxHeadersCount)) {
+			if (this.maxHeadersCount  > 0) {
+				parser.maxHeaderPairs = this.maxHeadersCount << 1;
+			} else {
+				// Set default value because parser may be reused from FreeList
+				parser.maxHeaderPairs = 2000;
+			}
+
+			final Listener serverSocketCloseListener = new Listener() {
+
+				@Override
+				public void onListen(Object data) throws Exception {
+					Log.d(TAG, "server socket close");
+					// mark this parser as reusable
+					if (socket.parser != null)
+						IncomingParser.freeParser(socket.parser, null);
+
+					parser.abortIncoming();
+				}
+				
+			};
+			
+			// TODO(isaacs): Move all these functions out of here
+			Listener socketOnError = new Listener() {
+
+				@Override
+				public void onListen(Object e) throws Exception {
+					// TODO Auto-generated method stub
+					self.emit("clientError", new exception_socket_t(e!=null? e.toString() : null, socket));
+				}
+				
+			};
+
+			final Listener socketOnEnd = new Listener(){
+				public void onListen(final Object data) throws Exception {
+					///var socket = this;
+					int ret = parser.Finish();
+
+					if (ret != 0/*instanceof Error*/) {
+						Log.d(TAG, "parse error");
+						socket.destroy("parse error");
+						return;
+					}
+
+					if (!self.httpAllowHalfOpen) {
+						parser.abortIncoming();
+						if (socket.writable()) socket.end(null, null, null);
+					} else if (parser.outgoings.size() > 0) {
+						///outgoing[outgoing.length - 1]._last = true;
+						parser.outgoings.get(parser.outgoings.size()-1).set_last(true);
+					} else if (socket._httpMessage != null) {
+						ServerResponse srvres = (ServerResponse)(socket._httpMessage);
+						srvres._last = true;
+					} else {
+						if (socket.writable()) socket.end(null, null, null);
+					}
+				}
+			};
+			
+			final Listener socketOnData = new Listener() {
+
+				@Override
+				public void onListen(Object raw) throws Exception {
+					if (!Util.isBuffer(raw)) throw new Exception("onData Not ByteBuffer");
+					
+                    ByteBuffer d = (ByteBuffer)raw;
+					
+					assert(!socket._paused);
+					
+					Log.d(TAG, "SERVER socketOnData " + Util.chunkLength(d));
+					
+					int ret = parser.Execute(d);
+					
+					/*if (ret instanceof Error) {
+						debug('parse error');
+						socket.destroy(ret);
+					} else */if (parser.incoming!=null && parser.incoming.isUpgrade()) {
+						// Upgrade or CONNECT
+						int bytesParsed = ret;
+						IncomingMessage req = parser.incoming;
+						Log.d(TAG, "SERVER upgrade or connect " + req.method());
+
+						socket.removeListener("data", this);
+						socket.removeListener("end", socketOnEnd);
+						socket.removeListener("close", serverSocketCloseListener);
+						parser.Finish();
+						///freeParser(parser, req);
+						IncomingParser.freeParser(parser, req);
+
+						String eventName = req.method() == "CONNECT" ? "connect" : "upgrade";
+						if (self.listenerCount(eventName) > 0) {
+							Log.d(TAG, "SERVER have listener for " + eventName);
+							///var bodyHead = d.slice(bytesParsed, d.length);
+							ByteBuffer bodyHead = (ByteBuffer) Util.chunkSlice(d, bytesParsed);
+
+							// TODO(isaacs): Need a way to reset a stream to fresh state
+							// IE, not flowing, and not explicitly paused.
+							socket.get_readableState().setFlowing(false);
+							self.emit(eventName, new request_socket_head_t(req, socket, bodyHead));
+						} else {
+							// Got upgrade header or CONNECT method, but have no handler.
+							socket.destroy(null);
+						}
+					}
+
+					if (socket._paused) {
+						// onIncoming paused the socket, we should pause the parser as well
+						Log.d(TAG, "pause parser");
+						///socket.parser.pause();
+						socket.parser.Pause(false);
+					}					
+				}
+				
+			};
+
+			socket.addListener("error", socketOnError);
+			socket.addListener("close", serverSocketCloseListener);
+			///parser.onIncoming = parserOnIncoming;
+			socket.on("end", socketOnEnd);
+			socket.on("data", socketOnData);
+				
+			// The following callback is issued after the headers have been read on a
+			// new message. In this callback we setup the response object and pass it
+			// to the user.
+
+			socket._paused = false;
+			
+			Listener socketOnDrain = new Listener() {
+				public void onListen(final Object data) throws Exception {
+					// If we previously paused, then start reading again.
+					if (socket._paused) {
+						socket._paused = false;
+						// TDB...
+						///socket.parser.resume();
+						socket.parser.Pause(false);
+						socket.resume();
+					}
+				}
+			};
+			socket.on("drain", socketOnDrain);
+
+		}
+
+	}
+	
+	public Server(NodeContext ctx) throws Exception {
+		super(ctx, new TCP.Server.Options(false), null);
+		
+		this.context = ctx;
+
+		// Similar option to this. Too lazy to write my own docs.
+		// http://www.squid-cache.org/Doc/config/half_closed_clients/
+		// http://wiki.squid-cache.org/SquidFaq/InnerWorkings#What_is_a_half-closed_filedescriptor.3F
+		this.httpAllowHalfOpen = false;
+
+		///this.addListener('connection', connectionListener);
+		this.onConnection(new connectionListenerImpl(context, this));
+
+		/*this.addListener('clientError', function(err, conn) {
+			conn.destroy(err);
+		});*/
+		this.onClientError(new clientErrorListener(){
+
+			@Override
+			public void onClientError(String err, Socket conn)
+					throws Exception {
+				// TODO Auto-generated method stub
+				conn.destroy(err);
+			}
+			
+		});
+
+		this.timeout = 2 * 60 * 1000;
+	}
+	
+	public Server(NodeContext ctx, requestListener onreq) throws Exception {
+		super(ctx, new TCP.Server.Options(false), null);
+
+		this.context = ctx;
+
+		// Similar option to this. Too lazy to write my own docs.
+		// http://www.squid-cache.org/Doc/config/half_closed_clients/
+		// http://wiki.squid-cache.org/SquidFaq/InnerWorkings#What_is_a_half-closed_filedescriptor.3F
+		this.httpAllowHalfOpen = false;
+
+		///this.addListener('connection', connectionListener);
+		this.onConnection(new connectionListenerImpl(context, this));
+
+		/*this.addListener('clientError', function(err, conn) {
+			conn.destroy(err);
+		});*/
+		this.onClientError(new clientErrorListener(){
+
+			@Override
+			public void onClientError(String err, Socket conn)
+					throws Exception {
+				// TODO Auto-generated method stub
+				conn.destroy(err);
+			}
+			
+		});
+
+		this.timeout = 2 * 60 * 1000;
+
+		if (onreq != null) this.onRequest(onreq);
+	}
+	
+	///server.listen(port, [hostname], [backlog], [callback])
+	public void listen(
+			int port, 
+			String hostname, 
+			int addressType, // 4 or 6
+			int backlog, 
+			ListeningCallback cb) throws Exception {
+		if (cb != null) onListening(cb);
+          
+		// TBD... address type parser
+		super.listen(hostname, port, addressType, backlog, -1, null);
+	}
+	
+	public void close(final closeListener cb) throws Exception {
+		if (cb != null) onClose(cb);
+
+		super.close(null);
+	}
+
+	public int maxHeadersCount(int max) {
+		return 2000;
+	}
+
+	///server.setTimeout(msecs, callback)
+	///server.timeout
+
+	// Event listeners
+	public void onListening(final ListeningCallback cb) throws Exception {
+		this.on("listening", new Listener(){
+
+			@Override
+			public void onListen(Object raw) throws Exception {
+				cb.onListening();
+			}
+
+		});
+	}
+	public static interface ListeningCallback {
+		public void onListening() throws Exception;
+	}
+
+	public void onRequest(final requestListener cb) throws Exception {
+		this.on("request", new Listener(){
+
+			@Override
+			public void onListen(Object raw) throws Exception {
+				request_response_t data = (request_response_t)raw;
+
+				cb.onRequest(data.request, data.response);
+			}
+
+		});
+	}
+	public static interface requestListener {
+		public void onRequest(IncomingMessage req, ServerResponse res) throws Exception;
+	}
+
+	public void onConnection(final connectionListener cb) throws Exception {
+		this.on("connection", new Listener(){
+
+			@Override
+			public void onListen(Object raw) throws Exception {
+				TCP.Socket data = (TCP.Socket)raw;
+
+				cb.onConnection(data);
+			}
+
+		});
+	}
+	public static interface connectionListener {
+		public void onConnection(TCP.Socket socket) throws Exception;
+	}
+
+	public void onClose(final closeListener cb) throws Exception {
+		this.on("close", new Listener(){
+
+			@Override
+			public void onListen(Object data) throws Exception {                   
+				cb.onClose();
+			}
+
+		});
+	}
+	public static interface closeListener {
+		public void onClose() throws Exception;
+	}
+
+	public void onCheckContinue(final checkContinueListener cb) throws Exception {
+		this.on("checkContinue", new Listener(){
+
+			@Override
+			public void onListen(Object raw) throws Exception {
+				request_response_t data = (request_response_t)raw;
+
+				cb.onCheckContinue(data.request, data.response);
+			}
+
+		});
+	}
+	public static interface checkContinueListener {
+		public void onCheckContinue(IncomingMessage req, ServerResponse res) throws Exception;
+	}
+
+	public void onConnect(final connectListener cb) throws Exception {
+		this.on("connect", new Listener(){
+
+			@Override
+			public void onListen(Object raw) throws Exception {
+				request_socket_head_t data = (request_socket_head_t)raw;
+
+				cb.onConnect(data.request, data.socket, data.head);
+			}
+
+		});
+	}
+	public static interface connectListener {
+		public void onConnect(IncomingMessage request, Socket socket, ByteBuffer head) throws Exception;
+	}
+
+	public void onUpgrade(final upgradeListener cb) throws Exception {
+		this.on("upgrade", new Listener(){
+
+			@Override
+			public void onListen(Object raw) throws Exception {
+				request_socket_head_t data = (request_socket_head_t)raw;
+
+				cb.onUpgrade(data.request, data.socket, data.head);
+			}
+
+		});
+	}
+	public static interface upgradeListener {
+		public void onUpgrade(IncomingMessage request, Socket socket, ByteBuffer head) throws Exception;
+	}
+
+	public void onClientError(final clientErrorListener cb) throws Exception {
+		this.on("upgrade", new Listener(){
+
+			@Override
+			public void onListen(Object raw) throws Exception {
+				exception_socket_t data = (exception_socket_t)raw;
+
+				cb.onClientError(data.exception, data.socket);
+			}
+
+		});
+	}
+	public static interface clientErrorListener {
+		public void onClientError(String exception, Socket socket) throws Exception;
+	}
+	
+	// Parser on request
+	private class parserOnIncoming 
+	extends IncomingParser {
+		private NodeContext context;
+
+		private List<IncomingMessage> incomings;	
+		private List<ServerResponse> outgoings;
+
+		private Server self;
+	
+	
+		public parserOnIncoming(NodeContext ctx, Server srv, TCP.Socket socket) {
+			super(ctx, http_parser_type.HTTP_REQUEST, socket);
+			this.context = ctx;
+			this.self    = srv;
+	
+			incomings = new ArrayList<IncomingMessage>();
+			outgoings = new ArrayList<ServerResponse>();
+
+		}
+		@SuppressWarnings("unused")
+		private parserOnIncoming() {super(null, null, null);}
+	
+		@Override
+		protected boolean onIncoming(final IncomingMessage req,
+				boolean shouldKeepAlive) throws Exception {
+			incomings.add(req);
+	
+			// If the writable end isn't consuming, then stop reading
+			// so that we don't become overwhelmed by a flood of
+			// pipelined requests that may never be resolved.
+			if (!socket._paused) {
+				boolean needPause = socket.get_writableState().isNeedDrain();
+				if (needPause) {
+					socket._paused = true;
+					// We also need to pause the parser, but don't do that until after
+					// the call to execute, because we may still be processing the last
+					// chunk.
+					socket.pause();
+				}
+			}
+	
+			// TBD...
+			final ServerResponse res = new ServerResponse(context, req);
+	
+			res.setShouldKeepAlive(shouldKeepAlive);
+			//DTRACE_HTTP_SERVER_REQUEST(req, socket);
+			//COUNTER_HTTP_SERVER_REQUEST();
+	
+			if (socket._httpMessage != null) {
+				// There are already pending outgoing res, append.
+				outgoings.add(res);
+			} else {
+				res.assignSocket(socket);
+			}
+	
+			// When we're finished writing the response, check if this is the last
+			// respose, if so destroy the socket.
+			Listener resOnFinish = new Listener() {
+	
+				@Override
+				public void onListen(Object data) throws Exception {
+					// Usually the first incoming element should be our request.  it may
+					// be that in the case abortIncoming() was called that the incoming
+					// array will be empty.
+					assert(incomings.size() == 0 || incomings.get(0) == req);
+	
+					incomings.remove(0);
+	
+					// if the user never called req.read(), and didn't pipe() or
+					// .resume() or .on('data'), then we call req._dump() so that the
+					// bytes will be pulled off the wire.
+					if (!req.is_consuming() && !req.get_readableState().isResumeScheduled())
+						req._dump();
+	
+					res.detachSocket(socket);
+	
+					if (res.is_last()) {
+						socket.destroySoon();
+					} else {
+						// start sending the next message
+						ServerResponse m = outgoings.remove(0);
+						if (m != null) {
+							m.assignSocket(socket);
+						}
+					}
+				}
+	
+			};			
+			res.on("prefinish", resOnFinish);
+	
+			if ( req.headers.containsKey("expect") &&
+				(req.httpVersionMajor == 1 && req.httpVersionMinor == 1) &&
+					///http.continueExpression == req.headers.get("expect").get(0)) {
+					Pattern.matches(http.continueExpression, req.headers.get("expect").get(0))) {
+				res._expect_continue = true;
+				if (self.listenerCount("checkContinue") > 0) {
+					self.emit("checkContinue", new request_response_t(req, res));
+				} else {
+					res.writeContinue(null);
+					self.emit("request", new request_response_t(req, res));
+				}
+			} else {
+				self.emit("request",  new request_response_t(req, res));
+			}
+	
+			return false; // Not a HEAD response. (Not even a response!)
+		}
+		
+		public void abortIncoming() throws Exception {
+			while (incomings.size() > 0) {
+				IncomingMessage req = incomings.remove(0);
+				req.emit("aborted");
+				req.emit("close");
+			}
+			// abort socket._httpMessage ?
+		}
+		
+	}
+
+}

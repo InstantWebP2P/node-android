@@ -1,4 +1,4 @@
-package com.iwebpp.node.net;
+package com.iwebpp.node.http;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -600,7 +600,7 @@ this.socket.setTimeout(msecs);
 		///if (util.isFunction(callback))
 		if (null!=callback)
 			this.once("finish", new Listener(){
-				public void onListen(final Object data) throws Exception {
+				public void onListen(Object data) throws Exception {
 					callback.writeDone(null);
 				}
 			});

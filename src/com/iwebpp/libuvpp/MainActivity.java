@@ -4,6 +4,7 @@ import com.iwebpp.libuvpp.R;
 import com.iwebpp.libuvpp.tests.*;
 import com.iwebpp.node.tests.EE2Test;
 import com.iwebpp.node.tests.HttpParserTest;
+import com.iwebpp.node.tests.HttpTest;
 import com.iwebpp.node.tests.StreamTest;
 import com.iwebpp.node.tests.TcpTest;
 import com.iwebpp.node.tests.UdtTest;
@@ -36,11 +37,12 @@ public class MainActivity extends Activity {
 		///new FileEventHandleTest().start();
 		
 		// Node Unit tests
-		new EE2Test().start();
-		new StreamTest().start();
-        new TcpTest().start();
-        new UdtTest().start();
-		new HttpParserTest().start();
+		///new EE2Test().start();
+		///new StreamTest().start();
+        ///new TcpTest().start();
+        ///new UdtTest().start();
+		///new HttpParserTest().start();
+		new HttpTest().start();
 
 	}
 

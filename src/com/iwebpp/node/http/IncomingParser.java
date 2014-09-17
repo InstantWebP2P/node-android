@@ -1,4 +1,4 @@
-package com.iwebpp.node.net;
+package com.iwebpp.node.http;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -8,11 +8,10 @@ import java.util.List;
 
 import android.util.Log;
 
+import com.iwebpp.node.HttpParser;
+import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
-import com.iwebpp.node.net.HttpParser.http_errno;
-import com.iwebpp.node.net.HttpParser.http_method;
-import com.iwebpp.node.net.HttpParser.http_parser_type;
 
 public abstract class IncomingParser 
 extends HttpParser {
@@ -22,36 +21,40 @@ extends HttpParser {
 	protected IncomingMessage incoming;
 	protected CharsetDecoder decoder;
 
-	protected String [] fields_;///[32];  // header fields
-	protected String [] values_;///[32];  // header values
+	protected String [] fields_; ///[32];  // header fields
+	protected String [] values_; ///[32];  // header values
 	protected String url_;
 	protected String status_message_;
 	protected int num_fields_;
 	protected int num_values_;
 	protected boolean have_flushed_;
-	protected boolean got_exception_;
 	protected ByteBuffer current_buffer_;
 
 	protected int maxHeaderPairs;
 
 	protected List<String> _headers;
-
 	protected String _url;
 
-	protected IncomingParser(http_parser_type type, TCP.Socket socket) {
+	private NodeContext context;
+
+	protected IncomingParser(NodeContext ctx, http_parser_type type, TCP.Socket socket) {
 		super(type, socket);
+		this.context = ctx;
+		
 		// TODO Auto-generated constructor stub
-		this.socket = socket;
-		this._headers = new ArrayList<String>();
 		this.decoder = Charset.forName("utf-8").newDecoder();
+
+		this.socket = socket;
+		
+		this._headers = new ArrayList<String>();
+		this._url = "";
 
 		this.fields_ = new String[32];
 		this.values_ = new String[32];
 		this.url_ = "";
-		this._url = "";
 		this.status_message_ = "";
 		this.num_fields_ = this.num_values_ = 0;
-		this.have_flushed_ = this.got_exception_ = false;
+		this.have_flushed_ = false;
 
 		this.current_buffer_ = null;
 	}
@@ -61,15 +64,14 @@ extends HttpParser {
 	protected void Init(http_parser_type type) {
 		super.reset(type);
 
-		this._headers.clear();
+		_headers.clear();
+		_url = "";
 
 		url_ = "";
-		_url = "";
 		status_message_ = "";
 		num_fields_ = 0;
 		num_values_ = 0;
 		have_flushed_ = false;
-		got_exception_ = false;
 	}
 
 	// spill headers and request path to JS land
@@ -105,12 +107,7 @@ extends HttpParser {
 	}
 
 	public int Finish() throws Exception {
-		got_exception_ = false;
-
 		int rv = execute(null);
-
-		if (got_exception_)
-			return 0;
 
 		if (rv != 0) {
 			http_errno err = HTTP_PARSER_ERRNO();
@@ -129,16 +126,11 @@ extends HttpParser {
 		// amount of overhead. Nothing else will run while http_parser_execute()
 		// runs, therefore this pointer can be set and used for the execution.
 		current_buffer_ = buffer_obj;
-		got_exception_ = false;
-
+		
 		int nparsed = execute(current_buffer_);
 
 		// Unassign the 'buffer_' variable
 		current_buffer_.clear();
-
-		// If there was an exception in one of the callbacks
-		if (got_exception_)
-			return 0;
 
 		// If there was a parse error in one of the callbacks
 		// TODO(bnoordhuis) What if there is an error on EOF?
@@ -159,7 +151,7 @@ extends HttpParser {
 	protected void parserOnHeaders(List<String> headers, String url) {
 		// Once we exceeded headers limit - stop collecting them
 		if (this.maxHeaderPairs <= 0 ||
-				this._headers.size() < this.maxHeaderPairs) {
+			this._headers.size() < this.maxHeaderPairs) {
 			///this._headers = this._headers.concat(headers);
 			this._headers.addAll(headers);
 		}
@@ -197,7 +189,7 @@ extends HttpParser {
 	  parser.incoming.url = url;
 		 */
 		// TBD...
-		this.incoming = new IncomingMessage(null, null, (TCP.Socket)super.data);
+		this.incoming = new IncomingMessage(context, (TCP.Socket)super.data);
 
 		///var n = headers.length;
 		int n = headers.size();
@@ -233,7 +225,6 @@ extends HttpParser {
 	}
 	// POJO bean
 	protected class parseInfo {
-
 		public boolean shouldKeepAlive;
 		public boolean upgrade;
 		public http_method method;
@@ -346,7 +337,7 @@ extends HttpParser {
 	}
 
 	@Override
-	protected int on_header_value(ByteBuffer vaule) throws Exception {
+	protected int on_header_value(ByteBuffer value) throws Exception {
 		if (num_values_ != num_fields_) {
 			// start of new header value
 			num_values_++;
@@ -356,7 +347,7 @@ extends HttpParser {
 		assert(num_values_ < values_.length);
 		assert(num_values_ == num_fields_);
 
-		values_[num_values_ - 1] = decoder.decode(vaule).toString();
+		values_[num_values_ - 1] = decoder.decode(value).toString();
 
 		return 0;
 	}
@@ -391,7 +382,9 @@ extends HttpParser {
 		// VERSION
 		message_info.versionMajor = ""+super.getHttp_major();
 		message_info.versionMinor = ""+super.getHttp_minor();
+		
 		message_info.shouldKeepAlive = super.http_should_keep_alive();
+		
 		message_info.upgrade = super.isUpgrade();
 
 		return parserOnHeadersComplete(message_info) ? 1 : 0;
@@ -414,4 +407,27 @@ extends HttpParser {
 		return 0;
 	}
 
+	// Free the parser and also break any links that it
+	// might have to any other things.
+	// TODO: All parser data should be attached to a
+	// single object, so that it can be easily cleaned
+	// up by doing `parser.data = {}`, which should
+	// be done in FreeList.free.  `parsers.free(parser)`
+	// should be all that is needed.
+	public static void freeParser(IncomingParser parser, IncomingMessage req) {
+	  if (parser != null) {
+	    parser._headers.clear();
+	    ///parser.onIncoming = null;
+	    if (parser.socket != null)
+	      parser.socket.parser = null;
+	    parser.socket = null;
+	    parser.incoming = null;
+	    ///parsers.free(parser);
+	    parser = null;
+	  }
+	  if (req != null) {
+	    req.parser = null;
+	  }
+	}
+	
 }

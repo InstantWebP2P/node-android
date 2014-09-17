@@ -1,9 +1,10 @@
-package com.iwebpp.node.net;
+package com.iwebpp.node.http;
 
 import java.nio.ByteBuffer;
 import java.util.Hashtable;
 import java.util.Map;
 
+import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.TCP;
 
 
@@ -88,7 +89,22 @@ public final class http {
 
 	public static final String chunkExpression = "chunk";
 	public static final String continueExpression = "100-continue";
-	
+
+
+	public static void httpSocketSetup(final TCP.Socket socket) throws Exception {
+		Listener ondrain = new Listener(){
+
+			@Override
+			public void onListen(Object data) throws Exception {
+				if (socket._httpMessage!=null) socket._httpMessage.emit("drain");
+
+			}
+
+		};
+		
+		socket.removeListener("drain", ondrain);
+		socket.on("drain", ondrain);
+	}
 
 	// POJO beans
 	public static class request_response_t {

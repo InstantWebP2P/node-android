@@ -1,4 +1,4 @@
-package com.iwebpp.node.net;
+package com.iwebpp.node.http;
 
 import java.nio.ByteBuffer;
 
@@ -10,7 +10,7 @@ import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.Writable2;
-import com.iwebpp.node.net.http.response_socket_head_t;
+import com.iwebpp.node.http.http.response_socket_head_t;
 
 public class ClientRequest 
 extends OutgoingMessage {
@@ -25,6 +25,8 @@ extends OutgoingMessage {
 	public boolean upgradeOrConnect;
 
 	protected TCP.Socket socket;
+
+	public IncomingParser parser;
 
 	protected ClientRequest(NodeContext context, Options options) {
 		super(context, options);
@@ -134,7 +136,7 @@ extends OutgoingMessage {
 		this.on("continue", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {                   
+			public void onListen(Object data) throws Exception {                   
 				cb.onContinue();
 			}
 
@@ -150,7 +152,7 @@ extends OutgoingMessage {
 		private NodeContext context;
 
 		public parserOnIncomingClient(NodeContext ctx, http_parser_type type, TCP.Socket socket) {
-			super(type, socket);
+			super(ctx, type, socket);
 			this.context = ctx;
 		}
 

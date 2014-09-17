@@ -1,4 +1,4 @@
-package com.iwebpp.node.net;
+package com.iwebpp.node.http;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -8,6 +8,7 @@ import java.util.Map;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Readable2;
 import com.iwebpp.node.TCP;
+import com.iwebpp.node.Readable2.Options;
 import com.iwebpp.node.TCP.Socket;
 
 public class IncomingMessage 
@@ -36,10 +37,13 @@ extends Readable2 {
 	private boolean upgrade;
 
 	public ClientRequest req;
+	public ServerResponse res;
 
 	public int httpVersionMajor;
 
 	public int httpVersionMinor;
+
+	public IncomingParser parser;
 
 	/**
 	 * @return the upgrade
@@ -53,8 +57,8 @@ extends Readable2 {
 	public void setUpgrade(boolean upgrade) {
 		this.upgrade = upgrade;
 	}
-	public IncomingMessage(NodeContext context, Options options, Socket socket) {
-		super(context, options);
+	public IncomingMessage(NodeContext context, Socket socket) {
+		super(context, new Options(-1, "utf8", false, "utf8"));
 
 		// XXX This implementation is kind of all over the place
 		// When the parser emits body chunks, they go in this list.
@@ -308,7 +312,7 @@ extends Readable2 {
 		this.on("close", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {                   
+			public void onListen(Object data) throws Exception {                   
 				cb.onClose();
 			}
 
