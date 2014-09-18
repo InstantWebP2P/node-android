@@ -9,7 +9,8 @@ import java.util.Map;
 import android.util.Log;
 
 
-public class EventEmitter2 implements EventEmitter {
+public class EventEmitter2 
+implements EventEmitter {
 	private final static String TAG = "EventEmitter2";
     private Map<String, List<Listener>> events;
     private Map<String, Integer> maxEvents;
@@ -23,7 +24,7 @@ public class EventEmitter2 implements EventEmitter {
 	public boolean emit(String event) throws Exception {
 		if (events.containsKey(event)) {
 			for (Listener cb : events.get(event))
-				cb.onListen(null);
+				cb.onEvent(null);
 		} else {
 			Log.d(TAG, "unknown event "+event);
 			return false;
@@ -35,7 +36,7 @@ public class EventEmitter2 implements EventEmitter {
 	public boolean emit(String event, Object data) throws Exception {
 		if (events.containsKey(event)) {
 			for (Listener cb : events.get(event))
-				cb.onListen(data);
+				cb.onEvent(data);
 		} else {
 			Log.d(TAG, "unknown event "+event+" data "+data.toString());
 			return false;
@@ -89,9 +90,9 @@ public class EventEmitter2 implements EventEmitter {
 		return addListener(event, new Listener(){
 
 			@Override
-			public void onListen(final Object data) throws Exception {
+			public void onEvent(final Object data) throws Exception {
 				// TODO Auto-generated method stub
-				ocb.onListen(data);
+				ocb.onEvent(data);
 
 				// remove listener
 				removeListener(event, this);

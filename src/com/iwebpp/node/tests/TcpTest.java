@@ -12,7 +12,7 @@ import com.iwebpp.node.TCP.Server.CloseCallback;
 import com.iwebpp.node.TCP.Socket.ConnectCallback;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.TCP.Server;
-import com.iwebpp.node.TCP.Server.ListenCallback;
+import com.iwebpp.node.TCP.Server.ListeningCallback;
 import com.iwebpp.node.TCP.Socket;
 import com.iwebpp.node.Writable.WriteCB;
 
@@ -25,10 +25,10 @@ public final class TcpTest {
 		try {
 			srv = new TCP.Server(ctx, new Server.Options(false), null);
 
-			srv.listen("0.0.0.0", 51688, 4, 18, -1, new ListenCallback(){
+			srv.listen("0.0.0.0", 51688, 4, 18, -1, new ListeningCallback(){
 
 				@Override
-				public void onListen() {
+				public void onListening() {
 					Log.d(TAG, "TCP server listening on 0.0.0.0:51688");
 				}
 
@@ -49,10 +49,10 @@ public final class TcpTest {
 		try {
 			srv = new TCP.Server(ctx, new Server.Options(false), null);
 
-			srv.listen("0.0.0.0", port, 4, 1, -1, new ListenCallback(){
+			srv.listen("0.0.0.0", port, 4, 1, -1, new ListeningCallback(){
 
 				@Override
-				public void onListen() {
+				public void onListening() {
 					Log.d(TAG, "TCP server listening on 0.0.0.0:"+port);
 				}
 
@@ -72,7 +72,7 @@ public final class TcpTest {
 					cln.on("close", new Listener(){
 
 						@Override
-						public void onListen(Object data) throws Exception {
+						public void onEvent(Object data) throws Exception {
 							Log.d(TAG, "client closed");							
 						}
 
@@ -117,10 +117,10 @@ public final class TcpTest {
 		try {
 			srv = new TCP.Server(ctx, new Server.Options(false), null);
 
-			srv.listen("::", 51866, 6, 18, -1, new ListenCallback(){
+			srv.listen("::", 51866, 6, 18, -1, new ListeningCallback(){
 
 				@Override
-				public void onListen() {
+				public void onListening() {
 					Log.d(TAG, "TCP server listening on IPv6 :::51866");
 				}
 
@@ -144,7 +144,7 @@ public final class TcpTest {
 			srv.on("connection", new Listener(){
 
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					Socket peer = (Socket)data;
 					
 					peer.pipe(peer, true);
@@ -169,7 +169,7 @@ public final class TcpTest {
 					cln.on("readable", new Listener(){
 
 						@Override
-						public void onListen(Object data) throws Exception {
+						public void onEvent(Object data) throws Exception {
 		    				Object chunk;
 
 		    				while (null != (chunk = cln.read(68))) {
@@ -193,7 +193,7 @@ public final class TcpTest {
 					cln.on("drain", new Listener(){
 
 						@Override
-						public void onListen(Object data) throws Exception {
+						public void onEvent(Object data) throws Exception {
 							Log.d(TAG, "client write drained");
 
                             ///while (cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null));
@@ -234,7 +234,7 @@ public final class TcpTest {
 			srv.on("connection", new Listener(){
 
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					Socket peer = (Socket)data;
 					
 					peer.pipe(peer, true);
@@ -259,7 +259,7 @@ public final class TcpTest {
 					cln.on("readable", new Listener(){
 
 						@Override
-						public void onListen(Object data) throws Exception {
+						public void onEvent(Object data) throws Exception {
 		    				Object chunk;
 
 		    				while (null != (chunk = cln.read(68))) {
@@ -283,7 +283,7 @@ public final class TcpTest {
 					cln.on("drain", new Listener(){
 
 						@Override
-						public void onListen(Object data) throws Exception {
+						public void onEvent(Object data) throws Exception {
 							Log.d(TAG, "client write drained");
 
                             ///while (cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null));

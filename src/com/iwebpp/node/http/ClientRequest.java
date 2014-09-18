@@ -9,6 +9,7 @@ import com.iwebpp.node.NodeContext.nextTickCallback;
 import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
 import com.iwebpp.node.EventEmitter.Listener;
+import com.iwebpp.node.HttpParser.http_parser_type;
 import com.iwebpp.node.Writable2;
 import com.iwebpp.node.http.http.response_socket_head_t;
 
@@ -19,8 +20,6 @@ extends OutgoingMessage {
 	public IncomingMessage res;
 
 	public String method;
-
-	public boolean shouldKeepAlive;
 
 	public boolean upgradeOrConnect;
 
@@ -72,7 +71,7 @@ extends OutgoingMessage {
 		this.on("response", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {      
+			public void onEvent(Object raw) throws Exception {      
 				IncomingMessage data = (IncomingMessage)raw;
 
 				cb.onResponse(data);
@@ -88,7 +87,7 @@ extends OutgoingMessage {
 		this.on("socket", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {      
+			public void onEvent(Object raw) throws Exception {      
 				TCP.Socket data = (TCP.Socket)raw;
 
 				cb.onSocket(data);
@@ -104,7 +103,7 @@ extends OutgoingMessage {
 		this.on("connect", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {      
+			public void onEvent(Object raw) throws Exception {      
 				response_socket_head_t data = (response_socket_head_t)raw;
 
 				cb.onConnect(data.response, data.socket, data.head);
@@ -120,7 +119,7 @@ extends OutgoingMessage {
 		this.on("upgrade", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {      
+			public void onEvent(Object raw) throws Exception {      
 				response_socket_head_t data = (response_socket_head_t)raw;
 
 				cb.onUpgrade(data.response, data.socket, data.head);
@@ -136,7 +135,7 @@ extends OutgoingMessage {
 		this.on("continue", new Listener(){
 
 			@Override
-			public void onListen(Object data) throws Exception {                   
+			public void onEvent(Object data) throws Exception {                   
 				cb.onContinue();
 			}
 
@@ -151,11 +150,12 @@ extends OutgoingMessage {
 	extends IncomingParser {
 		private NodeContext context;
 
-		public parserOnIncomingClient(NodeContext ctx, http_parser_type type, TCP.Socket socket) {
-			super(ctx, type, socket);
+		public parserOnIncomingClient(NodeContext ctx, TCP.Socket socket) {
+			super(ctx, http_parser_type.HTTP_RESPONSE, socket);
 			this.context = ctx;
 		}
-
+        private parserOnIncomingClient(){}
+		
 		@Override
 		protected boolean onIncoming(IncomingMessage incoming,
 				boolean shouldKeepAlive) throws Exception {
@@ -219,7 +219,7 @@ extends OutgoingMessage {
 			Listener responseOnEnd = new Listener() {
 
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					///var res = this;
 					ClientRequest req = res.req;
 					final Socket socket = req.socket;
@@ -241,6 +241,7 @@ extends OutgoingMessage {
 						// TBD...
 						///socket.removeListener("close", socketCloseListener);
 						///socket.removeListener("error", socketErrorListener);
+						
 						// Mark this socket as available, AFTER user-added end
 						// handlers have a chance to run.
 						///process.nextTick(function() {

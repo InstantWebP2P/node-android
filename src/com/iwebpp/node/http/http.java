@@ -79,12 +79,11 @@ public final class http {
 		STATUS_CODES.put(511, "Network Authentication Required");
 
 		// globalAgent
-		globalAgent = new Agent();
-
+		///globalAgent = new Agent();
 
 	}
 
-	public static final Agent globalAgent;
+	///public static final Agent globalAgent;
 	public static final String CRLF = "\r\n";
 
 	public static final String chunkExpression = "chunk";
@@ -95,7 +94,7 @@ public final class http {
 		Listener ondrain = new Listener(){
 
 			@Override
-			public void onListen(Object data) throws Exception {
+			public void onEvent(Object data) throws Exception {
 				if (socket._httpMessage!=null) socket._httpMessage.emit("drain");
 
 			}
@@ -160,29 +159,29 @@ public final class http {
 	}
 	
 	// http.createServer([requestListener])
-	public static final int createServer(Server.requestListener onreq) {
+	public static Server createServer(Server.requestListener onreq) {
 
-		return 0;
+		return null;
 	}
 
 	// http.request(options, [callback])
-	public static final int request(ReqOptions options, ClientRequest.responseListener onres) {
+	public static ClientRequest request(ReqOptions options, ClientRequest.responseListener onres) {
 
-		return 0;
+		return null;
 	}
-	public static final int request(String url, ClientRequest.responseListener onres) {
+	public static ClientRequest request(String url, ClientRequest.responseListener onres) {
 
-		return 0;
+		return null;
 	}
 
 	// http.get(options, [callback])
-	public static final int get(ReqOptions options, ClientRequest.responseListener onres) {
+	public static ClientRequest get(ReqOptions options, ClientRequest.responseListener onres) {
 
-		return 0;
+		return null;
 	}
-	public static final int get(String url, ClientRequest.responseListener onres) {
+	public static ClientRequest get(String url, ClientRequest.responseListener onres) {
 
-		return 0;
+		return null;
 	}
 
 }

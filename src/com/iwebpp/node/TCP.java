@@ -21,7 +21,8 @@ import com.iwebpp.node.http.IncomingMessage;
 import com.iwebpp.node.http.IncomingParser;
 
 public final class TCP {
-	
+	private final static String TAG = "TCP";
+
 	public static final class Socket extends Duplex {
 		private final static String TAG = "TCP:Socket";
 
@@ -53,7 +54,7 @@ public final class TCP {
 		private Address _sockname;
 
 		private Address _peername;
-		
+
 		private NodeContext context;
 
 		public boolean _paused;
@@ -69,17 +70,17 @@ public final class TCP {
 			public boolean readable;
 			public boolean writable;
 			public boolean allowHalfOpen;
-			
+
 			public Options(boolean allowHalfOpen, TCPHandle handle) {
 				this.allowHalfOpen = allowHalfOpen;
 
 				this.handle = handle;
 				this.readable = false;
 				this.writable = false;
-								
+
 				this.fd = -1;
 			}
-			
+
 			@SuppressWarnings("unused")
 			private Options(){}
 		};
@@ -87,15 +88,15 @@ public final class TCP {
 		public Socket(NodeContext context, Options options) throws Exception {
 			// TBD...
 			super(context, 
-				  new Readable2.Options(-1, "", false, "utf8"), 
-			      new Writable2.Options(-1, false, "utf8", false));
-			
+					new Readable2.Options(-1, null, false, "utf8"), 
+					new Writable2.Options(-1, false, "utf8", false));
+
 
 			final Socket self = this;
-			
+
 			// node context
 			this.context = context;
-			
+
 			///if (!(this instanceof Socket)) return new Socket(options);
 
 			this._connecting = false;
@@ -144,7 +145,7 @@ public final class TCP {
 			final Listener onSocketFinish = new Listener(){
 
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					// If still connecting - defer handling 'finish' until 'connect' will happen
 					if (self._connecting) {
 						Log.d(TAG, "osF: not yet connected");
@@ -195,7 +196,7 @@ public final class TCP {
 								self.once("_socketEnd", new Listener(){
 
 									@Override
-									public void onListen(Object data)
+									public void onEvent(Object data)
 											throws Exception {
 										self.destroy(null);
 									}
@@ -222,7 +223,7 @@ public final class TCP {
 			Listener onSocketEnd = new Listener(){
 
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					// XXX Should not have to do as much crap in this function.
 					// ended should already be true, since this is called *after*
 					// the EOF errno and onread has eof'ed
@@ -234,7 +235,7 @@ public final class TCP {
 					} else {
 						self.once("end", new Listener(){
 
-							public void onListen(final Object data) throws Exception {
+							public void onEvent(final Object data) throws Exception {
 								self.readable = false;
 								maybeDestroy(self);
 							}
@@ -284,7 +285,7 @@ public final class TCP {
 				this.once("finish", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
 						self.destroy(null);
 					}
@@ -410,16 +411,16 @@ public final class TCP {
 			Listener fireErrorCallbacks = new Listener() {
 
 				@Override
-				public void onListen(Object data) throws Exception {
-					if (cb != null) cb.onListen(exception);
+				public void onEvent(Object data) throws Exception {
+					if (cb != null) cb.onEvent(exception);
 					if (exception!=null && !self._writableState.errorEmitted) {
 						// TBD...
 						///process.nextTick(function() {
 						context.nextTick(new NodeContext.nextTickCallback() {
-							
-					    	public void onNextTick() throws Exception {
+
+							public void onNextTick() throws Exception {
 								self.emit("error", exception);
-					    	}
+							}
 
 						});
 						self._writableState.errorEmitted = true;
@@ -430,7 +431,7 @@ public final class TCP {
 
 			if (this.destroyed) {
 				Log.d(TAG, "already destroyed, fire error callbacks");
-				fireErrorCallbacks.onListen(null);
+				fireErrorCallbacks.onEvent(null);
 				return;
 			}
 
@@ -480,7 +481,7 @@ public final class TCP {
 			// to make it re-entrance safe in case Socket.prototype.destroy()
 			// is called within callbacks
 			this.destroyed = true;
-			fireErrorCallbacks.onListen(null);
+			fireErrorCallbacks.onEvent(null);
 
 			if (this.server != null) {
 				// TBD...
@@ -609,7 +610,7 @@ public final class TCP {
 			}
 			return this._sockname;
 		}
-		
+
 		public int bytesRead() {
 			return this.bytesRead;
 		}
@@ -688,7 +689,7 @@ public final class TCP {
 					public void onNextTick() throws Exception {	
 						cb.writeDone(er);
 					}
-					
+
 				});
 			}
 
@@ -730,7 +731,7 @@ public final class TCP {
 				this.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
 						self._read(n);
 					}
@@ -759,7 +760,7 @@ public final class TCP {
 				this.read(0);
 			else
 				maybeDestroy(this);
-			
+
 			return false;
 		}
 
@@ -791,7 +792,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				this.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object dummy) throws Exception {
+					public void onEvent(Object dummy) throws Exception {
 						// TODO Auto-generated method stub
 						self._writeGeneric(writev, data, encoding, cb);
 					}
@@ -810,7 +811,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				this._destroy("This socket is closed.", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
 						cb.writeDone("This socket is closed.");
 					}
@@ -907,7 +908,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				this._destroy("write invalid data", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
 						cb.writeDone("write invalid data");
 					}
@@ -921,7 +922,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				this._destroy("write invalid data", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
 						cb.writeDone("write invalid data");
 					}
@@ -944,10 +945,20 @@ Socket.prototype._writev = function(chunks, cb) {
 			return;
 		}
 
+		public void onConnect(final ConnectCallback cb) throws Exception {
+			this.on("connect", new Listener(){
+
+				@Override
+				public void onEvent(Object data) throws Exception {
+					cb.onConnect();					
+				}
+
+			});
+		}
 		public static interface ConnectCallback {
 			public void onConnect() throws Exception;
 		}
-		
+
 		public void connect(int port, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
@@ -977,10 +988,10 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
-					
+
 				});
 			}
 
@@ -1022,10 +1033,10 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
-					
+
 				});
 			}
 
@@ -1069,10 +1080,10 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
-					
+
 				});
 			}
 
@@ -1116,10 +1127,10 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
-					
+
 				});
 			}
 
@@ -1163,10 +1174,10 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
-					
+
 				});
 			}
 
@@ -1176,6 +1187,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			self.writable = true;
 			///////////////////////////////////////////////
 
+			// TBD... determine addressType
 			connect(4, address, port, localAddress, localPort);
 		}
 
@@ -1209,10 +1221,10 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
-					
+
 				});
 			}
 
@@ -1387,8 +1399,16 @@ Socket.prototype._writev = function(chunks, cb) {
 			 */
 		}
 
+		public void ref() {
+			this._handle.ref();
+		}
+
+		public void unref() {
+			this._handle.unref();
+		}
+
 	}
-	
+
 	// /* [ options, ] listener */
 	public static class Server extends EventEmitter2 {
 		private final static String TAG = "TCP:Server";
@@ -1430,18 +1450,21 @@ Socket.prototype._writev = function(chunks, cb) {
 			});
 		}
 
-		public Server(final NodeContext context, Options options, final ConnectionCallback listener) throws Exception {
+		public Server(
+				final NodeContext context, 
+				Options options, 
+				final ConnectionCallback listener) throws Exception {
 			Server self = this;
 
 			// node context
 			this.context = context;
-			
+
 			// set initial onConnection callback
 			if (listener != null) {
 				self.on("connection", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
 						Socket socket = (Socket)data;
 						listener.onConnection(socket);
@@ -1486,18 +1509,50 @@ Socket.prototype._writev = function(chunks, cb) {
 			private Options(){}
 		} 
 
+		public void onConnection(final ConnectionCallback cb) throws Exception {
+			this.on("connection", new Listener(){
+
+				@Override
+				public void onEvent(Object raw) throws Exception {
+					Socket data = (Socket)raw;
+					cb.onConnection(data);					
+				}
+
+			});
+		}
 		public static interface ConnectionCallback {
 			public void onConnection(Socket socket);
 		}
 
+		public void onClose(final CloseCallback cb) throws Exception {
+			this.on("close", new Listener(){
+
+				@Override
+				public void onEvent(Object raw) throws Exception {
+					String data = (String)raw;
+					cb.onClose(data);					
+				}
+
+			});
+		}
 		public static interface CloseCallback {
 			public void onClose(String error);
 		}
-
-		public static interface ListenCallback {
-			public void onListen();
-		}
 		
+		public void onListening(final ListeningCallback cb) throws Exception {
+			this.on("listening", new Listener(){
+
+				@Override
+				public void onEvent(Object raw) throws Exception {
+					cb.onListening();					
+				}
+
+			});
+		}
+		public static interface ListeningCallback {
+			public void onListening();
+		}
+
 		private static int _listen(TCPHandle handle, int backlog) {
 			// Use a backlog of 512 entries. We pass 511 to the listen() call because
 			// the kernel does: backlogsize = roundup_pow_of_two(backlogsize + 1);
@@ -1559,12 +1614,12 @@ Socket.prototype._writev = function(chunks, cb) {
 					final String error = "err listen";
 					///process.nextTick(function() {
 					context.nextTick(new NodeContext.nextTickCallback() {
-						
+
 						@Override
 						public void onNextTick() throws Exception {
 							self.emit("error", error);
 						}
-						
+
 					});
 					return;
 				}
@@ -1601,7 +1656,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 					if (/*self.maxConnections &&*/ self._connections >= self.maxConnections) {
 						Log.d(TAG, "exceed maxim connections");
-						
+
 						clientHandle.close();
 						return;
 					}
@@ -1638,14 +1693,14 @@ Socket.prototype._writev = function(chunks, cb) {
 				self._handle = null;
 				///process.nextTick(function() {
 				context.nextTick(new NodeContext.nextTickCallback() {
-					
+
 					@Override
 					public void onNextTick() throws Exception {
 						self.emit("error", ex);
 					}
-					
+
 				});
-				
+
 				Log.d(TAG, ex);
 
 				return;
@@ -1666,9 +1721,9 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			});
 		}
-		
+
 		public void listen(String address, int port, int addressType, 
-				int backlog, int fd, final ListenCallback cb) throws Exception {
+				int backlog, int fd, final ListeningCallback cb) throws Exception {
 			Server self = this;
 
 			///if (util.isFunction(lastArg)) {
@@ -1676,9 +1731,9 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("listening", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
-						cb.onListen();
+						cb.onListening();
 					}
 
 				});
@@ -1686,7 +1741,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			_listen2(address, port, addressType, backlog, fd);
 		}
-		
+
 		public Address address() {
 			return this._getsockname();
 		}
@@ -1714,7 +1769,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			}
 			return this._sockname;
 		}
-		
+
 		public int getConnections() {
 
 			/*
@@ -1758,7 +1813,7 @@ Socket.prototype._writev = function(chunks, cb) {
 					this.once("close", new Listener(){
 
 						@Override
-						public void onListen(Object data) throws Exception {
+						public void onEvent(Object data) throws Exception {
 							// TODO Auto-generated method stub
 							cb.onClose("Not running");
 						}
@@ -1769,7 +1824,7 @@ Socket.prototype._writev = function(chunks, cb) {
 					this.once("close", new Listener(){
 
 						@Override
-						public void onListen(Object data) throws Exception {
+						public void onEvent(Object data) throws Exception {
 							// TODO Auto-generated method stub
 							cb.onClose((String) data);
 						}
@@ -1806,10 +1861,57 @@ Socket.prototype._writev = function(chunks, cb) {
 		}
 
 
-	}
+	}	
 
 	private static TCPHandle createTCP(final LoopHandle loop) {
 		return new TCPHandle(loop);
 	}
 
+
+	public static Server createServer(
+			final NodeContext context, 
+			final Server.ConnectionCallback listener) throws Exception {
+		return new Server(context, new Server.Options(false), listener);
+	}
+
+	// Target API:
+	//
+	// var s = net.connect({port: 80, host: 'google.com'}, function() {
+	//   ...
+	// });
+	//
+	// There are various forms:
+	//
+	// connect(options, [cb])
+	// connect(port, [host], [cb])
+	// connect(path, [cb]);
+	//
+	public static Socket createConnection(
+			NodeContext ctx, 
+			String address, int port,
+			String localAddress, int localPort,
+			final Socket.ConnectCallback cb) throws Exception {
+		Log.d(TAG, "createConnection " + address + ":" + port + "@"+localAddress+":"+localPort);
+
+		Socket s = new Socket(ctx, new Socket.Options(false, null));
+
+		s.connect(address, port, localAddress, localPort, cb);
+
+		return s;
+	}
+	
+	public static Socket connect(
+			NodeContext ctx, 
+			String address, int port,
+			String localAddress, int localPort,
+			final Socket.ConnectCallback cb) throws Exception {
+		Log.d(TAG, "createConnection " + address + ":" + port + "@"+localAddress+":"+localPort);
+
+		Socket s = new Socket(ctx, new Socket.Options(false, null));
+
+		s.connect(address, port, localAddress, localPort, cb);
+
+		return s;
+	}
+	
 }

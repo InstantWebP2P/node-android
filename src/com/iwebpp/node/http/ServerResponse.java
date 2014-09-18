@@ -58,7 +58,7 @@ extends OutgoingMessage {
 		this.on("close", new Listener(){
 
 			@Override
-			public void onListen(Object data) throws Exception {                   
+			public void onEvent(Object data) throws Exception {                   
 				cb.onClose();
 			}
 
@@ -72,7 +72,7 @@ extends OutgoingMessage {
 		this.on("finish", new Listener(){
 
 			@Override
-			public void onListen(Object data) throws Exception {                   
+			public void onEvent(Object data) throws Exception {                   
 				cb.onFinish();
 			}
 
@@ -89,7 +89,7 @@ extends OutgoingMessage {
 		onServerResponseClose = new Listener() {
 
 			@Override
-			public void onListen(Object data) throws Exception {
+			public void onEvent(Object data) throws Exception {
 				// EventEmitter.emit makes a copy of the 'close' listeners array before
 				// calling the listeners. detachSocket() unregisters onServerResponseClose
 				// but if detachSocket() is called, directly or indirectly, by a 'close'

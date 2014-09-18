@@ -16,8 +16,8 @@ extends Readable2 {
 
 	private final static String TAG = "IncomingMessage";
 
-	Map<String, List<String>> headers;
-	private Map<String, List<String>> trailers;
+	public Map<String, List<String>> headers;
+	public Map<String, List<String>> trailers;
 	private Socket socket;
 	private Socket connection;
 	private String httpVersion;
@@ -312,7 +312,7 @@ extends Readable2 {
 		this.on("close", new Listener(){
 
 			@Override
-			public void onListen(Object data) throws Exception {                   
+			public void onEvent(Object data) throws Exception {                   
 				cb.onClose();
 			}
 

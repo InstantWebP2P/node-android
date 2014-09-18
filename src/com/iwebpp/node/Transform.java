@@ -81,7 +81,7 @@ extends Duplex {
 		this.once("prefinish", new Listener() {
 
 			@Override
-			public void onListen(Object data) throws Exception {
+			public void onEvent(Object data) throws Exception {
 				/*if (util.isFunction(stream._flush))
 					  this._flush(function(er) {
 						  done(stream, er);

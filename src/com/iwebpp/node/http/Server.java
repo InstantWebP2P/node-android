@@ -85,7 +85,7 @@ extends TCP.Server {
 			final Listener serverSocketCloseListener = new Listener() {
 
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					Log.d(TAG, "server socket close");
 					// mark this parser as reusable
 					if (socket.parser != null)
@@ -100,7 +100,7 @@ extends TCP.Server {
 			Listener socketOnError = new Listener() {
 
 				@Override
-				public void onListen(Object e) throws Exception {
+				public void onEvent(Object e) throws Exception {
 					// TODO Auto-generated method stub
 					self.emit("clientError", new exception_socket_t(e!=null? e.toString() : null, socket));
 				}
@@ -108,7 +108,7 @@ extends TCP.Server {
 			};
 
 			final Listener socketOnEnd = new Listener(){
-				public void onListen(final Object data) throws Exception {
+				public void onEvent(final Object data) throws Exception {
 					///var socket = this;
 					int ret = parser.Finish();
 
@@ -136,7 +136,7 @@ extends TCP.Server {
 			final Listener socketOnData = new Listener() {
 
 				@Override
-				public void onListen(Object raw) throws Exception {
+				public void onEvent(Object raw) throws Exception {
 					if (!Util.isBuffer(raw)) throw new Exception("onData Not ByteBuffer");
 					
                     ByteBuffer d = (ByteBuffer)raw;
@@ -196,7 +196,7 @@ extends TCP.Server {
 			socket._paused = false;
 			
 			Listener socketOnDrain = new Listener() {
-				public void onListen(final Object data) throws Exception {
+				public void onEvent(final Object data) throws Exception {
 					// If we previously paused, then start reading again.
 					if (socket._paused) {
 						socket._paused = false;
@@ -315,7 +315,7 @@ extends TCP.Server {
 		this.on("listening", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {
+			public void onEvent(Object raw) throws Exception {
 				cb.onListening();
 			}
 
@@ -329,7 +329,7 @@ extends TCP.Server {
 		this.on("request", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {
+			public void onEvent(Object raw) throws Exception {
 				request_response_t data = (request_response_t)raw;
 
 				cb.onRequest(data.request, data.response);
@@ -345,7 +345,7 @@ extends TCP.Server {
 		this.on("connection", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {
+			public void onEvent(Object raw) throws Exception {
 				TCP.Socket data = (TCP.Socket)raw;
 
 				cb.onConnection(data);
@@ -361,7 +361,7 @@ extends TCP.Server {
 		this.on("close", new Listener(){
 
 			@Override
-			public void onListen(Object data) throws Exception {                   
+			public void onEvent(Object data) throws Exception {                   
 				cb.onClose();
 			}
 
@@ -375,7 +375,7 @@ extends TCP.Server {
 		this.on("checkContinue", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {
+			public void onEvent(Object raw) throws Exception {
 				request_response_t data = (request_response_t)raw;
 
 				cb.onCheckContinue(data.request, data.response);
@@ -391,7 +391,7 @@ extends TCP.Server {
 		this.on("connect", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {
+			public void onEvent(Object raw) throws Exception {
 				request_socket_head_t data = (request_socket_head_t)raw;
 
 				cb.onConnect(data.request, data.socket, data.head);
@@ -407,7 +407,7 @@ extends TCP.Server {
 		this.on("upgrade", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {
+			public void onEvent(Object raw) throws Exception {
 				request_socket_head_t data = (request_socket_head_t)raw;
 
 				cb.onUpgrade(data.request, data.socket, data.head);
@@ -423,7 +423,7 @@ extends TCP.Server {
 		this.on("upgrade", new Listener(){
 
 			@Override
-			public void onListen(Object raw) throws Exception {
+			public void onEvent(Object raw) throws Exception {
 				exception_socket_t data = (exception_socket_t)raw;
 
 				cb.onClientError(data.exception, data.socket);
@@ -500,7 +500,7 @@ extends TCP.Server {
 			Listener resOnFinish = new Listener() {
 	
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					// Usually the first incoming element should be our request.  it may
 					// be that in the case abortIncoming() was called that the incoming
 					// array will be empty.
@@ -532,11 +532,13 @@ extends TCP.Server {
 			};			
 			res.on("prefinish", resOnFinish);
 	
-			if ( req.headers.containsKey("expect") &&
+			if ( req.headers.containsKey("expect") && 
+				!req.headers.get("expect").isEmpty() &&
 				(req.httpVersionMajor == 1 && req.httpVersionMinor == 1) &&
-					///http.continueExpression == req.headers.get("expect").get(0)) {
-					Pattern.matches(http.continueExpression, req.headers.get("expect").get(0))) {
+				///http.continueExpression == req.headers.get("expect").get(0)) {
+				Pattern.matches(http.continueExpression, req.headers.get("expect").get(0))) {
 				res.set_expect_continue(true);
+
 				if (self.listenerCount("checkContinue") > 0) {
 					self.emit("checkContinue", new request_response_t(req, res));
 				} else {

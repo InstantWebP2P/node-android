@@ -152,7 +152,7 @@ this.socket.setTimeout(msecs);
 			this.once("socket", new Listener() {
 
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					TCP.Socket socket = (TCP.Socket)data;
 					socket.destroy(error);
 				}
@@ -459,7 +459,7 @@ this.socket.setTimeout(msecs);
 		if (null==this._headers) return null;
 
 		String key = name.toLowerCase();
-		return this._headers.get(key);
+		return this._headers.containsKey(key) ? this._headers.get(key) : null;
 	}
 
 
@@ -630,7 +630,7 @@ this.socket.setTimeout(msecs);
 		///if (util.isFunction(callback))
 		if (null!=callback)
 			this.once("finish", new Listener(){
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					callback.writeDone(null);
 				}
 			});

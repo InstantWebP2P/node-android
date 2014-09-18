@@ -2,12 +2,12 @@ package com.iwebpp.node;
 
 
 public interface Readable extends EventEmitter {
-	Object read(int size) throws Exception;
-	boolean setEncoding(String encoding);
-    Readable pause() throws Exception;
-    Readable resume() throws Exception;
-    Writable pipe(Writable dest, boolean end) throws Exception;
-    Readable unpipe(Writable dest) throws Exception;
-    boolean unshift(Object chunk) throws Exception;
-	boolean readable();
+	public Object read(int size) throws Exception;
+	public boolean setEncoding(String encoding);
+	public Readable pause() throws Exception;
+	public Readable resume() throws Exception;
+	public Writable pipe(Writable dest, boolean end) throws Exception;
+	public Readable unpipe(Writable dest) throws Exception;
+	public boolean unshift(Object chunk) throws Exception;
+	public boolean readable();
 }

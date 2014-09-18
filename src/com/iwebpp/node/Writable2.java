@@ -366,7 +366,7 @@ implements Writable {
     		else
     			stream.once("finish", new EventEmitter.Listener() {
     				@Override
-    				public void onListen(Object data) throws Exception {
+    				public void onEvent(Object data) throws Exception {
     					// TODO Auto-generated method stub
     					cb.writeDone(null);
     				}

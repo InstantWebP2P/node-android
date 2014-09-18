@@ -192,7 +192,7 @@ public final class StreamTest {
 			ts.on("readable", new Listener(){
 
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					Object chunk;
 
 					while (null != (chunk = ts.read(-1))) {
@@ -228,7 +228,7 @@ public final class StreamTest {
 			rs.on("readable", new Listener(){
 
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					Object chunk;
 
 					Log.d(TAG, "testRead_less: start...");
@@ -257,7 +257,7 @@ public final class StreamTest {
 			rs.on("readable", new Listener(){
 
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					Object chunk;
 
 					Log.d(TAG, "testRead_more: start...");
@@ -286,7 +286,7 @@ public final class StreamTest {
 			rs.on("readable", new Listener(){
 
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					Object chunk;
 
 					Log.d(TAG, "testRead_forever: start...");
@@ -315,7 +315,7 @@ public final class StreamTest {
 		try {
 			ws.on("pipe", new Listener () {
 				@Override
-				public void onListen(Object src) throws Exception {
+				public void onEvent(Object src) throws Exception {
 					Log.d(TAG, "testPipe: something is piping into the writer");
 					assert(rs.equals(src));
 				}
@@ -323,7 +323,7 @@ public final class StreamTest {
 			});
 			ws.on("unpipe", new Listener () {
 				@Override
-				public void onListen(Object src) throws Exception {
+				public void onEvent(Object src) throws Exception {
 					Log.d(TAG, "testPipe: something has stopped piping into the writer");
 					assert(rs.equals(src));
 				}
@@ -359,7 +359,7 @@ public final class StreamTest {
 		try {
 			ws.on("finish", new Listener() {
 				@Override
-				public void onListen(Object src) throws Exception {
+				public void onEvent(Object src) throws Exception {
 					Log.d(TAG, "testFinish: all writes are now complete.");
 				}
 			});

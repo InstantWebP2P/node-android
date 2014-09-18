@@ -129,7 +129,7 @@ public final class UDT {
 			final Listener onSocketFinish = new Listener(){
 
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					// If still connecting - defer handling 'finish' until 'connect' will happen
 					if (self._connecting) {
 						Log.d(TAG, "osF: not yet connected");
@@ -180,7 +180,7 @@ public final class UDT {
 								self.once("_socketEnd", new Listener(){
 
 									@Override
-									public void onListen(Object data)
+									public void onEvent(Object data)
 											throws Exception {
 										self.destroy(null);
 									}
@@ -207,7 +207,7 @@ public final class UDT {
 			Listener onSocketEnd = new Listener(){
 
 				@Override
-				public void onListen(Object data) throws Exception {
+				public void onEvent(Object data) throws Exception {
 					// XXX Should not have to do as much crap in this function.
 					// ended should already be true, since this is called *after*
 					// the EOF errno and onread has eof'ed
@@ -219,7 +219,7 @@ public final class UDT {
 					} else {
 						self.once("end", new Listener(){
 
-							public void onListen(final Object data) throws Exception {
+							public void onEvent(final Object data) throws Exception {
 								self.readable = false;
 								maybeDestroy(self);
 							}
@@ -269,7 +269,7 @@ public final class UDT {
 				this.once("finish", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
 						self.destroy(null);
 					}
@@ -395,8 +395,8 @@ public final class UDT {
 			Listener fireErrorCallbacks = new Listener() {
 
 				@Override
-				public void onListen(Object data) throws Exception {
-					if (cb != null) cb.onListen(exception);
+				public void onEvent(Object data) throws Exception {
+					if (cb != null) cb.onEvent(exception);
 					if (exception!=null && !self._writableState.errorEmitted) {
 						// TBD...
 						///process.nextTick(function() {
@@ -415,7 +415,7 @@ public final class UDT {
 
 			if (this.destroyed) {
 				Log.d(TAG, "already destroyed, fire error callbacks");
-				fireErrorCallbacks.onListen(null);
+				fireErrorCallbacks.onEvent(null);
 				return;
 			}
 
@@ -465,7 +465,7 @@ public final class UDT {
 			// to make it re-entrance safe in case Socket.prototype.destroy()
 			// is called within callbacks
 			this.destroyed = true;
-			fireErrorCallbacks.onListen(null);
+			fireErrorCallbacks.onEvent(null);
 
 			if (this.server != null) {
 				// TBD...
@@ -715,7 +715,7 @@ public final class UDT {
 				this.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
 						self._read(n);
 					}
@@ -776,7 +776,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				this.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object dummy) throws Exception {
+					public void onEvent(Object dummy) throws Exception {
 						// TODO Auto-generated method stub
 						self._writeGeneric(writev, data, encoding, cb);
 					}
@@ -795,7 +795,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				this._destroy("This socket is closed.", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
 						cb.writeDone("This socket is closed.");
 					}
@@ -892,7 +892,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				this._destroy("write invalid data", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
 						cb.writeDone("write invalid data");
 					}
@@ -906,7 +906,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				this._destroy("write invalid data", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
 						cb.writeDone("write invalid data");
 					}
@@ -962,7 +962,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
 					
@@ -1007,7 +1007,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
 					
@@ -1054,7 +1054,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
 					
@@ -1101,7 +1101,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
 					
@@ -1148,7 +1148,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
 					
@@ -1194,7 +1194,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("connect", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
 					
@@ -1426,7 +1426,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.on("connection", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
 						Socket socket = (Socket)data;
 						listener.onConnection(socket);
@@ -1661,7 +1661,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				self.once("listening", new Listener(){
 
 					@Override
-					public void onListen(Object data) throws Exception {
+					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
 						cb.onListen();
 					}
@@ -1743,7 +1743,7 @@ Socket.prototype._writev = function(chunks, cb) {
 					this.once("close", new Listener(){
 
 						@Override
-						public void onListen(Object data) throws Exception {
+						public void onEvent(Object data) throws Exception {
 							// TODO Auto-generated method stub
 							cb.onClose("Not running");
 						}
@@ -1754,7 +1754,7 @@ Socket.prototype._writev = function(chunks, cb) {
 					this.once("close", new Listener(){
 
 						@Override
-						public void onListen(Object data) throws Exception {
+						public void onEvent(Object data) throws Exception {
 							// TODO Auto-generated method stub
 							cb.onClose((String) data);
 						}

@@ -12,7 +12,7 @@ public final class EE2Test extends EventEmitter2 {
 		try {
 			on("ok", new EventEmitter.Listener() {
 				@Override
-				public void onListen(Object data) {
+				public void onEvent(Object data) {
 					String ss = (String) data;
 					
 					// TODO Auto-generated method stub
@@ -25,7 +25,7 @@ public final class EE2Test extends EventEmitter2 {
 			
 			on("no", new EventEmitter.Listener() {
 				@Override
-				public void onListen(Object data) {
+				public void onEvent(Object data) {
 					String ss = (String)data;
 					
 					// TODO Auto-generated method stub
