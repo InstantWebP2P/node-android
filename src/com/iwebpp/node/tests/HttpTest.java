@@ -1,5 +1,10 @@
 package com.iwebpp.node.tests;
 
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+
 import android.util.Log;
 
 import com.iwebpp.node.NodeContext;
@@ -42,9 +47,15 @@ public final class HttpTest {
 				@Override
 				public void onRequest(IncomingMessage req, ServerResponse res)
 						throws Exception {
-					Log.d(TAG, "got reqeust "+req.toString()+", headers: "+req.headers());
+					Log.d(TAG, "got reqeust, headers: "+req.headers());
 
-					res.writeHead(200, "OK", null);
+					Map<String, List<String>> headers = new Hashtable<String, List<String>>();
+					headers.put("content-type", new ArrayList<String>());
+					headers.get("content-type").add("text/plain");
+					///headers.put("te", new ArrayList<String>());
+					///headers.get("te").add("chunk");
+					
+					res.writeHead(200, headers);
 					res.write("Hello Tom", "utf-8", new WriteCB(){
 
 						@Override

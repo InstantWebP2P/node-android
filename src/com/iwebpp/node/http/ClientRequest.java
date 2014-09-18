@@ -28,8 +28,8 @@ extends OutgoingMessage {
 
 	public IncomingParser parser;
 
-	protected ClientRequest(NodeContext context, Options options) {
-		super(context, options);
+	protected ClientRequest(NodeContext context) {
+		super(context);
 		// TODO Auto-generated constructor stub
 	}
 

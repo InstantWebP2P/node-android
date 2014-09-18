@@ -135,9 +135,10 @@ extends HttpParser {
 		// If there was a parse error in one of the callbacks
 		// TODO(bnoordhuis) What if there is an error on EOF?
 		if (!isUpgrade() && nparsed != buffer_len) {
-			http_errno err = HTTP_PARSER_ERRNO();
-
-			throw new Exception(err.desc());
+			// TBD...
+			///http_errno err = HTTP_PARSER_ERRNO();
+			///throw new Exception(err.desc());
+			return -1;
 		}
 
 		return nparsed;

@@ -52,6 +52,20 @@ implements Writable {
 		return _writable.writable();
 	}
 	
+    public void cork() {
+    	_writable.cork();
+    }
+    public void uncork() throws Exception {
+    	_writable.uncork();
+    }
+    public int corked() {
+    	return _writable.corked();
+    }
+    
+	public boolean isNeedDrain() {
+		return _writable.isNeedDrain();
+	}
+    
 	@Override
 	protected abstract void _read(int size) throws Exception;
 	

@@ -375,13 +375,13 @@ implements Writable {
     	state.ended = true;
     }
 
-    protected void cork() {
+    public void cork() {
     	State state = this._writableState;
 
     	state.corked++;
     }
 
-    protected void uncork() throws Exception {
+    public void uncork() throws Exception {
     	State state = this._writableState;
 
     	if (state.corked > 0) {
@@ -394,6 +394,10 @@ implements Writable {
     			 state.buffer.size() > 0)
     			clearBuffer(this, state);
     	}
+    }
+    
+    public int corked() {
+    	return this._writableState.corked;
     }
     
     // if we're already writing something, then just put this

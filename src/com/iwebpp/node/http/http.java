@@ -102,7 +102,7 @@ public final class http {
 
 		};
 		
-		socket.removeListener("drain", ondrain);
+		socket.removeListener("drain"/*, ondrain*/);
 		socket.on("drain", ondrain);
 	}
 

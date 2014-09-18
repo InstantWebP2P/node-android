@@ -1091,12 +1091,7 @@ this._readableState.encoding = enc;
 	private  void resume_(Readable2 stream, State state) throws Exception {
 		if (!state.reading) {
 			Log.d(TAG, "resume read 0");
-			try {
-				stream.read(0);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			stream.read(0);
 		}
 
 		state.setResumeScheduled(false);

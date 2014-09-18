@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
+import android.util.Log;
+
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
@@ -17,23 +19,16 @@ public class ServerResponse
 extends OutgoingMessage {
 	private final static String TAG = "ServerResponse";
 
-	private Socket socket;
-	private Socket connection;
-
-	public ClientRequest req;
-
 	private boolean _sent100;
-
-	private int statusCode;
 
 	private String statusMessage;
 
-	boolean _expect_continue;
+	private boolean _expect_continue;
 	
 	private Listener onServerResponseClose;
 	
 	protected ServerResponse(NodeContext context, IncomingMessage req) {
-		super(context, new Options(-1, false, "utf8", false));
+		super(context);
 
 		this.statusCode = 200;
 		this.statusMessage = null;
@@ -45,7 +40,7 @@ extends OutgoingMessage {
 		if (req.httpVersionMajor < 1 || req.httpVersionMinor < 1) {
 			// TBD...
 			///this.useChunkedEncodingByDefault = http.chunkExpression.test(req.headers.te);
-			this.useChunkedEncodingByDefault = true;///Pattern.matches(http.chunkExpression, req.headers.get("te").get(0));
+			this.useChunkedEncodingByDefault = (req.headers.containsKey("te") && Pattern.matches(http.chunkExpression, req.headers.get("te").get(0)));
 			this.shouldKeepAlive = false;
 		}
 	}
@@ -54,13 +49,6 @@ extends OutgoingMessage {
 		///DTRACE_HTTP_SERVER_RESPONSE(this.connection);
 		///COUNTER_HTTP_SERVER_RESPONSE();
 		super._finish();
-	}
-
-	@Override
-	protected void _write(Object chunk, String encoding, WriteCB cb)
-			throws Exception {
-		// TODO Auto-generated method stub
-
 	}
 
 	// response.setTimeout(msecs, callback)
@@ -152,6 +140,8 @@ extends OutgoingMessage {
 	public void writeHead(int statusCode, String statusMessage, Map<String, List<String>> obj) throws Exception {
 		Map<String, List<String>> headers;
 
+		Log.d(TAG, "..... -1");
+
 		if (Util.zeroString(statusMessage)) {
 			this.statusMessage = http.STATUS_CODES.containsKey(statusCode) ?
 					http.STATUS_CODES.get(statusCode) : "unknown";
@@ -162,6 +152,8 @@ extends OutgoingMessage {
 		this.statusCode = statusCode;
 
 		if (this._headers != null) {
+			Log.d(TAG, "..... -2");
+
 			// Slow-case: when progressive API and header fields are passed.
 			if (obj != null) {
 				for (Entry<String, List<String>> entry : obj.entrySet())
@@ -195,9 +187,11 @@ extends OutgoingMessage {
 
 		// don't keep alive connections where the client expects 100 Continue
 		// but we sent a final status; they may put extra bytes on the wire.
-		if (this._expect_continue && !this._sent100) {
+		if (this.is_expect_continue() && !this._sent100) {
 			setShouldKeepAlive(false);
 		}
+		
+		Log.d(TAG, "..... -3");
 
 		this._storeHeader(statusLine, headers);
 	}
@@ -205,9 +199,27 @@ extends OutgoingMessage {
 	public void writeHeader(int statusCode, String statusMessage, Map<String, List<String>> headers) throws Exception {
 		this.writeHead(statusCode, statusMessage, headers);
 	}
-
+	
+	public void writeHead(int statusCode, Map<String, List<String>> headers) throws Exception {
+		this.writeHead(statusCode, null, headers);
+	}
+	
 	public void writeHead(int statusCode) throws Exception {
 		this.writeHead(statusCode, null, null);
+	}
+
+	/**
+	 * @return the _expect_continue
+	 */
+	public boolean is_expect_continue() {
+		return _expect_continue;
+	}
+
+	/**
+	 * @param _expect_continue the _expect_continue to set
+	 */
+	public void set_expect_continue(boolean _expect_continue) {
+		this._expect_continue = _expect_continue;
 	}
 
 }

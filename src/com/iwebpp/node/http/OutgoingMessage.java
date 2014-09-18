@@ -10,16 +10,19 @@ import java.util.regex.Pattern;
 
 import android.util.Log;
 
+import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.TCP;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.NodeContext.nextTickCallback;
 import com.iwebpp.node.TCP.Socket;
+import com.iwebpp.node.Writable2.Options;
 import com.iwebpp.node.Writable2;
 
 public abstract class OutgoingMessage 
+///extends EventEmitter2 {
 extends Writable2 {
-	protected final static String TAG = "OutgoingMessage";
+	private final static String TAG = "OutgoingMessage";
 
 	protected static final String connectionExpression = "Connection";
 	protected static final String transferEncodingExpression = "Transfer-Encoding";
@@ -37,7 +40,6 @@ extends Writable2 {
 		automaticHeaders.add("content-length");
 		automaticHeaders.add("transfer-encoding");
 		automaticHeaders.add("date");
-
 
 	}
 
@@ -90,7 +92,6 @@ extends Writable2 {
 	protected boolean _headerSent;
 	protected String _header;
 	protected NodeContext context;
-	protected int statusCode;
 
 	protected Agent agent;
 
@@ -98,8 +99,10 @@ extends Writable2 {
 
 	protected Map<String, String> _headerNames;
 
-	public OutgoingMessage(NodeContext ctx, Options options) {
-		super(ctx, options);
+	protected int statusCode;
+
+	public OutgoingMessage(NodeContext ctx) {
+		super(ctx, new Options(-1, false, "utf8", false));
 		this.context = ctx;
 
 		this.output = new ArrayList<Object>();
@@ -200,11 +203,12 @@ this.socket.setTimeout(msecs);
 				});
 			return true;
 		}
-
+		
+		// TBD...
 		if (this.connection!=null &&
-				this.connection._httpMessage == this &&
-				this.connection.writable() &&
-				!this.connection.isDestroyed()) {
+			this.connection._httpMessage == this &&
+			this.connection.writable() &&
+			!this.connection.isDestroyed()) {
 			// There might be pending data in the this.output buffer.
 			///while (this.output.length) {
 			while (this.output.size() > 0) {
@@ -221,14 +225,20 @@ this.socket.setTimeout(msecs);
 
 				this.connection.write(c, e, cb);
 			}
+			
+			Log.d(TAG, "..... 13");
 
 			// Directly write to socket.
 			return this.connection.write(data, encoding, callback);
 		} else if (this.connection!=null && this.connection.isDestroyed()) {
+			Log.d(TAG, "..... 15");
+
 			// The socket was destroyed.  If we're still trying to write to it,
 			// then we haven't gotten the 'close' event yet.
 			return false;
 		} else {
+			Log.d(TAG, "..... 16");
+
 			// buffer, as long as we're not destroyed.
 			this._buffer(data, encoding, callback);
 			return false;
@@ -314,11 +324,15 @@ this.socket.setTimeout(msecs);
 				}
 			}*/
 		}
+		
+		Log.d(TAG, "..... -5");
 
 		// Date header
 		if (this.sendDate == true && state.sentDateHeader == false) {
 			state.messageHeader += "Date: " + context.utcDate() + http.CRLF;
 		}
+		
+		Log.d(TAG, "..... -6");
 
 		// Force the connection to close when the response is a 204 No Content or
 		// a 304 Not Modified and the user has set a "Transfer-Encoding: chunked"
@@ -343,7 +357,8 @@ this.socket.setTimeout(msecs);
 
 		// keep-alive logic
 		///if (this._removedHeader.connection) {
-		if (this._removedHeader.get("connection")) {
+		if (this._removedHeader.containsKey("connection") && 
+			this._removedHeader.get("connection")) {
 			this._last = true;
 			this.shouldKeepAlive = false;
 		} else if (state.sentConnectionHeader == false) {
@@ -358,10 +373,14 @@ this.socket.setTimeout(msecs);
 				state.messageHeader += "Connection: close\r\n";
 			}
 		}
+		
+		Log.d(TAG, "..... -7");
 
 		if (state.sentContentLengthHeader == false &&
 				state.sentTransferEncodingHeader == false) {
-			if (this._hasBody && !this._removedHeader.get("transfer-encoding")) {
+			if (this._hasBody && 
+				!(this._removedHeader.containsKey("transfer-encoding") && 
+				  this._removedHeader.get("transfer-encoding"))) {
 				if (this.useChunkedEncodingByDefault) {
 					state.messageHeader += "Transfer-Encoding: chunked\r\n";
 					this.chunkedEncoding = true;
@@ -376,6 +395,8 @@ this.socket.setTimeout(msecs);
 
 		this._header = state.messageHeader + http.CRLF;
 		this._headerSent = false;
+		
+		Log.d(TAG, "..... -8");
 
 		// wait until the first body chunk, or close(), is sent to flush,
 		// UNLESS we're sending Expect: 100-continue.
@@ -477,7 +498,7 @@ this.socket.setTimeout(msecs);
 			headers.put(this._headerNames.get(entry.getKey()), entry.getValue());
 
 		return headers;
-	};
+	}
 
 	public boolean headersSent() {
 		return !Util.zeroString(this._header); 
@@ -490,6 +511,8 @@ this.socket.setTimeout(msecs);
 		if (Util.zeroString(this._header)) {
 			this._implicitHeader();
 		}
+		
+		Log.d(TAG, ".......... 0");
 
 		if (!this._hasBody) {
 			Log.d(TAG, "This type of response MUST NOT have a body. " +
@@ -501,7 +524,8 @@ this.socket.setTimeout(msecs);
 			///throw new TypeError('first argument must be a string or Buffer');
 			throw new Exception("first argument must be a string or Buffer");
 		}
-
+		
+		Log.d(TAG, ".......... -1");
 
 		// If we get an empty string or buffer, then just do nothing, and
 		// signal the user to keep writing.
@@ -510,10 +534,14 @@ this.socket.setTimeout(msecs);
 		int len;
 		boolean ret;
 		if (this.chunkedEncoding) {
+			Log.d(TAG, ".......... 1");
+			
 			if (Util.isString(chunk) &&
 					encoding != "hex" &&
 					encoding != "base64" &&
 					encoding != "binary") {
+				Log.d(TAG, ".......... 2");
+				
 				///len = Buffer.byteLength(chunk, encoding);
 				len = ((String)chunk).getBytes(encoding).length;
 
@@ -530,7 +558,7 @@ this.socket.setTimeout(msecs);
 					///len = chunk.length;
 					len = Util.chunkLength(chunk);
 
-				if (this.connection!=null /*&& !this.connection.corked*/ ) {
+				if (this.connection!=null && this.connection.corked()==0 ) {
 					this.connection.cork();
 					final Socket conn = this.connection;
 					///process.nextTick(function connectionCork() {
@@ -553,6 +581,8 @@ this.socket.setTimeout(msecs);
 				ret = this._send(crlf_buf, null, callback);
 			}
 		} else {
+			Log.d(TAG, ".......... 3");
+
 			ret = this._send(chunk, encoding, callback);
 		}
 
@@ -707,7 +737,7 @@ this.socket.setTimeout(msecs);
 	protected void _write(Object chunk, String encoding, WriteCB cb)
 			throws Exception {
 		// TODO Auto-generated method stub
-
+        Log.d(TAG, "....._write");
 	}
 
 	/**

@@ -147,10 +147,10 @@ extends TCP.Server {
 					
 					int ret = parser.Execute(d);
 					
-					/*if (ret instanceof Error) {
-						debug('parse error');
-						socket.destroy(ret);
-					} else */if (parser.incoming!=null && parser.incoming.isUpgrade()) {
+					if (ret < 0 /*instanceof Error*/) {
+						Log.d(TAG, "parse error");
+						socket.destroy("parse error");
+					} else if (parser.incoming!=null && parser.incoming.isUpgrade()) {
 						// Upgrade or CONNECT
 						int bytesParsed = ret;
 						IncomingMessage req = parser.incoming;
@@ -188,12 +188,6 @@ extends TCP.Server {
 				}
 				
 			};
-
-			socket.addListener("error", socketOnError);
-			socket.addListener("close", serverSocketCloseListener);
-			///parser.onIncoming = parserOnIncoming;
-			socket.on("end", socketOnEnd);
-			socket.on("data", socketOnData);
 				
 			// The following callback is issued after the headers have been read on a
 			// new message. In this callback we setup the response object and pass it
@@ -214,7 +208,16 @@ extends TCP.Server {
 				}
 			};
 			socket.on("drain", socketOnDrain);
-
+			
+			socket.addListener("error", socketOnError);
+			socket.addListener("close", serverSocketCloseListener);
+			///parser.onIncoming = parserOnIncoming;
+			socket.on("end", socketOnEnd);
+			socket.on("data", socketOnData);
+			
+			// do resume to switch to legacy mode
+			// TBD...
+			socket.resume();
 		}
 
 	}
@@ -484,8 +487,12 @@ extends TCP.Server {
 			if (socket._httpMessage != null) {
 				// There are already pending outgoing res, append.
 				outgoings.add(res);
+				
+				Log.d(TAG, "outgoings.add(res)");
 			} else {
 				res.assignSocket(socket);
+				
+				Log.d(TAG, "res.assignSocket(socket)");
 			}
 	
 			// When we're finished writing the response, check if this is the last
@@ -499,7 +506,8 @@ extends TCP.Server {
 					// array will be empty.
 					assert(incomings.size() == 0 || incomings.get(0) == req);
 	
-					incomings.remove(0);
+					if (incomings.size() > 0) 
+						incomings.remove(0);
 	
 					// if the user never called req.read(), and didn't pipe() or
 					// .resume() or .on('data'), then we call req._dump() so that the
@@ -508,7 +516,8 @@ extends TCP.Server {
 						req._dump();
 	
 					res.detachSocket(socket);
-	
+					Log.d(TAG, "res.detachSocket(socket)");
+
 					if (res.is_last()) {
 						socket.destroySoon();
 					} else {
@@ -527,7 +536,7 @@ extends TCP.Server {
 				(req.httpVersionMajor == 1 && req.httpVersionMinor == 1) &&
 					///http.continueExpression == req.headers.get("expect").get(0)) {
 					Pattern.matches(http.continueExpression, req.headers.get("expect").get(0))) {
-				res._expect_continue = true;
+				res.set_expect_continue(true);
 				if (self.listenerCount("checkContinue") > 0) {
 					self.emit("checkContinue", new request_response_t(req, res));
 				} else {

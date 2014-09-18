@@ -58,7 +58,7 @@ extends Readable2 {
 		this.upgrade = upgrade;
 	}
 	public IncomingMessage(NodeContext context, Socket socket) {
-		super(context, new Options(-1, "utf8", false, "utf8"));
+		super(context, new Options(-1, null, false, "utf8"));
 
 		// XXX This implementation is kind of all over the place
 		// When the parser emits body chunks, they go in this list.

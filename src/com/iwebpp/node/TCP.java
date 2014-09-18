@@ -1387,16 +1387,6 @@ Socket.prototype._writev = function(chunks, cb) {
 			 */
 		}
 
-		public void cork() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		public void uncork() {
-			// TODO Auto-generated method stub
-			
-		}
-
 	}
 	
 	// /* [ options, ] listener */
