@@ -68,6 +68,16 @@ public final class NativeException extends RuntimeException {
         this.path = null;
     }
 
+    public NativeException(final String syscall,
+    		               final String message) {
+    	super(message);
+    	this.errno = 0;
+    	this.errnoString = null;
+    	this.errnoMessage = null;
+    	this.syscall = syscall;
+    	this.path = null;
+    }
+    
     public int errno() {
         return errno;
     }

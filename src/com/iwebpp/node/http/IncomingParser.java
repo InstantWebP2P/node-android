@@ -415,7 +415,7 @@ extends HttpParser {
 	// up by doing `parser.data = {}`, which should
 	// be done in FreeList.free.  `parsers.free(parser)`
 	// should be all that is needed.
-	public static void freeParser(IncomingParser parser, IncomingMessage req) {
+	public static void freeParser(IncomingParser parser, Object req) {
 	  if (parser != null) {
 	    parser._headers.clear();
 	    ///parser.onIncoming = null;
@@ -427,7 +427,11 @@ extends HttpParser {
 	    parser = null;
 	  }
 	  if (req != null) {
-	    req.parser = null;
+		  if (req instanceof IncomingMessage)
+			  ((IncomingMessage)req).parser = null;
+		  
+		  if (req instanceof ClientRequest)
+			  ((ClientRequest)req).parser = null;
 	  }
 	}
 	

@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.NodeContext.nextTickCallback;
+import com.iwebpp.node.NodeError;
 import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
 import com.iwebpp.node.EventEmitter.Listener;
@@ -17,6 +18,8 @@ public class ClientRequest
 extends OutgoingMessage {
 	private final static String TAG = "ClientRequest";
 
+	public IncomingParser parser;
+
 	public IncomingMessage res;
 
 	public String method;
@@ -24,8 +27,12 @@ extends OutgoingMessage {
 	public boolean upgradeOrConnect;
 
 	protected TCP.Socket socket;
+	
+	private socketCloseListener socketCloseListener;
 
-	public IncomingParser parser;
+	private int maxHeadersCount = 4000;
+
+	protected boolean aborted;
 
 	protected ClientRequest(NodeContext context) {
 		super(context);
@@ -157,7 +164,7 @@ extends OutgoingMessage {
         private parserOnIncomingClient(){}
 		
 		@Override
-		protected boolean onIncoming(IncomingMessage incoming,
+		protected boolean onIncoming(final IncomingMessage res,
 				boolean shouldKeepAlive) throws Exception {
 			Socket socket = this.socket;
 			final ClientRequest req = (ClientRequest)socket._httpMessage;
@@ -239,8 +246,8 @@ extends OutgoingMessage {
 						///}
 
 						// TBD...
-						///socket.removeListener("close", socketCloseListener);
-						///socket.removeListener("error", socketErrorListener);
+						socket.removeListener("close", socketCloseListener);
+						socket.removeListener("error", socketErrorListener);
 						
 						// Mark this socket as available, AFTER user-added end
 						// handlers have a chance to run.
@@ -272,9 +279,233 @@ extends OutgoingMessage {
 
 	}
 
+	private void tickOnSocket(ClientRequest req, TCP.Socket socket) throws Exception {
+		///var parser = parsers.alloc();
+		parserOnIncomingClient parser = new parserOnIncomingClient(context, socket);
+
+		req.socket = socket;
+		req.connection = socket;
+		parser.Reinitialize(http_parser_type.HTTP_RESPONSE);
+		parser.socket = socket;
+		parser.incoming = null;
+		req.parser = parser;
+
+		socket.parser = parser;
+		socket._httpMessage = req;
+
+		// Setup "drain" propogation.
+		http.httpSocketSetup(socket);
+
+		// Propagate headers limit from request object to parser
+		if (req.maxHeadersCount  > 0/*util.isNumber(req.maxHeadersCount)*/) {
+			parser.maxHeaderPairs = req.maxHeadersCount << 1;
+		} else {
+			// Set default value because parser may be reused from FreeList
+			parser.maxHeaderPairs = 2000;
+		}
+
+		///parser.onIncoming = parserOnIncomingClient;
+		socket.on("error", socketErrorListener);
+		socket.on("data", socketOnData);
+		socket.on("end", socketOnEnd);
+		
+		this.socketCloseListener = new socketCloseListener(context, socket);
+		socket.on("close", socketCloseListener);
+		
+		req.emit("socket", socket);
+}
+
+	public void onSocket(final TCP.Socket socket) {
+		final ClientRequest req = this;
+
+		context.nextTick(new NodeContext.nextTickCallback() {
+
+			@Override
+			public void onNextTick() throws Exception {
+				if (req.aborted) {
+					// If we were aborted while waiting for a socket, skip the whole thing.
+					socket.emit("free");
+				} else {
+					tickOnSocket(req, socket);
+				}
+			}
+
+		});
+
+	}
+
 	@Override
 	protected void _implicitHeader() {
 		// TODO Auto-generated method stub
 		
 	}
+
+	private static NodeError createHangUpError() {
+		return new NodeError("ECONNRESET", "socket hang up");
+	}
+	
+	private class socketCloseListener 
+	implements Listener {
+		private NodeContext context;
+		private TCP.Socket  socket;
+
+		public socketCloseListener(NodeContext ctx, TCP.Socket socket) {
+			this.context = ctx;
+			this.socket  = socket;
+		}
+		private socketCloseListener(){}
+
+		@Override
+		public void onEvent(Object data) throws Exception {
+			///var socket = this;
+			final ClientRequest req = (ClientRequest)socket._httpMessage;
+			Log.d(TAG, "HTTP socket close");
+
+			// Pull through final chunk, if anything is buffered.
+			// the ondata function will handle it properly, and this
+			// is a no-op if no final chunk remains.
+			///socket.read();
+			socket.read(-1);
+
+			// NOTE: Its important to get parser here, because it could be freed by
+			// the `socketOnData`.
+			parserOnIncomingClient parser = (parserOnIncomingClient) socket.parser;
+			req.emit("close");
+			if (req.res!=null && req.res.readable()) {
+				// Socket closed before we emitted 'end' below.
+				req.res.emit("aborted");
+				final IncomingMessage res = req.res;
+				res.on("end", new Listener(){
+
+					@Override
+					public void onEvent(Object data) throws Exception {
+						res.emit("close");
+					}
+
+				});
+				res.push(null, null);
+			} else if (req.res==null && !req.socket.is_hadError()) {
+				// This socket error fired before we started to
+				// receive a response. The error needs to
+				// fire on the request.
+				req.emit("error", createHangUpError());
+				req.socket.set_hadError(true);
+			}
+
+			// Too bad.  That output wasn't getting written.
+			// This is pretty terrible that it doesn't raise an error.
+			// Fixed better in v0.10
+			if (req.output != null)
+				///req.output.length = 0;
+				req.output.clear();
+
+			if (req.outputEncodings != null)
+				///req.outputEncodings.length = 0;
+				req.outputEncodings.clear();
+
+			if (parser != null) {
+				parser.Finish();
+				IncomingParser.freeParser(parser, req);
+			}
+		}
+
+	}
+
+/*
+function socketErrorListener(err) {
+  var socket = this;
+  var parser = socket.parser;
+  var req = socket._httpMessage;
+  debug('SOCKET ERROR:', err.message, err.stack);
+
+  if (req) {
+    req.emit('error', err);
+    // For Safety. Some additional errors might fire later on
+    // and we need to make sure we don't double-fire the error event.
+    req.socket._hadError = true;
+  }
+
+  if (parser) {
+    parser.finish();
+    freeParser(parser, req);
+  }
+  socket.destroy();
+}
+
+function socketOnEnd() {
+  var socket = this;
+  var req = this._httpMessage;
+  var parser = this.parser;
+
+  if (!req.res && !req.socket._hadError) {
+    // If we don't have a response then we know that the socket
+    // ended prematurely and we need to emit an error on the request.
+    req.emit('error', createHangUpError());
+    req.socket._hadError = true;
+  }
+  if (parser) {
+    parser.finish();
+    freeParser(parser, req);
+  }
+  socket.destroy();
+}
+
+function socketOnData(d) {
+  var socket = this;
+  var req = this._httpMessage;
+  var parser = this.parser;
+
+  assert(parser && parser.socket === socket);
+
+  var ret = parser.execute(d);
+  if (ret instanceof Error) {
+    debug('parse error');
+    freeParser(parser, req);
+    socket.destroy();
+    req.emit('error', ret);
+    req.socket._hadError = true;
+  } else if (parser.incoming && parser.incoming.upgrade) {
+    // Upgrade or CONNECT
+    var bytesParsed = ret;
+    var res = parser.incoming;
+    req.res = res;
+
+    socket.removeListener('data', socketOnData);
+    socket.removeListener('end', socketOnEnd);
+    parser.finish();
+
+    var bodyHead = d.slice(bytesParsed, d.length);
+
+    var eventName = req.method === 'CONNECT' ? 'connect' : 'upgrade';
+    if (EventEmitter.listenerCount(req, eventName) > 0) {
+      req.upgradeOrConnect = true;
+
+      // detach the socket
+      socket.emit('agentRemove');
+      socket.removeListener('close', socketCloseListener);
+      socket.removeListener('error', socketErrorListener);
+
+      // TODO(isaacs): Need a way to reset a stream to fresh state
+      // IE, not flowing, and not explicitly paused.
+      socket._readableState.flowing = null;
+
+      req.emit(eventName, res, socket, bodyHead);
+      req.emit('close');
+    } else {
+      // Got Upgrade header or CONNECT method, but have no handler.
+      socket.destroy();
+    }
+    freeParser(parser, req);
+  } else if (parser.incoming && parser.incoming.complete &&
+             // When the status code is 100 (Continue), the server will
+             // send a final response after this client sends a request
+             // body. So, we must not free the parser.
+             parser.incoming.statusCode !== 100) {
+    socket.removeListener('data', socketOnData);
+    socket.removeListener('end', socketOnEnd);
+    freeParser(parser, req);
+  }
+}
+*/
+
 }

@@ -100,7 +100,7 @@ public final class TCP {
 			///if (!(this instanceof Socket)) return new Socket(options);
 
 			this._connecting = false;
-			this._hadError = false;
+			this.set_hadError(false);
 			this._handle = null;
 			this._host = null;
 
@@ -1405,6 +1405,20 @@ Socket.prototype._writev = function(chunks, cb) {
 
 		public void unref() {
 			this._handle.unref();
+		}
+
+		/**
+		 * @return the _hadError
+		 */
+		public boolean is_hadError() {
+			return _hadError;
+		}
+
+		/**
+		 * @param _hadError the _hadError to set
+		 */
+		public void set_hadError(boolean _hadError) {
+			this._hadError = _hadError;
 		}
 
 	}
