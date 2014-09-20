@@ -31,6 +31,10 @@ public final class NodeContext {
 		this.loop = new LoopHandle();
 	}
 
+	public void execute() throws Throwable {
+		this.loop.run();
+	}
+	
 	/*
 	 * DOM-style timers
 	 */

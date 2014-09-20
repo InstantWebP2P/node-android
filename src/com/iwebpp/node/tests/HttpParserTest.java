@@ -259,7 +259,7 @@ public final class HttpParserTest extends EventEmitter2 {
 				         "Sec-WebSocket-Protocol: sample\r\n" +
 				         "Upgrade: WebSocket\r\n" +
 				         "Sec-WebSocket-Key1: 4 @1  46546xW%0l 1 5\r\n" +
-				         "Origin: http://example.com\r\n" +
+				         "Origin: Http://example.com\r\n" +
 				         "\r\n" +
 				         "Hot diggity dogg",
 						
@@ -304,15 +304,15 @@ public final class HttpParserTest extends EventEmitter2 {
 				         "\r\n" ,
 						
 						// QUERY_TERMINATED_HOST 22
-						"GET http://hypnotoad.org?hail=all HTTP/1.1\r\n" +
+						"GET Http://hypnotoad.org?hail=all HTTP/1.1\r\n" +
 				         "\r\n" ,
 						
 						// QUERY_TERMINATED_HOSTPORT 23
-						"GET http://hypnotoad.org:1234?hail=all HTTP/1.1\r\n" +
+						"GET Http://hypnotoad.org:1234?hail=all HTTP/1.1\r\n" +
 				         "\r\n" ,
 						
 						// SPACE_TERMINATED_HOSTPORT 24
-						"GET http://hypnotoad.org:1234 HTTP/1.1\r\n" +
+						"GET Http://hypnotoad.org:1234 HTTP/1.1\r\n" +
 				         "\r\n" ,
 						
 						// PATCH_REQ 25
@@ -358,7 +358,7 @@ public final class HttpParserTest extends EventEmitter2 {
 				         "\r\n" ,
 						
 						// PROXY_WITH_BASIC_AUTH 31
-						"GET http://a%12:b!&*$@hypnotoad.org:1234/toto HTTP/1.1\r\n" +
+						"GET Http://a%12:b!&*$@hypnotoad.org:1234/toto HTTP/1.1\r\n" +
 				         "\r\n" ,
 						
 						// LINE_FOLDING_IN_HEADER_WITH_LF 32
@@ -385,7 +385,7 @@ public final class HttpParserTest extends EventEmitter2 {
 				String messages_response[] = {
 						// GOOGLE_301 0
 						"HTTP/1.1 301 Moved Permanently\r\n" +
-				         "Location: http://www.google.com/\r\n" +
+				         "Location: Http://www.google.com/\r\n" +
 				         "Content-Type: text/html; charset=UTF-8\r\n" +
 				         "Date: Sun, 26 Apr 2009 11:11:49 GMT\r\n" +
 				         "Expires: Tue, 26 May 2009 11:11:49 GMT\r\n" +
@@ -394,11 +394,11 @@ public final class HttpParserTest extends EventEmitter2 {
 				         "Server: gws\r\n" +
 				         "Content-Length:  219  \r\n" +
 				         "\r\n" +
-				         "<HTML><HEAD><meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n" +
+				         "<HTML><HEAD><meta Http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n" +
 				         "<TITLE>301 Moved</TITLE></HEAD><BODY>\n" +
 				         "<H1>301 Moved</H1>\n" +
 				         "The document has moved\n" +
-				         "<A HREF=\"http://www.google.com/\">here</A>.\r\n" +
+				         "<A HREF=\"Http://www.google.com/\">here</A>.\r\n" +
 				         "</BODY></HTML>\r\n" ,
 						
 						// NO_CONTENT_LENGTH_RESPONSE 1
@@ -410,7 +410,7 @@ public final class HttpParserTest extends EventEmitter2 {
 				         "Connection: close\r\n" +
 				         "\r\n" +
 				         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-				         "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+				         "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"Http://schemas.xmlsoap.org/soap/envelope/\">\n" +
 				         "  <SOAP-ENV:Body>\n" +
 				         "    <SOAP-ENV:Fault>\n" +
 				         "       <faultcode>SOAP-ENV:Client</faultcode>\n" +
@@ -444,7 +444,7 @@ public final class HttpParserTest extends EventEmitter2 {
 				         "Content-Type: text/html; charset=utf-8\n" +
 				         "Connection: close\n" +
 				         "\n" +
-				         "these headers are from http://news.ycombinator.com/",
+				         "these headers are from Http://news.ycombinator.com/",
 				         
 						// PROXY_CONNECTION 6
 						"HTTP/1.1 200 OK\r\n" +
@@ -468,7 +468,7 @@ public final class HttpParserTest extends EventEmitter2 {
 				         "Server: Apache/2.2.3 (Red Hat)\r\n" +
 				         "Cache-Control: public\r\n" +
 				         "Pragma: \r\n" +
-				         "Location: http://www.bonjourmadame.fr/\r\n" +
+				         "Location: Http://www.bonjourmadame.fr/\r\n" +
 				         "Vary: Accept-Encoding\r\n" +
 				         "Content-Length: 0\r\n" +
 				         "Content-Type: text/html; charset=UTF-8\r\n" +
@@ -543,9 +543,9 @@ public final class HttpParserTest extends EventEmitter2 {
 				         "Date: Wed, 15 May 2013 17:06:33 GMT\r\n" +
 				         "Server: Server\r\n" +
 				         "x-amz-id-1: 0GPHKXSJQ826RK7GZEB2\r\n" +
-				         "p3p: policyref=\"http://www.amazon.com/w3c/p3p.xml\",CP=\"CAO DSP LAW CUR ADM IVAo IVDo CONo OTPo OUR DELi PUBi OTRi BUS PHY ONL UNI PUR FIN COM NAV INT DEM CNT STA HEA PRE LOC GOV OTC \"\r\n" +
+				         "p3p: policyref=\"Http://www.amazon.com/w3c/p3p.xml\",CP=\"CAO DSP LAW CUR ADM IVAo IVDo CONo OTPo OUR DELi PUBi OTRi BUS PHY ONL UNI PUR FIN COM NAV INT DEM CNT STA HEA PRE LOC GOV OTC \"\r\n" +
 				         "x-amz-id-2: STN69VZxIFSz9YJLbz1GDbxpbjG6Qjmmq5E3DxRhOUw+Et0p4hr7c/Q8qNcx4oAD\r\n" +
-				         "Location: http://www.amazon.com/Dan-Brown/e/B000AP9DSU/ref=s9_pop_gw_al1?_encoding=UTF8&refinementId=618073011&pf_rd_m=ATVPDKIKX0DER&pf_rd_s=center-2&pf_rd_r=0SHYY5BZXN3KR20BNFAY&pf_rd_t=101&pf_rd_p=1263340922&pf_rd_i=507846\r\n" +
+				         "Location: Http://www.amazon.com/Dan-Brown/e/B000AP9DSU/ref=s9_pop_gw_al1?_encoding=UTF8&refinementId=618073011&pf_rd_m=ATVPDKIKX0DER&pf_rd_s=center-2&pf_rd_r=0SHYY5BZXN3KR20BNFAY&pf_rd_t=101&pf_rd_p=1263340922&pf_rd_i=507846\r\n" +
 				         "Vary: Accept-Encoding,User-Agent\r\n" +
 				         "Content-Type: text/html; charset=ISO-8859-1\r\n" +
 				         "Transfer-Encoding: chunked\r\n" +

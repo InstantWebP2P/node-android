@@ -5,10 +5,11 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import com.iwebpp.node.EventEmitter.Listener;
+import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.TCP;
 
 
-public final class http {
+public final class Http {
 
 	public static final Map<Integer, String> STATUS_CODES;
 
@@ -158,26 +159,33 @@ public final class http {
 		private response_socket_head_t(){}
 	}
 	
-	// http.createServer([requestListener])
-	public static Server createServer(Server.requestListener onreq) {
-
-		return null;
+	// Http.createServer([requestListener])
+	public static Server createServer(NodeContext ctx, Server.requestListener onreq) throws Exception {
+		  return new Server(ctx, onreq);
 	}
 
-	// http.request(options, [callback])
-	public static ClientRequest request(ReqOptions options, ClientRequest.responseListener onres) {
+	// Http.request(options, [callback])
+	public static ClientRequest request(
+			NodeContext ctx, 
+			ReqOptions options, 
+			ClientRequest.responseListener onres) throws Exception {
 
-		return null;
+		  return new ClientRequest(ctx, options, onres);
 	}
+	// TBD... parser ReqOptions from URL
 	public static ClientRequest request(String url, ClientRequest.responseListener onres) {
 
 		return null;
 	}
 
-	// http.get(options, [callback])
-	public static ClientRequest get(ReqOptions options, ClientRequest.responseListener onres) {
-
-		return null;
+	// Http.get(options, [callback])
+	public static ClientRequest get(
+			NodeContext ctx, 
+			ReqOptions options, 
+			ClientRequest.responseListener onres) throws Exception {
+		ClientRequest req = request(ctx, options, onres);
+		req.end(null, null, null);
+		return req;
 	}
 	public static ClientRequest get(String url, ClientRequest.responseListener onres) {
 

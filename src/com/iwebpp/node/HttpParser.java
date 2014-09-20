@@ -3616,7 +3616,7 @@ struct http_parser_settings {
 		}
 
 		/* host must be present if there is a schema */
-		/* parsing http:///toto will fail */
+		/* parsing Http:///toto will fail */
 		if ((u.field_set & 
 			((1 << http_parser_url_fields.UF_SCHEMA.field) |
 			 (1 << http_parser_url_fields.UF_HOST.field))) != 0) {

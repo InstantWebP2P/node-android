@@ -1,6 +1,8 @@
 package com.iwebpp.node.http;
 
 import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.Map;
 
 import android.util.Log;
 
@@ -9,10 +11,9 @@ import com.iwebpp.node.NodeContext.nextTickCallback;
 import com.iwebpp.node.NodeError;
 import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
-import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.HttpParser.http_parser_type;
-import com.iwebpp.node.Writable2;
-import com.iwebpp.node.http.http.response_socket_head_t;
+import com.iwebpp.node.Util;
+import com.iwebpp.node.http.Http.response_socket_head_t;
 
 public class ClientRequest 
 extends OutgoingMessage {
@@ -26,56 +27,327 @@ extends OutgoingMessage {
 
 	public boolean upgradeOrConnect;
 
-	protected TCP.Socket socket;
-	
+	// Socket event listeners
 	private socketCloseListener socketCloseListener;
+	private socketErrorListener socketErrorListener;
+	private socketOnData        socketOnData;
+	private socketOnEnd         socketOnEnd;
 
 	private int maxHeadersCount = 4000;
 
-	protected boolean aborted;
+	protected long aborted = -1;
 
-	protected ClientRequest(NodeContext context) {
+	private String socketPath;
+
+	private String path;
+
+	protected ClientRequest(NodeContext context, ReqOptions options, responseListener cb) throws Exception {
 		super(context);
-		// TODO Auto-generated constructor stub
+		final ClientRequest self = this;
+
+		/*if (util.isString(options)) {
+		    options = url.parse(options);
+		  } else {
+		    options = util._extend({}, options);
+		  }*/
+
+		// No global agent in node.android
+		Agent agent = options.agent;
+		///var defaultAgent = options._defaultAgent || Agent.globalAgent;
+		/*if (agent === false) {
+		    agent = new defaultAgent.constructor();
+		  } else */if (Util.isNullOrUndefined(agent) && null==options.createConnection) {
+			  // TBD...
+			  agent = new Agent(context, options);///defaultAgent;
+		  }
+		  self.agent = agent;
+
+		  String protocol = !Util.zeroString(options.protocol) ?  options.protocol : "http:";///defaultAgent.protocol;
+		  String expectedProtocol = "http:";///defaultAgent.protocol;
+		  if (self.agent!=null && self.agent.getProtocol()!=null)
+			  expectedProtocol = self.agent.getProtocol();
+
+		  if (options.path!=null && options.path.contains(" ") /*/ /.test(options.path)*/) {
+			  // The actual regex is more like /[^A-Za-z0-9\-._~!$&'()*+,;=/:@]/
+			  // with an additional rule for ignoring percentage-escaped characters
+			  // but that's a) hard to capture in a regular expression that performs
+			  // well, and b) possibly too restrictive for real-world usage. That's
+			  // why it only scans for spaces because those are guaranteed to create
+			  // an invalid request.
+			  throw new Exception("Request path contains unescaped characters.");
+		  } else if (!protocol.equalsIgnoreCase(expectedProtocol)) {
+			  throw new Error("Protocol " + protocol + " not supported. " +
+					  "Expected " + expectedProtocol + ".");
+		  }
+
+		  int defaultPort = options.defaultPort > 0 ? options.defaultPort :
+			  self.agent!=null ? self.agent.getDefaultPort() : 80;
+
+			  int port = options.port = options.port > 0 ? options.port : defaultPort;/// || 80;
+			  String host = options.host = options.hostname!=null ? options.hostname :
+				  options.host!=null ?  options.host : "localhost";
+
+			  ///if (util.isUndefined(options.setHost)) {
+			  boolean setHost = options.setHost;
+			  ///}
+
+			  self.socketPath = options.socketPath;
+
+			  String method = self.method = (options.method!=null? options.method : "GET").toUpperCase();
+			  self.path = options.path!=null? options.path : "/";
+			  if (cb!=null) {
+				  ///self.once("response", cb);
+				  self.onceResponse(cb);
+			  }
+
+			  /*
+		  if (!util.isArray(options.headers)) {
+		    if (options.headers) {
+		      var keys = Object.keys(options.headers);
+		      for (var i = 0, l = keys.length; i < l; i++) {
+		        var key = keys[i];
+		        self.setHeader(key, options.headers[key]);
+		      }
+		    }
+		    if (host!=null && !this.getHeader("host") && setHost) {
+		      var hostHeader = host;
+		      if (port && +port !== defaultPort) {
+		        hostHeader += ':' + port;
+		      }
+		      this.setHeader("Host", hostHeader);
+		    }
+		  }
+			   */
+			  {
+				  if (options.headers != null)
+					  for (Map.Entry<String, List<String>> entry : options.headers.entrySet())
+						  self.setHeader(entry.getKey(), entry.getValue());
+
+				  if (host!=null && null==this.getHeader("host") && setHost) {
+					  String hostHeader = host;
+					  if (port>0 && port != defaultPort) {
+						  hostHeader += ':' + port;
+					  }
+					  this.setHeader("Host", hostHeader);
+				  }
+			  }
+
+
+			  if (options.auth!=null && null==this.getHeader("Authorization")) {
+				  //basic auth
+				  this.setHeader("Authorization", "Basic " +
+						  ///new ByteBuffer(options.auth).toString("base64"));
+						  options.auth);
+			  }
+
+			  if (method == "GET" ||
+					  method == "HEAD" ||
+					  method == "DELETE" ||
+					  method == "OPTIONS" ||
+					  method == "CONNECT") {
+				  self.useChunkedEncodingByDefault = false;
+			  } else {
+				  self.useChunkedEncodingByDefault = true;
+			  }
+
+			  if (null!=options.headers/*util.isArray(options.headers)*/) {
+				  self._storeHeader(self.method + " " + self.path + " HTTP/1.1\r\n",
+						  options.headers);
+			  } else if (self.getHeader("expect")!=null) {
+				  self._storeHeader(self.method + " " + self.path + " HTTP/1.1\r\n",
+						  self._renderHeaders());
+			  }
+
+			  /*if (self.socketPath) {
+		    self._last = true;
+		    self.shouldKeepAlive = false;
+		    var conn = self.agent.createConnection({ path: self.socketPath });
+		    self.onSocket(conn);
+		  } else*/ if (self.agent!=null) {
+			  // If there is an agent we should default to Connection:keep-alive,
+			  // but only if the Agent will actually reuse the connection!
+			  // If it's not a keepAlive agent, and the maxSockets==Infinity, then
+			  // there's never a case where this socket will actually be reused
+			  ///if (!self.agent.isKeepAlive() && !Number.isFinite(self.agent.getMaxSockets())) {
+			  if (!self.agent.isKeepAlive() && self.agent.getMaxSockets()==Agent.defaultMaxSockets) {
+				  self._last = true;
+				  self.shouldKeepAlive = false;
+			  } else {
+				  self._last = false;
+				  self.shouldKeepAlive = true;
+			  }
+			  self.agent.addRequest(self, options);
+		  } else {
+			  // No agent, default to Connection:close.
+			  self._last = true;
+			  self.shouldKeepAlive = false;
+			  TCP.Socket conn;
+			  if (options.createConnection != null) {
+				  conn = options.
+						  createConnection.
+						  createConnection(
+								  context, 
+								  options.host, options.port,
+								  options.localAddress,
+								  options.localPort,
+								  null);
+			  } else {
+				  Log.d(TAG, "CLIENT use TCP.createConnection " + options);
+				  conn = TCP.createConnection(
+						  context, 
+						  options.host, options.port,
+						  options.localAddress,
+						  options.localPort,
+						  null);
+			  }
+			  self.onSocket(conn);
+		  }
+
+		  self._deferToConnect(null, null, new Listener(){
+
+			  @Override
+			  public void onEvent(Object data) throws Exception {
+				  self._flush();
+				  ///self = null;
+			  }
+
+		  });
+
 	}
 
-	@Override
-	protected void _write(Object chunk, String encoding, WriteCB cb)
-			throws Exception {
-		// TODO Auto-generated method stub
-
+	protected void _finish() throws Exception {
+		///DTRACE_HTTP_CLIENT_REQUEST(this, this.connection);
+		///COUNTER_HTTP_CLIENT_REQUEST();
+		super._finish();
 	}
 
-	///request.write(chunk, [encoding])
-	public boolean write(Object chunk, String encoding) {
+	public void abort() throws Exception {
+		// Mark as aborting so we can avoid sending queued request data
+		// This is used as a truthy flag elsewhere. The use of Date.now is for
+		// debugging purposes only.
+		this.aborted = System.currentTimeMillis();
 
-		return false;
+		// If we're aborting, we don't care about any more response data.
+		if (this.res != null)
+			this.res._dump();
+		else
+			this.onceResponse(new responseListener(){
+
+				@Override
+				public void onResponse(IncomingMessage res) throws Exception {
+					res._dump();
+				}
+
+			});
+
+		// In the event that we don't have a socket, we will pop out of
+		// the request queue through handling in onSocket.
+		if (this.socket != null) {
+			// in-progress
+			this.socket.destroy(null);
+		}
 	}
 
-	///request.end([data], [encoding])
-	public void end(Object data, String encoding) {
+	private void _deferToConnect(
+			final String method, 
+			final Object arguments_, 
+			final Listener cb) throws Exception {
+		// This function is for calls that need to happen once the socket is
+		// connected and writable. It's an important promisy thing for all the socket
+		// calls that happen either now (when a socket is assigned) or
+		// in the future (when a socket gets assigned out of the pool and is
+		// eventually writable).
+		final ClientRequest self = this;
 
-	}
+		Listener onSocket = new Listener(){
 
-	public void abort() {
+			@Override
+			public void onEvent(Object data) throws Exception {
+				final TCP.Socket socket = (TCP.Socket)data;
+				
+				Log.d(TAG, "onSocket: "+socket);
+				Log.d(TAG, "this.connection: "+self.connection);
+				
+				if (socket.writable()) {
+					/*
+					if (method) {
+						self.socket[method].apply(self.socket, arguments_);
+					}
+					if (cb) { cb(); }*/
+					if (method == "setNoDelay") {
+						Boolean args = (Boolean)arguments_;
 
+						socket.setNoDelay(args);
+					} else if (method == "setSocketKeepAlive") {
+						enable_initialDelay_b args = (enable_initialDelay_b)arguments_;
+
+						socket.setKeepAlive(args.enable, args.initialDelay);
+					}
+					if (cb != null) cb.onEvent(null);
+				} else {
+					/*self.socket.once("connect", function() {
+						if (method) {
+							self.socket[method].apply(self.socket, arguments_);
+						}
+						if (cb) { cb();}
+					});*/
+					socket.once("connect", new Listener(){
+
+						@Override
+						public void onEvent(Object data) throws Exception {
+							if (method == "setNoDelay") {
+								Boolean args = (Boolean)arguments_;
+
+								socket.setNoDelay(args);
+							} else if (method == "setSocketKeepAlive") {
+								enable_initialDelay_b args = (enable_initialDelay_b)arguments_;
+
+								socket.setKeepAlive(args.enable, args.initialDelay);
+							}
+							if (cb != null) cb.onEvent(null);}
+
+					});
+				}
+			}
+
+		};
+
+		if (null==self.socket) {
+			self.once("socket", onSocket);
+		} else {
+			onSocket.onEvent(null);
+		}
 	}
 
 	///request.setTimeout(timeout, [callback])
 
-	public int setNoDelay(boolean noDelay) {
-
-		return 0;
+	public void setNoDelay(boolean noDelay) throws Exception {
+		this._deferToConnect("setNoDelay", noDelay, null);
 	}
 
-	public int setSocketKeepAlive(boolean enable, int initialDelay) {
+	public void setSocketKeepAlive(boolean enable, int initialDelay) throws Exception {
+		this._deferToConnect("setKeepAlive", new enable_initialDelay_b(enable, initialDelay), null);
+	}
 
-		return 0;
+	/*ClientRequest.prototype.clearTimeout = function(cb) {
+  this.setTimeout(0, cb);
+};*/
+
+	// POJO beans
+	private class enable_initialDelay_b {
+		public boolean enable;
+		public int     initialDelay;
+
+		public enable_initialDelay_b(boolean enable, int initialDelay) {
+			this.enable = enable;
+			this.initialDelay = initialDelay;
+		}
+		private enable_initialDelay_b(){}
 	}
 
 	// Event listeners
-	public void onResponse(final responseListener cb) throws Exception {
-		this.on("response", new Listener(){
+	public void onceResponse(final responseListener cb) throws Exception {
+		this.once("response", new Listener(){
 
 			@Override
 			public void onEvent(Object raw) throws Exception {      
@@ -90,8 +362,8 @@ extends OutgoingMessage {
 		public void onResponse(IncomingMessage res) throws Exception;
 	}
 
-	public void onSocket(final socketListener cb) throws Exception {
-		this.on("socket", new Listener(){
+	public void onceSocket(final socketListener cb) throws Exception {
+		this.once("socket", new Listener(){
 
 			@Override
 			public void onEvent(Object raw) throws Exception {      
@@ -106,8 +378,8 @@ extends OutgoingMessage {
 		public void onSocket(TCP.Socket socket) throws Exception;
 	}
 
-	public void onConnect(final connectListener cb) throws Exception {
-		this.on("connect", new Listener(){
+	public void onceConnect(final connectListener cb) throws Exception {
+		this.once("connect", new Listener(){
 
 			@Override
 			public void onEvent(Object raw) throws Exception {      
@@ -122,8 +394,8 @@ extends OutgoingMessage {
 		public void onConnect(IncomingMessage res, TCP.Socket socket, ByteBuffer head) throws Exception;
 	}
 
-	public void onUpgrade(final upgradeListener cb) throws Exception {
-		this.on("upgrade", new Listener(){
+	public void onceUpgrade(final upgradeListener cb) throws Exception {
+		this.once("upgrade", new Listener(){
 
 			@Override
 			public void onEvent(Object raw) throws Exception {      
@@ -161,8 +433,8 @@ extends OutgoingMessage {
 			super(ctx, http_parser_type.HTTP_RESPONSE, socket);
 			this.context = ctx;
 		}
-        private parserOnIncomingClient(){}
-		
+		private parserOnIncomingClient(){}
+
 		@Override
 		protected boolean onIncoming(final IncomingMessage res,
 				boolean shouldKeepAlive) throws Exception {
@@ -221,7 +493,7 @@ extends OutgoingMessage {
 			///COUNTER_HTTP_CLIENT_RESPONSE();
 			req.res = res;
 			res.req = req;
-			
+
 			// add our listener first, so that we guarantee socket cleanup
 			Listener responseOnEnd = new Listener() {
 
@@ -248,7 +520,7 @@ extends OutgoingMessage {
 						// TBD...
 						socket.removeListener("close", socketCloseListener);
 						socket.removeListener("error", socketErrorListener);
-						
+
 						// Mark this socket as available, AFTER user-added end
 						// handlers have a chance to run.
 						///process.nextTick(function() {
@@ -258,14 +530,14 @@ extends OutgoingMessage {
 							public void onNextTick() throws Exception {
 								socket.emit("free");
 							}
-							
+
 						});
-						
+
 					}
 				}
 			};
 			res.on("end", responseOnEnd);
-			
+
 			boolean handled = req.emit("response", res);
 
 			// If the user did not listen for the 'response' event, then they
@@ -293,8 +565,10 @@ extends OutgoingMessage {
 		socket.parser = parser;
 		socket._httpMessage = req;
 
+		Log.d(TAG, "req.connection: "+req.connection);
+
 		// Setup "drain" propogation.
-		http.httpSocketSetup(socket);
+		Http.httpSocketSetup(socket);
 
 		// Propagate headers limit from request object to parser
 		if (req.maxHeadersCount  > 0/*util.isNumber(req.maxHeadersCount)*/) {
@@ -305,27 +579,46 @@ extends OutgoingMessage {
 		}
 
 		///parser.onIncoming = parserOnIncomingClient;
+		this.socketErrorListener = new socketErrorListener(context, socket);
 		socket.on("error", socketErrorListener);
+
+		this.socketOnData = new socketOnData(context, socket);
 		socket.on("data", socketOnData);
+
+		this.socketOnEnd = new socketOnEnd(context, socket);
 		socket.on("end", socketOnEnd);
-		
+
 		this.socketCloseListener = new socketCloseListener(context, socket);
 		socket.on("close", socketCloseListener);
+
+		// do resume to switch to legacy mode
+		// TBD...
+		socket.resume();
 		
+		Log.d(TAG, "socket.resume()");
+
 		req.emit("socket", socket);
-}
+		
+		Log.d(TAG, "emit socket: "+socket);
+	}
 
 	public void onSocket(final TCP.Socket socket) {
 		final ClientRequest req = this;
+		
+		Log.d(TAG, "onSocket");
 
 		context.nextTick(new NodeContext.nextTickCallback() {
 
 			@Override
 			public void onNextTick() throws Exception {
-				if (req.aborted) {
+				Log.d(TAG, "onNextTick ");
+
+				if (req.aborted > 0) {
 					// If we were aborted while waiting for a socket, skip the whole thing.
 					socket.emit("free");
 				} else {
+					Log.d(TAG, "tickOnSocket");
+
 					tickOnSocket(req, socket);
 				}
 			}
@@ -335,15 +628,15 @@ extends OutgoingMessage {
 	}
 
 	@Override
-	protected void _implicitHeader() {
-		// TODO Auto-generated method stub
-		
+	protected void _implicitHeader() throws Exception {
+		this._storeHeader(this.method + " " + this.path + " HTTP/1.1\r\n",
+				this._renderHeaders());
 	}
 
 	private static NodeError createHangUpError() {
 		return new NodeError("ECONNRESET", "socket hang up");
 	}
-	
+
 	private class socketCloseListener 
 	implements Listener {
 		private NodeContext context;
@@ -410,102 +703,143 @@ extends OutgoingMessage {
 		}
 
 	}
+	private class socketErrorListener 
+	implements Listener {
+		private NodeContext context;
+		private TCP.Socket  socket;
 
-/*
-function socketErrorListener(err) {
-  var socket = this;
-  var parser = socket.parser;
-  var req = socket._httpMessage;
-  debug('SOCKET ERROR:', err.message, err.stack);
+		public socketErrorListener(NodeContext ctx, TCP.Socket socket) {
+			this.context = ctx;
+			this.socket  = socket;
+		}
+		private socketErrorListener(){}
 
-  if (req) {
-    req.emit('error', err);
-    // For Safety. Some additional errors might fire later on
-    // and we need to make sure we don't double-fire the error event.
-    req.socket._hadError = true;
-  }
+		@Override
+		public void onEvent(Object err) throws Exception {
+			///var socket = this;
+			parserOnIncomingClient parser = (parserOnIncomingClient) socket.parser;
+			ClientRequest req = (ClientRequest) socket._httpMessage;
+			Log.d(TAG, "SOCKET ERROR: " + err);/// err.message, err.stack);
 
-  if (parser) {
-    parser.finish();
-    freeParser(parser, req);
-  }
-  socket.destroy();
-}
+			if (req != null) {
+				req.emit("error", err);
+				// For Safety. Some additional errors might fire later on
+				// and we need to make sure we don't double-fire the error event.
+				req.socket.set_hadError(true);
+			}
 
-function socketOnEnd() {
-  var socket = this;
-  var req = this._httpMessage;
-  var parser = this.parser;
+			if (parser != null) {
+				parser.Finish();
+				IncomingParser.freeParser(parser, req);
+			}
+			socket.destroy(null);
+		}
 
-  if (!req.res && !req.socket._hadError) {
-    // If we don't have a response then we know that the socket
-    // ended prematurely and we need to emit an error on the request.
-    req.emit('error', createHangUpError());
-    req.socket._hadError = true;
-  }
-  if (parser) {
-    parser.finish();
-    freeParser(parser, req);
-  }
-  socket.destroy();
-}
+	}
 
-function socketOnData(d) {
-  var socket = this;
-  var req = this._httpMessage;
-  var parser = this.parser;
 
-  assert(parser && parser.socket === socket);
+	private class socketOnEnd
+	implements Listener {
+		private NodeContext context;
+		private TCP.Socket  socket;
 
-  var ret = parser.execute(d);
-  if (ret instanceof Error) {
-    debug('parse error');
-    freeParser(parser, req);
-    socket.destroy();
-    req.emit('error', ret);
-    req.socket._hadError = true;
-  } else if (parser.incoming && parser.incoming.upgrade) {
-    // Upgrade or CONNECT
-    var bytesParsed = ret;
-    var res = parser.incoming;
-    req.res = res;
+		public socketOnEnd(NodeContext ctx, TCP.Socket socket) {
+			this.context = ctx;
+			this.socket  = socket;
+		}
+		private socketOnEnd(){}
 
-    socket.removeListener('data', socketOnData);
-    socket.removeListener('end', socketOnEnd);
-    parser.finish();
+		@Override
+		public void onEvent(Object data) throws Exception {
+			///var socket = this;
+			ClientRequest req = (ClientRequest) socket._httpMessage;
+			parserOnIncomingClient parser = (parserOnIncomingClient) socket.parser;
 
-    var bodyHead = d.slice(bytesParsed, d.length);
+			if (req.res==null && !req.socket.is_hadError()) {
+				// If we don't have a response then we know that the socket
+				// ended prematurely and we need to emit an error on the request.
+				req.emit("error", createHangUpError());
+				req.socket.set_hadError(true);
+			}
+			if (parser != null) {
+				parser.Finish();
+				IncomingParser.freeParser(parser, req);
+			}
+			socket.destroy(null);
+		}
+	}
 
-    var eventName = req.method === 'CONNECT' ? 'connect' : 'upgrade';
-    if (EventEmitter.listenerCount(req, eventName) > 0) {
-      req.upgradeOrConnect = true;
 
-      // detach the socket
-      socket.emit('agentRemove');
-      socket.removeListener('close', socketCloseListener);
-      socket.removeListener('error', socketErrorListener);
+	private class socketOnData
+	implements Listener {
+		private NodeContext context;
+		private TCP.Socket  socket;
 
-      // TODO(isaacs): Need a way to reset a stream to fresh state
-      // IE, not flowing, and not explicitly paused.
-      socket._readableState.flowing = null;
+		public socketOnData(NodeContext ctx, TCP.Socket socket) {
+			this.context = ctx;
+			this.socket  = socket;
+		}
+		private socketOnData(){}
 
-      req.emit(eventName, res, socket, bodyHead);
-      req.emit('close');
-    } else {
-      // Got Upgrade header or CONNECT method, but have no handler.
-      socket.destroy();
-    }
-    freeParser(parser, req);
-  } else if (parser.incoming && parser.incoming.complete &&
-             // When the status code is 100 (Continue), the server will
-             // send a final response after this client sends a request
-             // body. So, we must not free the parser.
-             parser.incoming.statusCode !== 100) {
-    socket.removeListener('data', socketOnData);
-    socket.removeListener('end', socketOnEnd);
-    freeParser(parser, req);
-  }
-}
-*/
+		@Override
+		public void onEvent(Object raw) throws Exception {
+			ByteBuffer d = (ByteBuffer)raw;
+			///var socket = this;
+			ClientRequest req = (ClientRequest) socket._httpMessage;
+			parserOnIncomingClient parser = (parserOnIncomingClient) socket.parser;
+
+			assert(parser!=null && parser.socket == socket);
+
+			int ret = parser.Execute(d);
+			if (ret < 0/*ret instanceof Error*/) {
+				Log.d(TAG, "parse error");
+				IncomingParser.freeParser(parser, req);
+				socket.destroy(null);
+				req.emit("error", "parse error");
+				req.socket.set_hadError(true);
+			} else if (parser.incoming!=null && parser.incoming.isUpgrade()) {
+				// Upgrade or CONNECT
+				int bytesParsed = ret;
+				IncomingMessage res = parser.incoming;
+				req.res = res;
+
+				socket.removeListener("data", socketOnData);
+				socket.removeListener("end", socketOnEnd);
+				parser.Finish();
+
+				ByteBuffer bodyHead = (ByteBuffer)Util.chunkSlice(d, bytesParsed);// d.slice(bytesParsed, d.length);
+
+				String eventName = req.method == "CONNECT" ? "connect" : "upgrade";
+				if (req.listenerCount(eventName) > 0) {
+					req.upgradeOrConnect = true;
+
+					// detach the socket
+					socket.emit("agentRemove");
+					socket.removeListener("close", socketCloseListener);
+					socket.removeListener("error", socketErrorListener);
+
+					// TODO(isaacs): Need a way to reset a stream to fresh state
+					// IE, not flowing, and not explicitly paused.
+					socket.get_readableState().setFlowing(false);
+
+					req.emit(eventName, new Http.response_socket_head_t(res, socket, bodyHead));
+					req.emit("close");
+				} else {
+					// Got Upgrade header or CONNECT method, but have no handler.
+					socket.destroy(null);
+				}
+				IncomingParser.freeParser(parser, req);
+			} else if (parser.incoming!=null && parser.incoming.isComplete() &&
+					// When the status code is 100 (Continue), the server will
+					// send a final response after this client sends a request
+					// body. So, we must not free the parser.
+					parser.incoming.statusCode() != 100) {
+				socket.removeListener("data", socketOnData);
+				socket.removeListener("end", socketOnEnd);
+				IncomingParser.freeParser(parser, req);
+			}
+		}
+	}
+
 
 }

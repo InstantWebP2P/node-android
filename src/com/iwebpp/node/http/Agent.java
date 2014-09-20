@@ -31,10 +31,38 @@ extends EventEmitter2 {
 
 	public static final int defaultMaxSockets = Integer.MAX_VALUE;
 	private int defaultPort;
+	/**
+	 * @return the defaultPort
+	 */
+	public int getDefaultPort() {
+		return defaultPort;
+	}
+
 	private String protocol;
-	private Options options;
+	/**
+	 * @return the protocol
+	 */
+	public String getProtocol() {
+		return protocol;
+	}
+
+	private ReqOptions options;
 	private Map<String, List<ClientRequest>> requests;
+	/**
+	 * @return the requests
+	 */
+	public Map<String, List<ClientRequest>> getRequests() {
+		return requests;
+	}
+
 	private Map<String, List<Socket>> sockets;
+	/**
+	 * @return the sockets
+	 */
+	public Map<String, List<Socket>> getSockets() {
+		return sockets;
+	}
+
 	private Map<String, List<Socket>> freeSockets;
 	private int keepAliveMsecs;
 	private boolean keepAlive;
@@ -42,13 +70,13 @@ extends EventEmitter2 {
 	private int maxFreeSockets;
 	private NodeContext context;
 	
-	public Agent(NodeContext ctx, Options options) throws Exception {
+	public Agent(NodeContext ctx, ReqOptions options) throws Exception {
 		final Agent self = this;
 
 		self.context = ctx;
 		
 		self.defaultPort = 80;
-		self.protocol = "http:";
+		self.protocol = "Http:";
 
 		self.options = options;
 
@@ -67,8 +95,8 @@ extends EventEmitter2 {
 			@Override
 			public void onEvent(Object raw) throws Exception {
 				socket_options_b data = (socket_options_b)raw;
-				TCP.Socket socket = data.socket;
-				Options    options = data.options;
+				TCP.Socket  socket = data.socket;
+				ReqOptions options = data.options;
 				
 				String name = self.getName(options);
 				Log.d(TAG, "agent.on(free) " + name);
@@ -124,28 +152,12 @@ extends EventEmitter2 {
 				
 	}
 	
-	public static class Options {
-
-		public int maxFreeSockets;
-		public int maxSockets;
-		public boolean keepAlive;
-		public int keepAliveMsecs;
-		public String path;
-		public String host;
-		public int port;
-		public String localAddress;
-		public int localPort;
-		public String servername;
-		public String encoding;
-		
-	}
-	
 	// POJO beans
 	public static final class socket_options_b {
 		public TCP.Socket socket;
-		public Options    options;
+		public ReqOptions options;
 		
-		public socket_options_b(TCP.Socket socket, Options    options) {
+		public socket_options_b(TCP.Socket socket, ReqOptions options) {
 			this.socket  = socket;
 			this.options = options;
 		}
@@ -153,7 +165,7 @@ extends EventEmitter2 {
 	
 
 	// Get the key for a given set of request options
-	public String getName(Options options) {
+	public String getName(ReqOptions options) {
 	  String name = "";
 
 	  if (!Util.zeroString(options.host))
@@ -179,7 +191,7 @@ extends EventEmitter2 {
 	  return name;
 	}
 
-	public void addRequest(ClientRequest req, Options options) {
+	public void addRequest(ClientRequest req, ReqOptions options) throws Exception {
 	  // Legacy API: addRequest(req, host, port, path)
 	  /*if (typeof options === 'string') {
 	    options = {
@@ -229,8 +241,22 @@ extends EventEmitter2 {
 	    this.requests.get(name).add(req);
 	  }
 	}
+	
+	/**
+	 * @return the maxSockets
+	 */
+	public int getMaxSockets() {
+		return maxSockets;
+	}
 
-	public TCP.Socket createSocket(ClientRequest req, final Options options) throws Exception {
+	/**
+	 * @return the keepAlive
+	 */
+	public boolean isKeepAlive() {
+		return keepAlive;
+	}
+
+	public TCP.Socket createSocket(ClientRequest req, final ReqOptions options) throws Exception {
 		final Agent self = this;
 		///options = util._extend({}, options);
 		///options = util._extend(options, self.options);
@@ -308,7 +334,7 @@ extends EventEmitter2 {
 		return s;
 	}
 
-	public void removeSocket(TCP.Socket s, Options options) throws Exception {
+	public void removeSocket(TCP.Socket s, ReqOptions options) throws Exception {
 		String name = this.getName(options);
 
 		Log.d(TAG, "removeSocket "+ name+ " destroyed:" + s.isDestroyed());

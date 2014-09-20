@@ -70,6 +70,7 @@ implements Readable {
 		List<Writable> pipes;
 		int pipesCount;
 		boolean flowing;
+		
 		/**
 		 * @param flowing the flowing to set
 		 */

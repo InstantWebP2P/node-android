@@ -204,6 +204,8 @@ this.socket.setTimeout(msecs);
 			return true;
 		}
 		
+		Log.d(TAG, "this.connection: "+this.connection);
+		
 		// TBD...
 		if (this.connection!=null &&
 			this.connection._httpMessage == this &&
@@ -329,7 +331,7 @@ this.socket.setTimeout(msecs);
 
 		// Date header
 		if (this.sendDate == true && state.sentDateHeader == false) {
-			state.messageHeader += "Date: " + context.utcDate() + http.CRLF;
+			state.messageHeader += "Date: " + context.utcDate() + Http.CRLF;
 		}
 		
 		Log.d(TAG, "..... -6");
@@ -393,7 +395,7 @@ this.socket.setTimeout(msecs);
 			}
 		}
 
-		this._header = state.messageHeader + http.CRLF;
+		this._header = state.messageHeader + Http.CRLF;
 		this._headerSent = false;
 		
 		Log.d(TAG, "..... -8");
@@ -413,7 +415,7 @@ this.socket.setTimeout(msecs);
 		///if (value!=null && Pattern.matches("[\r\n]", value))
 		value = value.replaceAll("[\r\n]+[ \t]*", "");
 
-		state.messageHeader += field + ": " + value + http.CRLF;
+		state.messageHeader += field + ": " + value + Http.CRLF;
 
 		///if (connectionExpression == field) {
 		if (Pattern.matches(connectionExpression, field)) {
@@ -427,7 +429,7 @@ this.socket.setTimeout(msecs);
 		} else if (Pattern.matches(transferEncodingExpression, field)) {
 			state.sentTransferEncodingHeader = true;
 			
-			if (Pattern.matches(http.chunkExpression, value)) 
+			if (Pattern.matches(Http.chunkExpression, value)) 
 				self.chunkedEncoding = true;
 		} else if (Pattern.matches(contentLengthExpression, field)) {
 			state.sentContentLengthHeader = true;
@@ -454,7 +456,12 @@ this.socket.setTimeout(msecs);
 			this._removedHeader.put(key, false);
 		}
 	}
-
+	public void setHeader(String name, String value) throws Exception {
+		List<String> v = new ArrayList<String>(); v.add(value);
+		
+		setHeader(name, v);
+	}
+	
 	public List<String> getHeader(String name) {
 		if (null==this._headers) return null;
 
@@ -546,7 +553,7 @@ this.socket.setTimeout(msecs);
 				len = ((String)chunk).getBytes(encoding).length;
 
 				///chunk = len.toString(16) + CRLF + chunk + CRLF;
-				chunk = Integer.toString(len, 16) + http.CRLF + chunk + http.CRLF;
+				chunk = Integer.toString(len, 16) + Http.CRLF + chunk + Http.CRLF;
 
 				ret = this._send(chunk, encoding, callback);
 			} else {
@@ -594,7 +601,7 @@ this.socket.setTimeout(msecs);
 		this._trailer = "";
 
 		for (Entry<String, String> entry : headers.entrySet())
-			this._trailer += entry.getKey() + ": " + entry.getValue() + http.CRLF;
+			this._trailer += entry.getKey() + ": " + entry.getValue() + Http.CRLF;
 	}
 
 	public boolean end(Object data, String encoding, final WriteCB callback) throws Exception {

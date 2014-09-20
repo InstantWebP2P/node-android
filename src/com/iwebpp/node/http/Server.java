@@ -13,9 +13,9 @@ import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.TCP;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.TCP.Socket;
-import com.iwebpp.node.http.http.exception_socket_t;
-import com.iwebpp.node.http.http.request_response_t;
-import com.iwebpp.node.http.http.request_socket_head_t;
+import com.iwebpp.node.http.Http.exception_socket_t;
+import com.iwebpp.node.http.Http.request_response_t;
+import com.iwebpp.node.http.Http.request_socket_head_t;
 
 public class Server 
 extends TCP.Server {
@@ -24,7 +24,8 @@ extends TCP.Server {
 	private boolean httpAllowHalfOpen;
 	private NodeContext context;
 	
-	private class connectionListenerImpl implements connectionListener {
+	private class connectionListenerImpl 
+	implements connectionListener {
 		private final static String TAG = "connectionListenerImpl";
 
 		private Server self;
@@ -43,9 +44,9 @@ extends TCP.Server {
 		@Override
 		public void onConnection(final Socket socket) throws Exception {
 			
-			Log.d(TAG, "SERVER new http connection");
+			Log.d(TAG, "SERVER new Http connection");
 
-			http.httpSocketSetup(socket);
+			Http.httpSocketSetup(socket);
 
 			// If the user has added a listener to the server,
 			// request, or response, then it's their responsibility.
@@ -228,8 +229,8 @@ extends TCP.Server {
 		this.context = ctx;
 
 		// Similar option to this. Too lazy to write my own docs.
-		// http://www.squid-cache.org/Doc/config/half_closed_clients/
-		// http://wiki.squid-cache.org/SquidFaq/InnerWorkings#What_is_a_half-closed_filedescriptor.3F
+		// Http://www.squid-cache.org/Doc/config/half_closed_clients/
+		// Http://wiki.squid-cache.org/SquidFaq/InnerWorkings#What_is_a_half-closed_filedescriptor.3F
 		this.httpAllowHalfOpen = false;
 
 		///this.addListener('connection', connectionListener);
@@ -258,8 +259,8 @@ extends TCP.Server {
 		this.context = ctx;
 
 		// Similar option to this. Too lazy to write my own docs.
-		// http://www.squid-cache.org/Doc/config/half_closed_clients/
-		// http://wiki.squid-cache.org/SquidFaq/InnerWorkings#What_is_a_half-closed_filedescriptor.3F
+		// Http://www.squid-cache.org/Doc/config/half_closed_clients/
+		// Http://wiki.squid-cache.org/SquidFaq/InnerWorkings#What_is_a_half-closed_filedescriptor.3F
 		this.httpAllowHalfOpen = false;
 
 		///this.addListener('connection', connectionListener);
@@ -535,8 +536,8 @@ extends TCP.Server {
 			if ( req.headers.containsKey("expect") && 
 				!req.headers.get("expect").isEmpty() &&
 				(req.httpVersionMajor == 1 && req.httpVersionMinor == 1) &&
-				///http.continueExpression == req.headers.get("expect").get(0)) {
-				Pattern.matches(http.continueExpression, req.headers.get("expect").get(0))) {
+				///Http.continueExpression == req.headers.get("expect").get(0)) {
+				Pattern.matches(Http.continueExpression, req.headers.get("expect").get(0))) {
 				res.set_expect_continue(true);
 
 				if (self.listenerCount("checkContinue") > 0) {

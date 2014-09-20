@@ -13,7 +13,7 @@ import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
 import com.iwebpp.node.Writable2.Options;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.http.http.request_response_t;
+import com.iwebpp.node.http.Http.request_response_t;
 
 public class ServerResponse 
 extends OutgoingMessage {
@@ -39,8 +39,8 @@ extends OutgoingMessage {
 
 		if (req.httpVersionMajor < 1 || req.httpVersionMinor < 1) {
 			// TBD...
-			///this.useChunkedEncodingByDefault = http.chunkExpression.test(req.headers.te);
-			this.useChunkedEncodingByDefault = (req.headers.containsKey("te") && Pattern.matches(http.chunkExpression, req.headers.get("te").get(0)));
+			///this.useChunkedEncodingByDefault = Http.chunkExpression.test(req.headers.te);
+			this.useChunkedEncodingByDefault = (req.headers.containsKey("te") && Pattern.matches(Http.chunkExpression, req.headers.get("te").get(0)));
 			this.shouldKeepAlive = false;
 		}
 	}
@@ -129,7 +129,7 @@ extends OutgoingMessage {
 	}
 
 	public void writeContinue(WriteCB cb) throws Exception {
-		this._writeRaw("HTTP/1.1 100 Continue" + http.CRLF + http.CRLF, "utf-8", cb);
+		this._writeRaw("HTTP/1.1 100 Continue" + Http.CRLF + Http.CRLF, "utf-8", cb);
 		this._sent100 = true;
 	}
 
@@ -143,8 +143,8 @@ extends OutgoingMessage {
 		Log.d(TAG, "..... -1");
 
 		if (Util.zeroString(statusMessage)) {
-			this.statusMessage = http.STATUS_CODES.containsKey(statusCode) ?
-					http.STATUS_CODES.get(statusCode) : "unknown";
+			this.statusMessage = Http.STATUS_CODES.containsKey(statusCode) ?
+					Http.STATUS_CODES.get(statusCode) : "unknown";
 		} else {
 			this.statusMessage = statusMessage;
 		}
@@ -168,7 +168,7 @@ extends OutgoingMessage {
 		}
 
 		String statusLine = "HTTP/1.1 " + statusCode + " " +
-				this.statusMessage + http.CRLF;
+				this.statusMessage + Http.CRLF;
 
 		if (statusCode == 204 || statusCode == 304 ||
 				(100 <= statusCode && statusCode <= 199)) {
