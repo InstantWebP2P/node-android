@@ -5,6 +5,7 @@ import android.util.Log;
 import com.iwebpp.libuvpp.handles.TimerHandle;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.UDT;
+import com.iwebpp.node.UDT.Server.ListeningCallback;
 import com.iwebpp.node.UDT.Server.CloseCallback;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.EventEmitter.Listener;
@@ -13,43 +14,21 @@ import com.iwebpp.node.NodeContext.TimeoutCallback;
 import com.iwebpp.node.UDT.Socket.ConnectCallback;
 import com.iwebpp.node.UDT.Server;
 import com.iwebpp.node.UDT.Socket;
-import com.iwebpp.node.UDT.Server.ListenCallback;
 import com.iwebpp.node.Writable.WriteCB;
 
 public final class UdtTest {
 	private static final String TAG = "UdtTest";
 	private NodeContext ctx;
-	
-	private boolean testListening6() {
-		Server srv;
-		try {
-			srv = new UDT.Server(ctx, new Server.Options(false), null);
-
-			srv.listen("::", 51866, 6, 18, -1, new ListenCallback(){
-
-				@Override
-				public void onListen() {
-					Log.d(TAG, "UDT server listening on IPv6 :::51866");
-				}
-
-			});
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return true;   
-	}
 
 	private boolean testListening() {
 		Server srv;
 		try {
 			srv = new UDT.Server(ctx, new Server.Options(false), null);
 
-			srv.listen("0.0.0.0", 51688, 4, 18, -1, new ListenCallback(){
+			srv.listen("0.0.0.0", 51688, 4, 18, -1, new ListeningCallback(){
 
 				@Override
-				public void onListen() {
+				public void onListening() {
 					Log.d(TAG, "UDT server listening on 0.0.0.0:51688");
 				}
 
@@ -61,7 +40,7 @@ public final class UdtTest {
 
 		return true;   
 	}
-
+	
 	private boolean testClousure() {
 		final int port = 52688;
 
@@ -70,16 +49,16 @@ public final class UdtTest {
 		try {
 			srv = new UDT.Server(ctx, new Server.Options(false), null);
 
-			srv.listen("0.0.0.0", port, 4, 1, -1, new ListenCallback(){
+			srv.listen("0.0.0.0", port, 4, 1, -1, new ListeningCallback(){
 
 				@Override
-				public void onListen() {
+				public void onListening() {
 					Log.d(TAG, "UDT server listening on 0.0.0.0:"+port);
 				}
 
 			});
 
-			cln = new UDT.Socket(ctx, new Socket.Options(false, null));
+			cln = new UDT.Socket(ctx, new Socket.Options(null, false, false, true));
 
 			///cln.setEncoding("utf8");
 
@@ -133,6 +112,27 @@ public final class UdtTest {
 		return true;   
 	}
 	
+	private boolean testListening6() {
+		Server srv;
+		try {
+			srv = new UDT.Server(ctx, new Server.Options(false), null);
+
+			srv.listen("::", 51866, 6, 18, -1, new ListeningCallback(){
+
+				@Override
+				public void onListening() {
+					Log.d(TAG, "UDT server listening on IPv6 :::51866");
+				}
+
+			});
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return true;   
+	}
+	
 	private boolean testConnect6() {
 		Server srv;
 		final Socket cln;
@@ -155,10 +155,10 @@ public final class UdtTest {
 			});
 			srv.listen("::", port, 6, 18, -1, null);
 			
-			cln = new UDT.Socket(ctx, new Socket.Options(false, null));
+			cln = new UDT.Socket(ctx, new Socket.Options(null, false, false, true));
 			
 			cln.setEncoding("utf8");
-
+			
 			cln.connect(6, "::1", port, new ConnectCallback(){
 
 				@Override
@@ -180,16 +180,27 @@ public final class UdtTest {
 						
 					});
 					
+					///while (cln.write("hello word", "utf-8", new WriteCB(){
 					cln.write("hello word", "utf-8", new WriteCB(){
 
 						@Override
 						public void writeDone(String error) throws Exception {
-							Log.d(TAG, "client write done");							
+							Log.d(TAG, "client write done @"+System.currentTimeMillis());
 						}
 						
 					});
 					
-					// write after 2s
+					cln.on("drain", new Listener(){
+
+						@Override
+						public void onEvent(Object data) throws Exception {
+							Log.d(TAG, "client write drained");
+
+                            ///while (cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null));
+						}
+						
+					});
+					
 					// write after 2s
 					TimerHandle interval = ctx.setInterval(new IntervalCallback(){
 
@@ -200,11 +211,10 @@ public final class UdtTest {
 						
 					}, 2000);
 					///ctx.clearInterval(interval);
-					
 				}
 				
-			});		
-			
+			});
+						
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -235,10 +245,10 @@ public final class UdtTest {
 			});
 			srv.listen("0.0.0.0", port, 4, 18, -1, null);
 			
-			cln = new UDT.Socket(ctx, new Socket.Options(false, null));
+			cln = new UDT.Socket(ctx, new Socket.Options(null, false, false, true));
 			
 			cln.setEncoding("utf8");
-
+			
 			cln.connect(port, new ConnectCallback(){
 
 				@Override
@@ -260,16 +270,27 @@ public final class UdtTest {
 						
 					});
 					
+					///while (cln.write("hello word", "utf-8", new WriteCB(){
 					cln.write("hello word", "utf-8", new WriteCB(){
 
 						@Override
 						public void writeDone(String error) throws Exception {
-							Log.d(TAG, "client write done");							
+							Log.d(TAG, "client write done @"+System.currentTimeMillis());
 						}
 						
 					});
 					
-					// write after 2s
+					cln.on("drain", new Listener(){
+
+						@Override
+						public void onEvent(Object data) throws Exception {
+							Log.d(TAG, "client write drained");
+
+                            ///while (cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null));
+						}
+						
+					});
+					
 					// write after 2s
 					TimerHandle interval = ctx.setInterval(new IntervalCallback(){
 
@@ -280,11 +301,10 @@ public final class UdtTest {
 						
 					}, 2000);
 					///ctx.clearInterval(interval);
-					
 				}
 				
-			});		
-			
+			});
+						
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

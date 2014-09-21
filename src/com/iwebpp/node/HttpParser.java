@@ -476,7 +476,7 @@ public abstract class HttpParser {
 		/* 120  x   121  y   122  z   123  {   124  |   125  }   126  ~   127 del */
 		        1    |   2    |   4    |   8    |   16   |   32   |   64   |   0, 
 	};
-	
+
 	private boolean PARSING_HEADER() {
 		return (this.state.state <= State.s_headers_done.state);
 	}

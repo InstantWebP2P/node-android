@@ -61,6 +61,7 @@ extends OutgoingMessage {
 			  agent = new Agent(context, options);///defaultAgent;
 		  }
 		  self.agent = agent;
+		  ///self.agent = null;
 
 		  String protocol = !Util.zeroString(options.protocol) ?  options.protocol : "http:";///defaultAgent.protocol;
 		  String expectedProtocol = "http:";///defaultAgent.protocol;
@@ -141,10 +142,10 @@ extends OutgoingMessage {
 			  }
 
 			  if (method == "GET" ||
-					  method == "HEAD" ||
-					  method == "DELETE" ||
-					  method == "OPTIONS" ||
-					  method == "CONNECT") {
+				  method == "HEAD" ||
+				  method == "DELETE" ||
+				  method == "OPTIONS" ||
+				  method == "CONNECT") {
 				  self.useChunkedEncodingByDefault = false;
 			  } else {
 				  self.useChunkedEncodingByDefault = true;
@@ -209,6 +210,7 @@ extends OutgoingMessage {
 			  public void onEvent(Object data) throws Exception {
 				  self._flush();
 				  ///self = null;
+				  Log.d(TAG, "_flush done");
 			  }
 
 		  });
@@ -263,25 +265,27 @@ extends OutgoingMessage {
 
 			@Override
 			public void onEvent(Object data) throws Exception {
-				final TCP.Socket socket = (TCP.Socket)data;
+				///final TCP.Socket socket = (TCP.Socket)data;
 				
-				Log.d(TAG, "onSocket: "+socket);
+				Log.d(TAG, "onSocket: "+self.socket);
 				Log.d(TAG, "this.connection: "+self.connection);
 				
-				if (socket.writable()) {
+				if (self.socket.writable()) {
+					Log.d(TAG, "_deferToConnect: "+self.socket.writable());
+
 					/*
 					if (method) {
 						self.socket[method].apply(self.socket, arguments_);
 					}
 					if (cb) { cb(); }*/
-					if (method == "setNoDelay") {
+					if (method!=null && method == "setNoDelay") {
 						Boolean args = (Boolean)arguments_;
 
-						socket.setNoDelay(args);
-					} else if (method == "setSocketKeepAlive") {
+						self.socket.setNoDelay(args);
+					} else if (method!=null && method == "setSocketKeepAlive") {
 						enable_initialDelay_b args = (enable_initialDelay_b)arguments_;
 
-						socket.setKeepAlive(args.enable, args.initialDelay);
+						self.socket.setKeepAlive(args.enable, args.initialDelay);
 					}
 					if (cb != null) cb.onEvent(null);
 				} else {
@@ -291,20 +295,24 @@ extends OutgoingMessage {
 						}
 						if (cb) { cb();}
 					});*/
-					socket.once("connect", new Listener(){
-
+					// TBD...
+					self.socket.once("connect", new Listener(){
+						
 						@Override
 						public void onEvent(Object data) throws Exception {
-							if (method == "setNoDelay") {
+							Log.d(TAG, "onSocket connected: "+socket);
+
+							if (method!=null && method == "setNoDelay") {
 								Boolean args = (Boolean)arguments_;
 
-								socket.setNoDelay(args);
-							} else if (method == "setSocketKeepAlive") {
+								self.socket.setNoDelay(args);
+							} else if (method!=null && method == "setSocketKeepAlive") {
 								enable_initialDelay_b args = (enable_initialDelay_b)arguments_;
 
-								socket.setKeepAlive(args.enable, args.initialDelay);
+								self.socket.setKeepAlive(args.enable, args.initialDelay);
 							}
-							if (cb != null) cb.onEvent(null);}
+							if (cb != null) cb.onEvent(null);
+						}
 
 					});
 				}
@@ -315,14 +323,14 @@ extends OutgoingMessage {
 		if (null==self.socket) {
 			self.once("socket", onSocket);
 		} else {
-			onSocket.onEvent(null);
+			onSocket.onEvent(self.socket);
 		}
 	}
 
 	///request.setTimeout(timeout, [callback])
 
 	public void setNoDelay(boolean noDelay) throws Exception {
-		this._deferToConnect("setNoDelay", noDelay, null);
+		this._deferToConnect("setNoDelay", new Boolean(noDelay), null);
 	}
 
 	public void setSocketKeepAlive(boolean enable, int initialDelay) throws Exception {
@@ -582,6 +590,10 @@ extends OutgoingMessage {
 		this.socketErrorListener = new socketErrorListener(context, socket);
 		socket.on("error", socketErrorListener);
 
+		// do resume to switch to legacy mode
+		// TBD...
+		socket.get_readableState().setFlowing(true);
+		
 		this.socketOnData = new socketOnData(context, socket);
 		socket.on("data", socketOnData);
 
@@ -590,10 +602,6 @@ extends OutgoingMessage {
 
 		this.socketCloseListener = new socketCloseListener(context, socket);
 		socket.on("close", socketCloseListener);
-
-		// do resume to switch to legacy mode
-		// TBD...
-		socket.resume();
 		
 		Log.d(TAG, "socket.resume()");
 
@@ -840,6 +848,5 @@ extends OutgoingMessage {
 			}
 		}
 	}
-
 
 }

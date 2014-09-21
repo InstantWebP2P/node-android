@@ -183,6 +183,10 @@ public final class Http {
 			NodeContext ctx, 
 			ReqOptions options, 
 			ClientRequest.responseListener onres) throws Exception {
+		
+		// GET method
+		options.method = "GET";
+		
 		ClientRequest req = request(ctx, options, onres);
 		req.end(null, null, null);
 		return req;

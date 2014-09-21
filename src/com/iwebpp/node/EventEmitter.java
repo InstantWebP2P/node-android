@@ -10,16 +10,16 @@ public interface EventEmitter {
 		public void onEvent(final Object data) throws Exception;
 	};
 
-	public boolean on(final String event, final Listener cb) throws Exception;
-	public boolean once(final String event, final Listener cb) throws Exception;
+	public EventEmitter on(final String event, final Listener cb) throws Exception;
+	public EventEmitter once(final String event, final Listener cb) throws Exception;
 	
-	public boolean addListener(final String event, final Listener cb);
-	public boolean addListener(String event, Listener cb, int priority);
+	public EventEmitter addListener(final String event, final Listener cb);
+	public EventEmitter addListener(String event, Listener cb, int priority);
 
-	public boolean removeListener(final String event, final Listener cb);
-	public boolean removeListener(final String event);
-	public boolean removeListener();
-	public boolean setMaxListeners(final String event, final int n);
+	public EventEmitter removeListener(final String event, final Listener cb);
+	public EventEmitter removeListener(final String event);
+	public EventEmitter removeListener();
+	public EventEmitter setMaxListeners(final String event, final int n);
 	public List<Listener> listeners(final String event);  
 	public int listenerCount(final String event);
 }

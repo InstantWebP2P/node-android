@@ -59,9 +59,8 @@ extends Duplex {
 
 	}
 
-	protected Transform(NodeContext ctx, Options roptions,
-			com.iwebpp.node.Writable2.Options woptions) {
-		super(ctx, roptions, woptions);
+	protected Transform(NodeContext ctx, Duplex.Options options) {
+		super(ctx, options);
 		// TODO Auto-generated constructor stub
 
 		this._transformState = new TransformState(this);
@@ -102,7 +101,7 @@ extends Duplex {
 
 	}
 	private Transform(){
-		super(null, null, null);
+		super(null, null);
 	}
 
 	public boolean push(Object chunk, String encoding) throws Exception {

@@ -444,10 +444,14 @@ extern "C" JNIEXPORT  jboolean JNICALL Java_com_iwebpp_libuvpp_handles_StreamHan
   assert(stream);
   uv_stream_t* handle = reinterpret_cast<uv_stream_t*>(stream);
   int r = uv_is_readable(handle);
+#if 0
   if (r) {
     ThrowException(env, handle->loop, "uv_is_readable");
   }
   return r == 0 ? JNI_TRUE : JNI_FALSE;
+#else
+  return r != 0 ? JNI_TRUE : JNI_FALSE;
+#endif
 }
 
 /*
@@ -461,10 +465,14 @@ extern "C" JNIEXPORT  jboolean JNICALL Java_com_iwebpp_libuvpp_handles_StreamHan
   assert(stream);
   uv_stream_t* handle = reinterpret_cast<uv_stream_t*>(stream);
   int r = uv_is_writable(handle);
+#if 0
   if (r) {
     ThrowException(env, handle->loop, "uv_is_writable");
   }
   return r == 0 ? JNI_TRUE : JNI_FALSE;
+#else
+  return r != 0 ? JNI_TRUE : JNI_FALSE;
+#endif
 }
 
 /*

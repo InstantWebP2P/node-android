@@ -58,7 +58,7 @@ public final class TcpTest {
 
 			});
 
-			cln = new TCP.Socket(ctx, new Socket.Options(false, null));
+			cln = new TCP.Socket(ctx, new Socket.Options(null, false, false, true));
 
 			///cln.setEncoding("utf8");
 
@@ -155,7 +155,7 @@ public final class TcpTest {
 			});
 			srv.listen("::", port, 6, 18, -1, null);
 			
-			cln = new TCP.Socket(ctx, new Socket.Options(false, null));
+			cln = new TCP.Socket(ctx, new Socket.Options(null, false, false, true));
 			
 			cln.setEncoding("utf8");
 			
@@ -245,7 +245,7 @@ public final class TcpTest {
 			});
 			srv.listen("0.0.0.0", port, 4, 18, -1, null);
 			
-			cln = new TCP.Socket(ctx, new Socket.Options(false, null));
+			cln = new TCP.Socket(ctx, new Socket.Options(null, false, false, true));
 			
 			cln.setEncoding("utf8");
 			

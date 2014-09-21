@@ -1,11 +1,22 @@
 package com.iwebpp.node;
 
+import com.iwebpp.node.NodeContext.nextTickCallback;
+
 public abstract class Duplex
 extends Readable2 
 implements Writable {
 	private Writable2 _writable;
 	protected Writable2.State _writableState;
+	private boolean allowHalfOpen;
+	private NodeContext context;
 	
+	/**
+	 * @return the allowHalfOpen
+	 */
+	public boolean isAllowHalfOpen() {
+		return allowHalfOpen;
+	}
+
 	/**
 	 * @return the _writableState
 	 */
@@ -28,11 +39,70 @@ implements Writable {
 		
 	}
 	
-	protected Duplex(NodeContext ctx, Readable2.Options roptions, Writable2.Options woptions) {
-		super(ctx, roptions);
-
-		_writable = new DuplexWritable(ctx, woptions, this);
+	public static class Options {
+		private boolean allowHalfOpen = true;
+		private Readable2.Options roptions;
+		private Writable2.Options woptions;
+		
+		public Options(Readable2.Options roptions, Writable2.Options woptions, boolean allowHalfOpen) {
+			this.roptions = roptions;
+			this.woptions = woptions;
+			this.allowHalfOpen = allowHalfOpen;
+		}
+		@SuppressWarnings("unused")
+		private Options(){}
+	}
+	
+	protected Duplex(NodeContext ctx, Options options) {
+		super(ctx, options.roptions);
+        this.context = ctx;
+        
+		_writable = new DuplexWritable(ctx, options.woptions, this);
 		_writableState = _writable._writableState;
+		
+		final Duplex self = this;
+
+		/*
+		  if (options && options.readable === false)
+		    this.readable = false;
+
+		  if (options && options.writable === false)
+		    this.writable = false;
+
+		  this.allowHalfOpen = true;
+		  if (options && options.allowHalfOpen === false)
+		    this.allowHalfOpen = false;
+		 */
+		this.allowHalfOpen = options.allowHalfOpen;
+		
+		this.once("end", new Listener(){
+
+			@Override
+			public void onEvent(Object data) throws Exception {
+
+				// the no-half-open enforcer
+				///function onend() {
+				// if we allow half-open state, or if the writable side ended,
+				// then we're ok.
+				if (self.allowHalfOpen || self._writableState.ended)
+					return;
+
+				// no more data can be written.
+				// But allow more writes to happen in this tick.
+				///process.nextTick(this.end.bind(this));
+				context.nextTick(new nextTickCallback(){
+
+					@Override
+					public void onNextTick() throws Exception {
+                        self.end(null, null, null);						
+					}
+					
+				});
+				///}
+
+			}
+
+		});
 	}
 
 	private Duplex(){
@@ -50,6 +120,9 @@ implements Writable {
 	@Override
 	public boolean writable() {
 		return _writable.writable();
+	}
+	public void writable(boolean writable) {
+		 _writable.writable(writable);
 	}
 	
     public void cork() {

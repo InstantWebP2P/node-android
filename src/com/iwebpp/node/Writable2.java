@@ -68,16 +68,25 @@ implements Writable {
 		private boolean objectMode;
 		private boolean decodeStrings;
 		private String defaultEncoding;
+		private boolean writable;
 		
+		/**
+		 * @return the writable
+		 */
+		public boolean isWritable() {
+			return writable;
+		}
 		public Options(
 				int highWaterMark,
 				boolean decodeStrings,
 				String defaultEncoding,
-				boolean objectMode) {
+				boolean objectMode,
+				boolean writable) {
 			this.highWaterMark = highWaterMark;
 			this.objectMode = objectMode;
 			this.decodeStrings = decodeStrings;
 			this.defaultEncoding = defaultEncoding;
+			this.writable = writable;
 		}
 		@SuppressWarnings("unused")
 		private Options(){}
@@ -227,15 +236,19 @@ implements Writable {
 
 	  this._writableState = new State(options, this);
 
-	  // legacy.
-	  this.writable = true;
+	  // legacy. 
+	  this.writable = options.writable; //true; // TBD... 
     }
     @SuppressWarnings("unused")
 	private Writable2() {
 	}
-    
+
     public boolean writable() { 
     	return writable;
+    }
+
+    public void writable(boolean writable) { 
+    	this.writable = writable;
     }
     
     // Helpers functions

@@ -224,7 +224,6 @@ extends EventEmitter2 {
 
 	    socket.ref();
 	    
-	    /// TBD...
 	    req.onSocket(socket);
 	    
 	    this.sockets.get(name).add(socket);

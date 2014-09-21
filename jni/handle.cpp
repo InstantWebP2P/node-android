@@ -102,9 +102,13 @@ extern "C" JNIEXPORT  jboolean JNICALL Java_com_iwebpp_libuvpp_handles_Handle__1
   assert(ptr);
   uv_handle_t* handle = reinterpret_cast<uv_handle_t*>(ptr);
   int r = uv_is_closing(handle);
+#if 0
   if (r) {
     ThrowException(env, handle->loop, "uv_is_closing");
   }
   return r == 0 ? JNI_TRUE : JNI_FALSE;
+#else
+  return r != 0 ? JNI_TRUE : JNI_FALSE;
+#endif
 }
 

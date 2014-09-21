@@ -39,7 +39,7 @@ public final class StreamTest {
 		private int _index = 1;
 
 		Counting() {
-			super(context, new Options(16, "utf8", false, "utf8"));
+			super(context, new Readable2.Options(16, "utf8", false, "utf8", true));
 			// TODO Auto-generated constructor stub
 
 			_index = 1;
@@ -67,7 +67,7 @@ public final class StreamTest {
 	private class DummyWritable extends Writable2 {
 
 		public DummyWritable() {
-			super(context, new Options(-1, true, "utf8", false));
+			super(context, new Options(-1, true, "utf8", false, true));
 			// TODO Auto-generated constructor stub
 		}
 
@@ -98,8 +98,10 @@ public final class StreamTest {
 
 		public DummyDuplex() {
 			super(context, 
-				  new Options(-1, "utf8", false, "utf8"), 
-				  new Writable2.Options(-1, true, "utf8", false));
+				  new Duplex.Options(
+						  new Readable2.Options(-1, "utf8", false, "utf8", true), 
+				          new Writable2.Options(-1, true, "utf8", false, true), 
+				          true));
 			// TODO Auto-generated constructor stub
 
 			_index = 1;
@@ -149,8 +151,10 @@ public final class StreamTest {
 
 		protected DoubleTransform() {
 			super(context, 
-				  new Options(-1, "", false, "utf8"), 
-				  new Writable2.Options(-1, false, "utf8", false));
+				  new Duplex.Options(
+						  new Readable2.Options(-1, "", false, "utf8", true), 
+				          new Writable2.Options(-1, false, "utf8", false, true),
+				          true));
 			// TODO Auto-generated constructor stub
 		}
 

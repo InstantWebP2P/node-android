@@ -11,6 +11,7 @@ import android.util.Log;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.TCP;
 import com.iwebpp.node.TCP.Socket;
+import com.iwebpp.node.Writable.WriteCB;
 import com.iwebpp.node.Writable2.Options;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.http.Http.request_response_t;
@@ -37,7 +38,7 @@ extends OutgoingMessage {
 
 		this.sendDate = true;
 
-		if (req.httpVersionMajor < 1 || req.httpVersionMinor < 1) {
+		if (req.getHttpVersionMajor() < 1 || req.getHttpVersionMinor() < 1) {
 			// TBD...
 			///this.useChunkedEncodingByDefault = Http.chunkExpression.test(req.headers.te);
 			this.useChunkedEncodingByDefault = (req.headers.containsKey("te") && Pattern.matches(Http.chunkExpression, req.headers.get("te").get(0)));

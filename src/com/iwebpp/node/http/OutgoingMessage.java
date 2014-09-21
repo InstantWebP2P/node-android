@@ -16,12 +16,15 @@ import com.iwebpp.node.TCP;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.NodeContext.nextTickCallback;
 import com.iwebpp.node.TCP.Socket;
+import com.iwebpp.node.Writable;
+import com.iwebpp.node.Writable.WriteCB;
 import com.iwebpp.node.Writable2.Options;
 import com.iwebpp.node.Writable2;
 
-public abstract class OutgoingMessage 
-///extends EventEmitter2 {
-extends Writable2 {
+public abstract class OutgoingMessage  
+extends EventEmitter2 
+implements Writable {
+///extends Writable2 {
 	private final static String TAG = "OutgoingMessage";
 
 	protected static final String connectionExpression = "Connection";
@@ -46,7 +49,6 @@ extends Writable2 {
 	protected List<Object> output;
 	protected List<String> outputEncodings;
 	protected List<WriteCB> outputCallbacks;
-	protected boolean writable;
 	protected boolean _last;
 	protected boolean shouldKeepAlive;
 	/**
@@ -102,14 +104,16 @@ extends Writable2 {
 	protected int statusCode;
 
 	public OutgoingMessage(NodeContext ctx) {
-		super(ctx, new Options(-1, false, "utf8", false));
+		///super(ctx, new Options(-1, false, "utf8", false));
+		super();
 		this.context = ctx;
 
 		this.output = new ArrayList<Object>();
 		this.outputEncodings = new ArrayList<String>();
 		this.outputCallbacks = new ArrayList<WriteCB>();
 
-		this.writable = true;
+		// TBD... change default to false
+		///this.writable = true;
 
 		this._last = false;
 		this.chunkedEncoding = false;
@@ -169,15 +173,15 @@ this.socket.setTimeout(msecs);
 		// this at a lower level and in a more general way.
 		if (!this._headerSent) {
 			if (Util.isString(data) &&
-					encoding != "hex" &&
-					encoding != "base64") {
+				encoding != "hex" &&
+				encoding != "base64") {
 				data = this._header + data;
 			} else {
 				///this.output.unshift(this._header);
 				///this.outputEncodings.unshift("binary");
 				///this.outputCallbacks.unshift(null);
 				this.output.add(0, this._header);
-				this.outputEncodings.add(0, encoding);
+				this.outputEncodings.add(0, "utf-8");///"binary");// TBD...
 				this.outputCallbacks.add(0, null);
 			}
 			this._headerSent = true;
@@ -544,9 +548,9 @@ this.socket.setTimeout(msecs);
 			Log.d(TAG, ".......... 1");
 			
 			if (Util.isString(chunk) &&
-					encoding != "hex" &&
-					encoding != "base64" &&
-					encoding != "binary") {
+				encoding != "hex" &&
+				encoding != "base64" &&
+				encoding != "binary") {
 				Log.d(TAG, ".......... 2");
 				
 				///len = Buffer.byteLength(chunk, encoding);
@@ -555,6 +559,8 @@ this.socket.setTimeout(msecs);
 				///chunk = len.toString(16) + CRLF + chunk + CRLF;
 				chunk = Integer.toString(len, 16) + Http.CRLF + chunk + Http.CRLF;
 
+				Log.d(TAG, "write _send: "+chunk.toString());
+				
 				ret = this._send(chunk, encoding, callback);
 			} else {
 				// buffer, or a non-toString-friendly encoding
@@ -580,12 +586,12 @@ this.socket.setTimeout(msecs);
 					});
 				}
 
-				ByteBuffer crlf_buf = ByteBuffer.wrap("\r\n".getBytes("utf-8"));
+				///ByteBuffer crlf_buf = ByteBuffer.wrap("\r\n".getBytes("utf-8"));
 
-				this._send(Integer.toString(len, 16), "binary", null);
-				this._send(crlf_buf, null, null);
+				this._send(Integer.toString(len, 16), "utf-8"/*TBD..."binary"*/, null);
+				this._send(ByteBuffer.wrap("\r\n".getBytes("utf-8")), null, null);
 				this._send(chunk, encoding, null);
-				ret = this._send(crlf_buf, null, callback);
+				ret = this._send(ByteBuffer.wrap("\r\n".getBytes("utf-8")), null, callback);
 			}
 		} else {
 			Log.d(TAG, ".......... 3");
@@ -662,10 +668,10 @@ this.socket.setTimeout(msecs);
 		}
 
 		if (this.chunkedEncoding) {
-			ret = this._send("0\r\n" + this._trailer + "\r\n", "binary", finish);
+			ret = this._send("0\r\n" + this._trailer + "\r\n", "utf-8"/*TBD..."binary"*/, finish);
 		} else {
 			// Force a flush, HACK.
-			ret = this._send("", "binary", finish);
+			ret = this._send("", "utf-8"/*TBD..."binary"*/, finish);
 		}
 
 		if (this.connection!=null && data!=null)
@@ -681,6 +687,20 @@ this.socket.setTimeout(msecs);
 		}
 
 		return ret;
+	}
+
+	@Override
+	public boolean writable() {
+		if (this.connection != null)
+			return this.connection.writable();
+		else
+			return false;
+	}
+
+	@Override
+	public void writable(boolean writable) {
+		if (this.connection != null)
+			this.connection.writable(writable);
 	}
 
 	protected void _finish() throws Exception {
@@ -720,6 +740,8 @@ this.socket.setTimeout(msecs);
 				WriteCB cb = this.outputCallbacks.remove(0);
 
 				ret = this.socket.write(data, encoding, cb);
+				
+				Log.d(TAG, "_flush "+data+"@"+encoding+",ret="+ret);
 			}
 
 			if (this.finished) {
@@ -738,13 +760,6 @@ this.socket.setTimeout(msecs);
 			this._implicitHeader();
 			this._send("", null, null);
 		}
-	}
-
-	@Override
-	protected void _write(Object chunk, String encoding, WriteCB cb)
-			throws Exception {
-		// TODO Auto-generated method stub
-        Log.d(TAG, "....._write");
 	}
 
 	/**

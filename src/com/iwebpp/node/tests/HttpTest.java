@@ -9,8 +9,11 @@ import android.util.Log;
 
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.TCP.Socket;
+import com.iwebpp.node.TCP.Socket.ConnectCallback;
 import com.iwebpp.node.Writable.WriteCB;
 import com.iwebpp.node.http.ClientRequest;
+import com.iwebpp.node.http.ClientRequest.socketListener;
 import com.iwebpp.node.http.Http;
 import com.iwebpp.node.http.IncomingMessage;
 import com.iwebpp.node.http.ReqOptions;
@@ -60,7 +63,8 @@ public final class HttpTest {
 					///headers.get("te").add("chunk");
 					
 					res.writeHead(200, headers);
-					res.write("Hello Tom", "utf-8", new WriteCB(){
+					for (int i = 0; i < 10; i ++)
+						res.write("Hello Tom", "utf-8", new WriteCB(){
 
 						@Override
 						public void writeDone(String error) throws Exception {
@@ -99,8 +103,10 @@ public final class HttpTest {
 			ReqOptions ropt = new ReqOptions();
 			ropt.hostname = host;
 			ropt.port = port;
-			ropt.method = "GET";
+			ropt.method = "PUT";
 			ropt.path = "/";
+			///ropt.keepAlive = true;
+			///ropt.keepAliveMsecs = 10000;
 
 			ClientRequest req = Http.request(ctx, ropt, new ClientRequest.responseListener() {
 
@@ -109,8 +115,7 @@ public final class HttpTest {
 					Log.d(TAG, "STATUS: " + res.statusCode());
 					Log.d(TAG, "HEADERS: " + res.headers);
 
-					res.setEncoding("utf8");
-
+					res.setEncoding("utf-8");
 					res.on("data", new Listener(){
 
 						@Override
@@ -123,7 +128,7 @@ public final class HttpTest {
 				}
 
 			});
-
+			
 			req.on("error", new Listener(){
 
 				@Override
@@ -135,7 +140,7 @@ public final class HttpTest {
 
 			// write data to request body
 			for (int i = 0; i < 6; i ++)
-				req.write("data\n", "utf8", null);
+			    req.write("data\n", "utf-8", null);
 			
 			req.end(null, null, null);
 
@@ -199,7 +204,7 @@ public final class HttpTest {
 							Log.d(TAG, "STATUS: " + res.statusCode());
 							Log.d(TAG, "HEADERS: " + res.headers);
 
-							res.setEncoding("utf8");
+							res.setEncoding("utf-8");
 
 							res.on("data", new Listener(){
 
@@ -224,9 +229,9 @@ public final class HttpTest {
 					});
 
 					// write data to request body
-					req.write("data\n", null, null);
-					req.write("data\n", null, null);
-					req.end(req, null, null);
+					req.write("data\n", "utf-8", null);
+					req.write("data\n", "utf-8", null);
+					req.end(null, null, null);
 				}
 				
 			});

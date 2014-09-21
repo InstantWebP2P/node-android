@@ -17,21 +17,19 @@ import com.iwebpp.libuvpp.cb.StreamWriteCallback;
 import com.iwebpp.libuvpp.handles.LoopHandle;
 import com.iwebpp.libuvpp.handles.TCPHandle;
 import com.iwebpp.node.Writable2.WriteReq;
-import com.iwebpp.node.http.IncomingMessage;
 import com.iwebpp.node.http.IncomingParser;
 
 public final class TCP {
 	private final static String TAG = "TCP";
 
-	public static final class Socket extends Duplex {
+	public static final class Socket 
+	extends Duplex {
 		private final static String TAG = "TCP:Socket";
 
 		private boolean _connecting;
 		private boolean _hadError;
 		private TCPHandle _handle;
 		private String _host;
-		private boolean readable;
-		private boolean writable;
 		private Object _pendingData;
 		private String _pendingEncoding;
 		private boolean allowHalfOpen;
@@ -65,21 +63,21 @@ public final class TCP {
 
 		public static class Options {
 
+			public Options(
+					TCPHandle handle, boolean readable,
+					boolean writable, boolean allowHalfOpen) {
+				super();
+				this.handle = handle;
+				this.readable = readable;
+				this.writable = writable;
+				this.allowHalfOpen = allowHalfOpen;
+			}
+
 			public TCPHandle handle;
-			public long fd;
+			public long fd = -1;
 			public boolean readable;
 			public boolean writable;
 			public boolean allowHalfOpen;
-
-			public Options(boolean allowHalfOpen, TCPHandle handle) {
-				this.allowHalfOpen = allowHalfOpen;
-
-				this.handle = handle;
-				this.readable = false;
-				this.writable = false;
-
-				this.fd = -1;
-			}
 
 			@SuppressWarnings("unused")
 			private Options(){}
@@ -88,8 +86,10 @@ public final class TCP {
 		public Socket(NodeContext context, Options options) throws Exception {
 			// TBD...
 			super(context, 
-					new Readable2.Options(-1, null, false, "utf8"), 
-					new Writable2.Options(-1, false, "utf8", false));
+				  new Duplex.Options(new Readable2.Options(-1, null, false, "utf8", options.readable), 
+					                 new Writable2.Options(-1, false, "utf8", false, options.writable), 
+					                 options.allowHalfOpen)
+				  );
 
 
 			final Socket self = this;
@@ -131,7 +131,7 @@ public final class TCP {
 			    this.writable = options.writable;
 			  } */else {
 				  // these will be set once there is a connection
-				  this.readable = this.writable = false;
+				  this.readable(false); this.writable(false);
 			  }
 
 			// shut down the socket when we're finished with it.
@@ -154,7 +154,7 @@ public final class TCP {
 					}
 
 					Log.d(TAG, "onSocketFinish");
-					if (!self.readable || self.get_readableState().ended) {
+					if (!self.readable() || self.get_readableState().ended) {
 						Log.d(TAG, "oSF: ended, destroy "+self.get_readableState());
 						self.destroy(null);
 						return;
@@ -230,13 +230,13 @@ public final class TCP {
 					Log.d(TAG, "onSocketEnd "+self.get_readableState());
 					self.get_readableState().ended = true;
 					if (self.get_readableState().endEmitted) {
-						self.readable = false;
+						self.readable(false);
 						maybeDestroy(self);
 					} else {
 						self.once("end", new Listener(){
 
 							public void onEvent(final Object data) throws Exception {
-								self.readable = false;
+								self.readable(false);
 								maybeDestroy(self);
 							}
 
@@ -276,7 +276,7 @@ public final class TCP {
 		public void destroySoon() throws Exception {
 			final Socket self = this;
 
-			if (this.writable)
+			if (this.writable())
 				this.end(null, null, null);
 
 			if (this._writableState.finished)
@@ -301,7 +301,7 @@ public final class TCP {
 
 			// Handle creation may be deferred to bind() or connect() time.
 			if (self._handle != null) {
-				self._handle.owner = self;
+				///self._handle.owner = self;
 
 				// This function is called whenever the handle gets a
 				// buffer, or when there's an error reading.
@@ -363,7 +363,7 @@ public final class TCP {
 						Log.d(TAG, "EOF");
 
 						if (self.get_readableState().length == 0) {
-							self.readable = false;
+							self.readable(false);
 							maybeDestroy(self);
 						}
 
@@ -389,8 +389,8 @@ public final class TCP {
 		// Call whenever we set writable=false or readable=false
 		protected static void maybeDestroy(Socket socket) throws Exception {
 			if (
-					!socket.readable &&
-					!socket.writable &&
+					!socket.readable() &&
+					!socket.writable() &&
 					!socket.destroyed &&
 					!socket._connecting &&
 					socket._writableState.length==0) {
@@ -437,7 +437,8 @@ public final class TCP {
 
 			self._connecting = false;
 
-			this.readable = this.writable = false;
+			this.readable(false);
+		    this.writable(false);
 
 			Timers.unenroll(this);
 
@@ -494,7 +495,7 @@ public final class TCP {
 			}
 		}
 
-		private Socket() {super(null, null, null);}
+		private Socket() {super(null, null);}
 
 		// TBD...
 		/*Socket.prototype.listen = function() {
@@ -699,11 +700,11 @@ public final class TCP {
 		public String readyState() {
 			if (this._connecting) {
 				return "opening";
-			} else if (this.readable && this.writable) {
+			} else if (this.readable() && this.writable()) {
 				return "open";
-			} else if (this.readable && !this.writable) {
+			} else if (this.readable() && !this.writable()) {
 				return "readOnly";
-			} else if (!this.readable && this.writable) {
+			} else if (!this.readable() && this.writable()) {
 				return "writeOnly";
 			} else {
 				return "closed";
@@ -752,11 +753,11 @@ public final class TCP {
 		public boolean end(Object data, String encoding, WriteCB cb) throws Exception {
 			///stream.Duplex.prototype.end.call(this, data, encoding);
 			super.end(data, encoding, null);
-			this.writable = false;
+			this.writable(false);
 			///DTRACE_NET_STREAM_END(this);
 
 			// just in case we're waiting for an EOF.
-			if (this.readable && !this.get_readableState().endEmitted)
+			if (this.readable() && !this.get_readableState().endEmitted)
 				this.read(0);
 			else
 				maybeDestroy(this);
@@ -998,7 +999,9 @@ Socket.prototype._writev = function(chunks, cb) {
 			Timers._unrefActive(this);
 
 			self._connecting = true;
-			self.writable = true;
+			// TBD... change true to false
+			///self.writable(true);
+			self.writable(false);
 			///////////////////////////////////////////////
 
 			connect(4, null, port, null, -1);
@@ -1043,7 +1046,9 @@ Socket.prototype._writev = function(chunks, cb) {
 			Timers._unrefActive(this);
 
 			self._connecting = true;
-			self.writable = true;
+			// TBD... change true to false
+			///self.writable(true);
+			self.writable(false);
 			///////////////////////////////////////////////
 
 			connect(4, address, port, null, -1);
@@ -1090,7 +1095,9 @@ Socket.prototype._writev = function(chunks, cb) {
 			Timers._unrefActive(this);
 
 			self._connecting = true;
-			self.writable = true;
+			// TBD... change true to false
+			///self.writable(true);
+			self.writable(false);
 			///////////////////////////////////////////////
 
 			connect(4, address, port, null, localPort);
@@ -1137,7 +1144,9 @@ Socket.prototype._writev = function(chunks, cb) {
 			Timers._unrefActive(this);
 
 			self._connecting = true;
-			self.writable = true;
+			// TBD... change true to false
+			///self.writable(true);
+			self.writable(false);
 			///////////////////////////////////////////////
 
 			connect(4, address, port, localAddress, -1);
@@ -1184,7 +1193,9 @@ Socket.prototype._writev = function(chunks, cb) {
 			Timers._unrefActive(this);
 
 			self._connecting = true;
-			self.writable = true;
+			// TBD... change true to false
+			///self.writable(true);
+			self.writable(false);
 			///////////////////////////////////////////////
 
 			// TBD... determine addressType
@@ -1231,7 +1242,9 @@ Socket.prototype._writev = function(chunks, cb) {
 			Timers._unrefActive(this);
 
 			self._connecting = true;
-			self.writable = true;
+			// TBD... change true to false
+			///self.writable(true);
+			self.writable(false);
 			///////////////////////////////////////////////
 
 			connect(addressType, address, port, null, -1);
@@ -1332,24 +1345,24 @@ Socket.prototype._writev = function(chunks, cb) {
 
 					///assert(handle === self._handle, 'handle != self._handle');
 
-					Log.d(TAG, "afterConnect");
-
 					///assert.ok(self._connecting);
 					self._connecting = false;
 
-					if (status == 0) {
-						self.readable = readable;
-						self.writable = writable;
+					if (status >= 0) {
+						self.readable(self._handle.isReadable());
+						self.writable(self._handle.isWritable());
+						
 						Timers._unrefActive(self);
-
+						
 						self.emit("connect");
-
+						
 						// start the first read, or get an immediate EOF.
 						// this doesn't actually consume any bytes, because len=0.
-						if (readable)
+						if (readable())
 							self.read(0);
-
 					} else {
+						Log.e(TAG, "err connect status: "+status);
+
 						self._connecting = false;
 						///self._destroy(errnoException(status, 'connect'));
 						self._destroy("err connect status: "+status, null);
@@ -1679,9 +1692,10 @@ Socket.prototype._writev = function(chunks, cb) {
 						handle: clientHandle,
 						allowHalfOpen: self.allowHalfOpen
 					});*/
-					Socket socket = new Socket(context, new Socket.Options(self.allowHalfOpen, clientHandle));
-					socket.readable = socket.writable = true;
-
+					Socket socket = new Socket(
+							context, 
+							new Socket.Options(clientHandle, true, true, self.allowHalfOpen));
+					socket.readable(true); socket.writable(true);
 
 					self._connections++;
 					socket.server = self;
@@ -1694,7 +1708,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			};
 			self._handle.setConnectionCallback(onconnection);
 
-			self._handle.owner = self;
+			///self._handle.owner = self;
 
 			int err = 0;
 			if (!alreadyListening)
@@ -1907,7 +1921,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			final Socket.ConnectCallback cb) throws Exception {
 		Log.d(TAG, "createConnection " + address + ":" + port + "@"+localAddress+":"+localPort);
 
-		Socket s = new Socket(ctx, new Socket.Options(false, null));
+		Socket s = new Socket(ctx, new Socket.Options(null, false, false, true));
 
 		s.connect(address, port, localAddress, localPort, cb);
 
@@ -1921,7 +1935,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			final Socket.ConnectCallback cb) throws Exception {
 		Log.d(TAG, "createConnection " + address + ":" + port + "@"+localAddress+":"+localPort);
 
-		Socket s = new Socket(ctx, new Socket.Options(false, null));
+		Socket s = new Socket(ctx, new Socket.Options(null, false, false, true));
 
 		s.connect(address, port, localAddress, localPort, cb);
 

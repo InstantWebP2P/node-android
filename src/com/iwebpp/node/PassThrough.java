@@ -3,12 +3,11 @@ package com.iwebpp.node;
 public final class PassThrough 
 extends Transform {
 
-	public PassThrough(NodeContext ctx, Options roptions,
-			com.iwebpp.node.Writable2.Options woptions) {
-		super(ctx, roptions, woptions);
+	public PassThrough(NodeContext ctx, Duplex.Options options) {
+		super(ctx, options);
 		// TODO Auto-generated constructor stub
 	}
-	private PassThrough(){super(null, null, null);}
+	private PassThrough(){super(null, null);}
 
 	@Override
 	protected void _transform(Object chunk, String encoding,

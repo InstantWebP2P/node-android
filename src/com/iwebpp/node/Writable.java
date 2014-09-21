@@ -8,4 +8,5 @@ public interface Writable extends EventEmitter {
 	public boolean write(Object chunk, String encoding, WriteCB cb) throws Exception;
 	public boolean end(Object chunk, String encoding, WriteCB cb) throws Exception;
 	public boolean writable();
+	public void    writable(boolean writable);
 }

@@ -1,5 +1,7 @@
 package com.iwebpp.node;
 
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,10 +25,11 @@ implements EventEmitter {
 	@Override
 	public boolean emit(String event) throws Exception {
 		if (events.containsKey(event)) {
+			Log.d(TAG, "emit "+event+" at="+this);
 			for (Listener cb : events.get(event))
 				cb.onEvent(null);
 		} else {
-			Log.d(TAG, "unknown event "+event);
+			Log.d(TAG, "unknown event "+event+" at="+this);
 			return false;
 		}
 		return true;
@@ -35,40 +38,51 @@ implements EventEmitter {
 	@Override
 	public boolean emit(String event, Object data) throws Exception {
 		if (events.containsKey(event)) {
+			Log.d(TAG, "emit "+event+" data="+data+" at="+this);
+
 			for (Listener cb : events.get(event))
-				cb.onEvent(data);
+				// always create new one to share in case ByteBuffer, etc
+				if (data instanceof ByteBuffer) {
+					ByteBuffer bb = ((ByteBuffer)data).slice();
+					cb.onEvent(bb);
+				} else 
+					cb.onEvent(data);
 		} else {
-			Log.d(TAG, "unknown event "+event+" data "+data.toString());
+			Log.d(TAG, "unknown event "+event+" data "+data+" at="+this);
 			return false;
 		}
 		return true;
 	}
 		
 	@Override
-	public boolean addListener(String event, Listener cb) {
+	public EventEmitter addListener(String event, Listener cb) {
 		// check maxListens
 		if (maxEvents.containsKey(event) && 
 			maxEvents.get(event) < listenerCount(event)) {
-			Log.d(TAG, "exceed maxListeners@"+event);
+			Log.w(TAG, "exceed maxListeners@"+event+" at="+this);
 
-			return false;
+			///return this;
 		}
 		
 		if (!events.containsKey(event)) {
 			events.put(event, new LinkedList<Listener>());
 		}
 		
-		return events.get(event).add(cb);
+		Log.d(TAG, "addListener "+event+" cb="+cb+" at="+this);
+
+		events.get(event).add(cb);
+		
+		return this;
 	}
 	
 	@Override
-	public boolean addListener(String event, Listener cb, int priority) {
+	public EventEmitter addListener(String event, Listener cb, int priority) {
 		// check maxListens
 		if (maxEvents.containsKey(event) && 
 			maxEvents.get(event) < listenerCount(event)) {
-			Log.d(TAG, "exceed maxListeners@"+event);
+			Log.w(TAG, "exceed maxListeners@"+event+" at="+this);
 
-			return false;
+			///return this;
 		}
 		
 		if (!events.containsKey(event)) {
@@ -77,16 +91,16 @@ implements EventEmitter {
 		
 		events.get(event).add(priority, cb);
 		
-		return true;
+		return this;
 	}
 
 	@Override
-	public boolean on(String event, Listener cb) throws Exception {
+	public EventEmitter on(String event, Listener cb) throws Exception {
 		return addListener(event, cb);
 	}
 
 	@Override
-	public boolean once(final String event, final Listener ocb) {
+	public EventEmitter once(final String event, final Listener ocb) {
 		return addListener(event, new Listener(){
 
 			@Override
@@ -102,47 +116,45 @@ implements EventEmitter {
 	}
 
 	@Override
-	public boolean removeListener(String event, Listener cb) {
-		if (!events.containsKey(event)) {
-			return true;
-		} else {
-			return events.get(event).remove(cb);
-		}
+	public EventEmitter removeListener(String event, Listener cb) {
+		if (events.containsKey(event) && events.get(event).contains(cb))
+			events.get(event).remove(cb);
+
+		return this;
 	}
 
 	@Override
-	public boolean removeListener(String event) {
-		if (events.containsKey(event)) {
-			events.get(event).clear();
-		}
+	public EventEmitter removeListener(String event) {
+		if (events.containsKey(event))
+			events.remove(event);
 		
-		return true;
+		return this;
 	}
 
 	@Override
-	public boolean removeListener() {
+	public EventEmitter removeListener() {
 		// TODO Auto-generated method stub
 		events.clear();
-		return true;
+		return this;
 	}
 
 	@Override
-	public boolean setMaxListeners(String event, int n) {
+	public EventEmitter setMaxListeners(String event, int n) {
 		// TODO Auto-generated method stub
 		this.maxEvents.put(event, n);
-		return true;
+		return this;
 	}
 
 	@Override
 	public List<Listener> listeners(String event) {
 		// TODO Auto-generated method stub
-		return events.get(event);
+		return events.containsKey(event) ? events.get(event) : null;
 	}
 
 	@Override
 	public int listenerCount(String event) {
 		// TODO Auto-generated method stub
-		return listeners(event).size();
+		return events.containsKey(event) ? events.get(event).size() : 0;
 	}
 
 }

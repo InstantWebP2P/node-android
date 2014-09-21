@@ -23,16 +23,19 @@ implements Readable {
 		private boolean objectMode;
 		private String defaultEncoding;
 		private String encoding;
+		public boolean readable;
 
 		public Options(
 				int highWaterMark, 
 				String encoding,
 				boolean objectMode, 
-				String defaultEncoding) {
+				String defaultEncoding,
+				boolean readable) {
 			this.highWaterMark = highWaterMark;
 			this.encoding = encoding;
 			this.objectMode = objectMode;
 			this.defaultEncoding = defaultEncoding;
+			this.readable = readable;
 		}
 		/**
 		 * @return the highWaterMark
@@ -69,7 +72,7 @@ implements Readable {
 		int length;
 		List<Writable> pipes;
 		int pipesCount;
-		boolean flowing;
+		boolean flowing; // change to Boolean simulate three state: null, true, false
 		
 		/**
 		 * @param flowing the flowing to set
@@ -224,7 +227,7 @@ implements Readable {
 		this._readableState = new State(options, this);
 
 		// legacy
-		this.readable = true;
+		this.readable = options.readable;/// true;
 	}
 	@SuppressWarnings("unused")
 	private Readable2() {}
@@ -1024,12 +1027,13 @@ this._readableState.encoding = enc;
 	// set up data events if they are asked for
 	// Ensure readable listeners eventually get something
 	@Override
-	public boolean on(final String ev, final Listener fn) throws Exception {
-		boolean res = super.on(ev, fn);
+	public EventEmitter on(final String ev, final Listener fn) throws Exception {
+		EventEmitter res = super.on(ev, fn);
 
 		// If listening to data, and it has not explicitly been paused,
 		// then call resume to start the flow of data on the next tick.
-		if (ev == "data" && false != this._readableState.flowing) {
+		// TBD... always do resume tom zhou
+		if (ev == "data" /*&& false != this._readableState.flowing*/) {
 			this.resume();
 		}
 
@@ -1117,7 +1121,10 @@ this._readableState.encoding = enc;
 	public boolean readable() {
 		return readable;
 	}
-
+	public void readable(boolean readable) {
+		this.readable = readable;
+	}
+	
 	// wrap an old-style stream as the async data source.
 	// This is *not* part of the readable stream interface.
 	// It is an ugly unfortunate mess of history.

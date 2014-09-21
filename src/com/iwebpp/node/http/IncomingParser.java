@@ -191,7 +191,11 @@ extends HttpParser {
 		 */
 		// TBD...
 		this.incoming = new IncomingMessage(context, (TCP.Socket)super.data);
-
+        this.incoming.setHttpVersionMajor(info.versionMajor);
+        this.incoming.setHttpVersionMinor(info.versionMinor);
+        this.incoming.httpVersion(info.versionMajor + "." + info.versionMinor);
+        this.incoming.url(url);
+		
 		///var n = headers.length;
 		int n = headers.size();
 
@@ -233,8 +237,8 @@ extends HttpParser {
 		public List<String> headers;
 		public int statusCode;
 		public String statusMessage;
-		public String versionMajor;
-		public String versionMinor;
+		public int versionMajor;
+		public int versionMinor;
 	}
 
 	protected abstract boolean onIncoming(IncomingMessage incoming, boolean shouldKeepAlive) throws Exception;
@@ -381,8 +385,8 @@ extends HttpParser {
 		}
 
 		// VERSION
-		message_info.versionMajor = ""+super.getHttp_major();
-		message_info.versionMinor = ""+super.getHttp_minor();
+		message_info.versionMajor = super.getHttp_major();
+		message_info.versionMinor = super.getHttp_minor();
 		
 		message_info.shouldKeepAlive = super.http_should_keep_alive();
 		

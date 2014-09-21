@@ -29,8 +29,8 @@ public class ReqOptions {
 	public Map<String, List<String>> headers;
 
 	// Agent specific
-	public int maxFreeSockets;
-	public int maxSockets;
+	public int maxFreeSockets = 256;
+	public int maxSockets = 5;
 	public boolean keepAlive;
 	public int keepAliveMsecs;
 	

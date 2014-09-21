@@ -17,22 +17,30 @@ import com.iwebpp.libuvpp.cb.StreamWriteCallback;
 import com.iwebpp.libuvpp.handles.LoopHandle;
 import com.iwebpp.libuvpp.handles.UDTHandle;
 import com.iwebpp.node.Writable2.WriteReq;
+import com.iwebpp.node.http.IncomingParser;
 
 public final class UDT {
-	
-	public static final class Socket extends Duplex {
+	private final static String TAG = "UDT";
+
+	public static final class Socket 
+	extends Duplex {
 		private final static String TAG = "UDT:Socket";
 
 		private boolean _connecting;
 		private boolean _hadError;
 		private UDTHandle _handle;
 		private String _host;
-		private boolean readable;
-		private boolean writable;
 		private Object _pendingData;
 		private String _pendingEncoding;
 		private boolean allowHalfOpen;
 		private boolean destroyed;
+		/**
+		 * @return the destroyed
+		 */
+		public boolean isDestroyed() {
+			return destroyed;
+		}
+
 		private int bytesRead;
 		private int _bytesDispatched;
 		private Object _writev;
@@ -44,27 +52,33 @@ public final class UDT {
 		private Address _sockname;
 
 		private Address _peername;
-		
+
 		private NodeContext context;
+
+		public boolean _paused;
+
+		public EventEmitter _httpMessage;
+
+		public IncomingParser parser;
 
 		public static class Options {
 
+			public Options(
+					UDTHandle handle, boolean readable,
+					boolean writable, boolean allowHalfOpen) {
+				super();
+				this.handle = handle;
+				this.readable = readable;
+				this.writable = writable;
+				this.allowHalfOpen = allowHalfOpen;
+			}
+
 			public UDTHandle handle;
-			public long fd;
+			public long fd = -1;
 			public boolean readable;
 			public boolean writable;
 			public boolean allowHalfOpen;
-			
-			public Options(boolean allowHalfOpen, UDTHandle handle) {
-				this.allowHalfOpen = allowHalfOpen;
 
-				this.handle = handle;
-				this.readable = false;
-				this.writable = false;
-								
-				this.fd = -1;
-			}
-			
 			@SuppressWarnings("unused")
 			private Options(){}
 		};
@@ -72,19 +86,21 @@ public final class UDT {
 		public Socket(NodeContext context, Options options) throws Exception {
 			// TBD...
 			super(context, 
-				  new Readable2.Options(-1, "", false, "utf8"), 
-			      new Writable2.Options(-1, false, "utf8", false));
-			
+				  new Duplex.Options(new Readable2.Options(-1, null, false, "utf8", options.readable), 
+					                 new Writable2.Options(-1, false, "utf8", false, options.writable), 
+					                 options.allowHalfOpen)
+				  );
+
 
 			final Socket self = this;
-			
+
 			// node context
 			this.context = context;
-			
+
 			///if (!(this instanceof Socket)) return new Socket(options);
 
 			this._connecting = false;
-			this._hadError = false;
+			this.set_hadError(false);
 			this._handle = null;
 			this._host = null;
 
@@ -115,7 +131,7 @@ public final class UDT {
 			    this.writable = options.writable;
 			  } */else {
 				  // these will be set once there is a connection
-				  this.readable = this.writable = false;
+				  this.readable(false); this.writable(false);
 			  }
 
 			// shut down the socket when we're finished with it.
@@ -138,7 +154,7 @@ public final class UDT {
 					}
 
 					Log.d(TAG, "onSocketFinish");
-					if (!self.readable || self.get_readableState().ended) {
+					if (!self.readable() || self.get_readableState().ended) {
 						Log.d(TAG, "oSF: ended, destroy "+self.get_readableState());
 						self.destroy(null);
 						return;
@@ -214,13 +230,13 @@ public final class UDT {
 					Log.d(TAG, "onSocketEnd "+self.get_readableState());
 					self.get_readableState().ended = true;
 					if (self.get_readableState().endEmitted) {
-						self.readable = false;
+						self.readable(false);
 						maybeDestroy(self);
 					} else {
 						self.once("end", new Listener(){
 
 							public void onEvent(final Object data) throws Exception {
-								self.readable = false;
+								self.readable(false);
 								maybeDestroy(self);
 							}
 
@@ -257,10 +273,10 @@ public final class UDT {
 
 		}
 
-		protected void destroySoon() throws Exception {
+		public void destroySoon() throws Exception {
 			final Socket self = this;
 
-			if (this.writable)
+			if (this.writable())
 				this.end(null, null, null);
 
 			if (this._writableState.finished)
@@ -285,7 +301,7 @@ public final class UDT {
 
 			// Handle creation may be deferred to bind() or connect() time.
 			if (self._handle != null) {
-				self._handle.owner = self;
+				///self._handle.owner = self;
 
 				// This function is called whenever the handle gets a
 				// buffer, or when there's an error reading.
@@ -347,7 +363,7 @@ public final class UDT {
 						Log.d(TAG, "EOF");
 
 						if (self.get_readableState().length == 0) {
-							self.readable = false;
+							self.readable(false);
 							maybeDestroy(self);
 						}
 
@@ -373,8 +389,8 @@ public final class UDT {
 		// Call whenever we set writable=false or readable=false
 		protected static void maybeDestroy(Socket socket) throws Exception {
 			if (
-					!socket.readable &&
-					!socket.writable &&
+					!socket.readable() &&
+					!socket.writable() &&
 					!socket.destroyed &&
 					!socket._connecting &&
 					socket._writableState.length==0) {
@@ -401,10 +417,10 @@ public final class UDT {
 						// TBD...
 						///process.nextTick(function() {
 						context.nextTick(new NodeContext.nextTickCallback() {
-							
-					    	public void onNextTick() throws Exception {
+
+							public void onNextTick() throws Exception {
 								self.emit("error", exception);
-					    	}
+							}
 
 						});
 						self._writableState.errorEmitted = true;
@@ -421,7 +437,8 @@ public final class UDT {
 
 			self._connecting = false;
 
-			this.readable = this.writable = false;
+			this.readable(false);
+		    this.writable(false);
 
 			Timers.unenroll(this);
 
@@ -478,7 +495,7 @@ public final class UDT {
 			}
 		}
 
-		private Socket() {super(null, null, null);}
+		private Socket() {super(null, null);}
 
 		// TBD...
 		/*Socket.prototype.listen = function() {
@@ -594,7 +611,7 @@ public final class UDT {
 			}
 			return this._sockname;
 		}
-		
+
 		public int bytesRead() {
 			return this.bytesRead;
 		}
@@ -673,7 +690,7 @@ public final class UDT {
 					public void onNextTick() throws Exception {	
 						cb.writeDone(er);
 					}
-					
+
 				});
 			}
 
@@ -683,11 +700,11 @@ public final class UDT {
 		public String readyState() {
 			if (this._connecting) {
 				return "opening";
-			} else if (this.readable && this.writable) {
+			} else if (this.readable() && this.writable()) {
 				return "open";
-			} else if (this.readable && !this.writable) {
+			} else if (this.readable() && !this.writable()) {
 				return "readOnly";
-			} else if (!this.readable && this.writable) {
+			} else if (!this.readable() && this.writable()) {
 				return "writeOnly";
 			} else {
 				return "closed";
@@ -736,15 +753,15 @@ public final class UDT {
 		public boolean end(Object data, String encoding, WriteCB cb) throws Exception {
 			///stream.Duplex.prototype.end.call(this, data, encoding);
 			super.end(data, encoding, null);
-			this.writable = false;
+			this.writable(false);
 			///DTRACE_NET_STREAM_END(this);
 
 			// just in case we're waiting for an EOF.
-			if (this.readable && !this.get_readableState().endEmitted)
+			if (this.readable() && !this.get_readableState().endEmitted)
 				this.read(0);
 			else
 				maybeDestroy(this);
-			
+
 			return false;
 		}
 
@@ -929,10 +946,20 @@ Socket.prototype._writev = function(chunks, cb) {
 			return;
 		}
 
+		public void onConnect(final ConnectCallback cb) throws Exception {
+			this.on("connect", new Listener(){
+
+				@Override
+				public void onEvent(Object data) throws Exception {
+					cb.onConnect();					
+				}
+
+			});
+		}
 		public static interface ConnectCallback {
 			public void onConnect() throws Exception;
 		}
-		
+
 		public void connect(int port, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
@@ -965,14 +992,16 @@ Socket.prototype._writev = function(chunks, cb) {
 					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
-					
+
 				});
 			}
 
 			Timers._unrefActive(this);
 
 			self._connecting = true;
-			self.writable = true;
+			// TBD... change true to false
+			///self.writable(true);
+			self.writable(false);
 			///////////////////////////////////////////////
 
 			connect(4, null, port, null, -1);
@@ -1010,14 +1039,16 @@ Socket.prototype._writev = function(chunks, cb) {
 					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
-					
+
 				});
 			}
 
 			Timers._unrefActive(this);
 
 			self._connecting = true;
-			self.writable = true;
+			// TBD... change true to false
+			///self.writable(true);
+			self.writable(false);
 			///////////////////////////////////////////////
 
 			connect(4, address, port, null, -1);
@@ -1057,14 +1088,16 @@ Socket.prototype._writev = function(chunks, cb) {
 					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
-					
+
 				});
 			}
 
 			Timers._unrefActive(this);
 
 			self._connecting = true;
-			self.writable = true;
+			// TBD... change true to false
+			///self.writable(true);
+			self.writable(false);
 			///////////////////////////////////////////////
 
 			connect(4, address, port, null, localPort);
@@ -1104,14 +1137,16 @@ Socket.prototype._writev = function(chunks, cb) {
 					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
-					
+
 				});
 			}
 
 			Timers._unrefActive(this);
 
 			self._connecting = true;
-			self.writable = true;
+			// TBD... change true to false
+			///self.writable(true);
+			self.writable(false);
 			///////////////////////////////////////////////
 
 			connect(4, address, port, localAddress, -1);
@@ -1151,16 +1186,19 @@ Socket.prototype._writev = function(chunks, cb) {
 					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
-					
+
 				});
 			}
 
 			Timers._unrefActive(this);
 
 			self._connecting = true;
-			self.writable = true;
+			// TBD... change true to false
+			///self.writable(true);
+			self.writable(false);
 			///////////////////////////////////////////////
 
+			// TBD... determine addressType
 			connect(4, address, port, localAddress, localPort);
 		}
 
@@ -1197,14 +1235,16 @@ Socket.prototype._writev = function(chunks, cb) {
 					public void onEvent(Object data) throws Exception {
 						cb.onConnect();
 					}
-					
+
 				});
 			}
 
 			Timers._unrefActive(this);
 
 			self._connecting = true;
-			self.writable = true;
+			// TBD... change true to false
+			///self.writable(true);
+			self.writable(false);
 			///////////////////////////////////////////////
 
 			connect(addressType, address, port, null, -1);
@@ -1305,24 +1345,24 @@ Socket.prototype._writev = function(chunks, cb) {
 
 					///assert(handle === self._handle, 'handle != self._handle');
 
-					Log.d(TAG, "afterConnect");
-
 					///assert.ok(self._connecting);
 					self._connecting = false;
 
-					if (status == 0) {
-						self.readable = readable;
-						self.writable = writable;
+					if (status >= 0) {
+						self.readable(self._handle.isReadable());
+						self.writable(self._handle.isWritable());
+						
 						Timers._unrefActive(self);
-
+						
 						self.emit("connect");
-
+						
 						// start the first read, or get an immediate EOF.
 						// this doesn't actually consume any bytes, because len=0.
-						if (readable)
+						if (readable())
 							self.read(0);
-
 					} else {
+						Log.e(TAG, "err connect status: "+status);
+
 						self._connecting = false;
 						///self._destroy(errnoException(status, 'connect'));
 						self._destroy("err connect status: "+status, null);
@@ -1372,10 +1412,32 @@ Socket.prototype._writev = function(chunks, cb) {
 			 */
 		}
 
+		public void ref() {
+			this._handle.ref();
+		}
+
+		public void unref() {
+			this._handle.unref();
+		}
+
+		/**
+		 * @return the _hadError
+		 */
+		public boolean is_hadError() {
+			return _hadError;
+		}
+
+		/**
+		 * @param _hadError the _hadError to set
+		 */
+		public void set_hadError(boolean _hadError) {
+			this._hadError = _hadError;
+		}
+
 	}
-	
+
 	// /* [ options, ] listener */
-	public static final class Server extends EventEmitter2 {
+	public static class Server extends EventEmitter2 {
 		private final static String TAG = "UDT:Server";
 
 		private int _connections;
@@ -1415,12 +1477,15 @@ Socket.prototype._writev = function(chunks, cb) {
 			});
 		}
 
-		public Server(final NodeContext context, Options options, final ConnectionCallback listener) throws Exception {
+		public Server(
+				final NodeContext context, 
+				Options options, 
+				final ConnectionCallback listener) throws Exception {
 			Server self = this;
 
 			// node context
 			this.context = context;
-			
+
 			// set initial onConnection callback
 			if (listener != null) {
 				self.on("connection", new Listener(){
@@ -1471,18 +1536,50 @@ Socket.prototype._writev = function(chunks, cb) {
 			private Options(){}
 		} 
 
+		public void onConnection(final ConnectionCallback cb) throws Exception {
+			this.on("connection", new Listener(){
+
+				@Override
+				public void onEvent(Object raw) throws Exception {
+					Socket data = (Socket)raw;
+					cb.onConnection(data);					
+				}
+
+			});
+		}
 		public static interface ConnectionCallback {
 			public void onConnection(Socket socket);
 		}
 
+		public void onClose(final CloseCallback cb) throws Exception {
+			this.on("close", new Listener(){
+
+				@Override
+				public void onEvent(Object raw) throws Exception {
+					String data = (String)raw;
+					cb.onClose(data);					
+				}
+
+			});
+		}
 		public static interface CloseCallback {
 			public void onClose(String error);
 		}
-
-		public static interface ListenCallback {
-			public void onListen();
-		}
 		
+		public void onListening(final ListeningCallback cb) throws Exception {
+			this.on("listening", new Listener(){
+
+				@Override
+				public void onEvent(Object raw) throws Exception {
+					cb.onListening();					
+				}
+
+			});
+		}
+		public static interface ListeningCallback {
+			public void onListening();
+		}
+
 		private static int _listen(UDTHandle handle, int backlog) {
 			// Use a backlog of 512 entries. We pass 511 to the listen() call because
 			// the kernel does: backlogsize = roundup_pow_of_two(backlogsize + 1);
@@ -1544,12 +1641,12 @@ Socket.prototype._writev = function(chunks, cb) {
 					final String error = "err listen";
 					///process.nextTick(function() {
 					context.nextTick(new NodeContext.nextTickCallback() {
-						
+
 						@Override
 						public void onNextTick() throws Exception {
 							self.emit("error", error);
 						}
-						
+
 					});
 					return;
 				}
@@ -1586,7 +1683,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 					if (/*self.maxConnections &&*/ self._connections >= self.maxConnections) {
 						Log.d(TAG, "exceed maxim connections");
-						
+
 						clientHandle.close();
 						return;
 					}
@@ -1595,9 +1692,10 @@ Socket.prototype._writev = function(chunks, cb) {
 						handle: clientHandle,
 						allowHalfOpen: self.allowHalfOpen
 					});*/
-					Socket socket = new Socket(context, new Socket.Options(self.allowHalfOpen, clientHandle));
-					socket.readable = socket.writable = true;
-
+					Socket socket = new Socket(
+							context, 
+							new Socket.Options(clientHandle, true, true, self.allowHalfOpen));
+					socket.readable(true); socket.writable(true);
 
 					self._connections++;
 					socket.server = self;
@@ -1610,7 +1708,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			};
 			self._handle.setConnectionCallback(onconnection);
 
-			self._handle.owner = self;
+			///self._handle.owner = self;
 
 			int err = 0;
 			if (!alreadyListening)
@@ -1623,14 +1721,14 @@ Socket.prototype._writev = function(chunks, cb) {
 				self._handle = null;
 				///process.nextTick(function() {
 				context.nextTick(new NodeContext.nextTickCallback() {
-					
+
 					@Override
 					public void onNextTick() throws Exception {
 						self.emit("error", ex);
 					}
-					
+
 				});
-				
+
 				Log.d(TAG, ex);
 
 				return;
@@ -1651,9 +1749,9 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			});
 		}
-		
+
 		public void listen(String address, int port, int addressType, 
-				int backlog, int fd, final ListenCallback cb) throws Exception {
+				int backlog, int fd, final ListeningCallback cb) throws Exception {
 			Server self = this;
 
 			///if (util.isFunction(lastArg)) {
@@ -1663,7 +1761,7 @@ Socket.prototype._writev = function(chunks, cb) {
 					@Override
 					public void onEvent(Object data) throws Exception {
 						// TODO Auto-generated method stub
-						cb.onListen();
+						cb.onListening();
 					}
 
 				});
@@ -1671,7 +1769,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			_listen2(address, port, addressType, backlog, fd);
 		}
-		
+
 		public Address address() {
 			return this._getsockname();
 		}
@@ -1699,7 +1797,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			}
 			return this._sockname;
 		}
-		
+
 		public int getConnections() {
 
 			/*
@@ -1791,10 +1889,57 @@ Socket.prototype._writev = function(chunks, cb) {
 		}
 
 
-	}
+	}	
 
 	private static UDTHandle createUDT(final LoopHandle loop) {
 		return new UDTHandle(loop);
 	}
 
+
+	public static Server createServer(
+			final NodeContext context, 
+			final Server.ConnectionCallback listener) throws Exception {
+		return new Server(context, new Server.Options(false), listener);
+	}
+
+	// Target API:
+	//
+	// var s = net.connect({port: 80, host: 'google.com'}, function() {
+	//   ...
+	// });
+	//
+	// There are various forms:
+	//
+	// connect(options, [cb])
+	// connect(port, [host], [cb])
+	// connect(path, [cb]);
+	//
+	public static Socket createConnection(
+			NodeContext ctx, 
+			String address, int port,
+			String localAddress, int localPort,
+			final Socket.ConnectCallback cb) throws Exception {
+		Log.d(TAG, "createConnection " + address + ":" + port + "@"+localAddress+":"+localPort);
+
+		Socket s = new Socket(ctx, new Socket.Options(null, false, false, true));
+
+		s.connect(address, port, localAddress, localPort, cb);
+
+		return s;
+	}
+	
+	public static Socket connect(
+			NodeContext ctx, 
+			String address, int port,
+			String localAddress, int localPort,
+			final Socket.ConnectCallback cb) throws Exception {
+		Log.d(TAG, "createConnection " + address + ":" + port + "@"+localAddress+":"+localPort);
+
+		Socket s = new Socket(ctx, new Socket.Options(null, false, false, true));
+
+		s.connect(address, port, localAddress, localPort, cb);
+
+		return s;
+	}
+	
 }

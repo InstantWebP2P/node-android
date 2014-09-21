@@ -24,7 +24,6 @@ extends Readable2 {
 	private boolean complete;
 	private List<String> rawHeaders;
 	private List<String> rawTrailers;
-	private boolean readable;
 	private List<Object> _pendings;
 	private int _pendingIndex;
 	private String url;
@@ -36,12 +35,12 @@ extends Readable2 {
 	private boolean _dumped;
 	private boolean upgrade;
 
-	public ClientRequest req;
+	public ClientRequest  req;
 	public ServerResponse res;
 
-	public int httpVersionMajor;
+	private int httpVersionMajor;
 
-	public int httpVersionMinor;
+	private int httpVersionMinor;
 
 	public IncomingParser parser;
 
@@ -58,7 +57,7 @@ extends Readable2 {
 		this.upgrade = upgrade;
 	}
 	public IncomingMessage(NodeContext context, Socket socket) {
-		super(context, new Options(-1, null, false, "utf8"));
+		super(context, new Options(-1, null, false, "utf8", false));
 
 		// XXX This implementation is kind of all over the place
 		// When the parser emits body chunks, they go in this list.
@@ -74,7 +73,7 @@ extends Readable2 {
 		this.trailers = new Hashtable<String, List<String>>();
 		this.rawTrailers = new ArrayList<String>();
 
-		this.readable = true;
+		this.readable(true);
 
 		this.set_pendings(new ArrayList<Object>());
 		this._pendingIndex = 0;
@@ -401,6 +400,30 @@ extends Readable2 {
 	 */
 	public void set_consuming(boolean _consuming) {
 		this._consuming = _consuming;
+	}
+	/**
+	 * @return the httpVersionMajor
+	 */
+	public int getHttpVersionMajor() {
+		return httpVersionMajor;
+	}
+	/**
+	 * @param httpVersionMajor the httpVersionMajor to set
+	 */
+	public void setHttpVersionMajor(int httpVersionMajor) {
+		this.httpVersionMajor = httpVersionMajor;
+	}
+	/**
+	 * @return the httpVersionMinor
+	 */
+	public int getHttpVersionMinor() {
+		return httpVersionMinor;
+	}
+	/**
+	 * @param httpVersionMinor the httpVersionMinor to set
+	 */
+	public void setHttpVersionMinor(int httpVersionMinor) {
+		this.httpVersionMinor = httpVersionMinor;
 	}
 	public static interface closeListener {
 		public void onClose() throws Exception;

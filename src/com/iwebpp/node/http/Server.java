@@ -214,11 +214,12 @@ extends TCP.Server {
 			socket.addListener("close", serverSocketCloseListener);
 			///parser.onIncoming = parserOnIncoming;
 			socket.on("end", socketOnEnd);
-			socket.on("data", socketOnData);
 			
 			// do resume to switch to legacy mode
 			// TBD...
-			socket.resume();
+			socket.get_readableState().setFlowing(true);
+			
+			socket.on("data", socketOnData);
 		}
 
 	}
@@ -535,7 +536,7 @@ extends TCP.Server {
 	
 			if ( req.headers.containsKey("expect") && 
 				!req.headers.get("expect").isEmpty() &&
-				(req.httpVersionMajor == 1 && req.httpVersionMinor == 1) &&
+				(req.getHttpVersionMajor() == 1 && req.getHttpVersionMinor() == 1) &&
 				///Http.continueExpression == req.headers.get("expect").get(0)) {
 				Pattern.matches(Http.continueExpression, req.headers.get("expect").get(0))) {
 				res.set_expect_continue(true);
