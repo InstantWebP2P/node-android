@@ -7,20 +7,19 @@ import java.util.regex.Pattern;
 
 import android.util.Log;
 
-import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.HttpParser.http_parser_type;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.TCP;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.TCP.Socket;
-import com.iwebpp.node.http.Http.exception_socket_t;
-import com.iwebpp.node.http.Http.request_response_t;
-import com.iwebpp.node.http.Http.request_socket_head_t;
+import com.iwebpp.node.http.Http.exception_socket_b;
+import com.iwebpp.node.http.Http.request_response_b;
+import com.iwebpp.node.http.Http.request_socket_head_b;
+import com.iwebpp.node.net.TCP;
+import com.iwebpp.node.net.TCP.Socket;
+import com.iwebpp.node.others.TripleState;
 
 public class Server 
 extends TCP.Server {
 
-	private int timeout;
 	private boolean httpAllowHalfOpen;
 	private NodeContext context;
 	
@@ -103,7 +102,7 @@ extends TCP.Server {
 				@Override
 				public void onEvent(Object e) throws Exception {
 					// TODO Auto-generated method stub
-					self.emit("clientError", new exception_socket_t(e!=null? e.toString() : null, socket));
+					self.emit("clientError", new exception_socket_b(e!=null? e.toString() : null, socket));
 				}
 				
 			};
@@ -172,8 +171,8 @@ extends TCP.Server {
 
 							// TODO(isaacs): Need a way to reset a stream to fresh state
 							// IE, not flowing, and not explicitly paused.
-							socket.get_readableState().setFlowing(false);
-							self.emit(eventName, new request_socket_head_t(req, socket, bodyHead));
+							socket.get_readableState().setFlowing(TripleState.UNKNOWN);
+							self.emit(eventName, new request_socket_head_b(req, socket, bodyHead));
 						} else {
 							// Got upgrade header or CONNECT method, but have no handler.
 							socket.destroy(null);
@@ -215,10 +214,8 @@ extends TCP.Server {
 			///parser.onIncoming = parserOnIncoming;
 			socket.on("end", socketOnEnd);
 			
-			// do resume to switch to legacy mode
-			// TBD...
-			socket.get_readableState().setFlowing(true);
-			
+			// set flowing ??? TBD...
+			socket.get_readableState().setFlowing(TripleState.TRUE);
 			socket.on("data", socketOnData);
 		}
 
@@ -250,8 +247,6 @@ extends TCP.Server {
 			}
 			
 		});
-
-		this.timeout = 2 * 60 * 1000;
 	}
 	
 	public Server(NodeContext ctx, requestListener onreq) throws Exception {
@@ -280,8 +275,6 @@ extends TCP.Server {
 			}
 			
 		});
-
-		this.timeout = 2 * 60 * 1000;
 
 		if (onreq != null) this.onRequest(onreq);
 	}
@@ -332,9 +325,9 @@ extends TCP.Server {
 
 			@Override
 			public void onEvent(Object raw) throws Exception {
-				request_response_t data = (request_response_t)raw;
+				request_response_b data = (request_response_b)raw;
 
-				cb.onRequest(data.request, data.response);
+				cb.onRequest(data.getRequest(), data.getResponse());
 			}
 
 		});
@@ -378,9 +371,9 @@ extends TCP.Server {
 
 			@Override
 			public void onEvent(Object raw) throws Exception {
-				request_response_t data = (request_response_t)raw;
+				request_response_b data = (request_response_b)raw;
 
-				cb.onCheckContinue(data.request, data.response);
+				cb.onCheckContinue(data.getRequest(), data.getResponse());
 			}
 
 		});
@@ -394,9 +387,9 @@ extends TCP.Server {
 
 			@Override
 			public void onEvent(Object raw) throws Exception {
-				request_socket_head_t data = (request_socket_head_t)raw;
+				request_socket_head_b data = (request_socket_head_b)raw;
 
-				cb.onConnect(data.request, data.socket, data.head);
+				cb.onConnect(data.getRequest(), data.getSocket(), data.getHead());
 			}
 
 		});
@@ -410,9 +403,9 @@ extends TCP.Server {
 
 			@Override
 			public void onEvent(Object raw) throws Exception {
-				request_socket_head_t data = (request_socket_head_t)raw;
+				request_socket_head_b data = (request_socket_head_b)raw;
 
-				cb.onUpgrade(data.request, data.socket, data.head);
+				cb.onUpgrade(data.getRequest(), data.getSocket(), data.getHead());
 			}
 
 		});
@@ -422,13 +415,13 @@ extends TCP.Server {
 	}
 
 	public void onClientError(final clientErrorListener cb) throws Exception {
-		this.on("upgrade", new Listener(){
+		this.on("clientError", new Listener(){
 
 			@Override
 			public void onEvent(Object raw) throws Exception {
-				exception_socket_t data = (exception_socket_t)raw;
+				exception_socket_b data = (exception_socket_b)raw;
 
-				cb.onClientError(data.exception, data.socket);
+				cb.onClientError(data.getException(), data.getSocket());
 			}
 
 		});
@@ -542,13 +535,13 @@ extends TCP.Server {
 				res.set_expect_continue(true);
 
 				if (self.listenerCount("checkContinue") > 0) {
-					self.emit("checkContinue", new request_response_t(req, res));
+					self.emit("checkContinue", new request_response_b(req, res));
 				} else {
 					res.writeContinue(null);
-					self.emit("request", new request_response_t(req, res));
+					self.emit("request", new request_response_b(req, res));
 				}
 			} else {
-				self.emit("request",  new request_response_t(req, res));
+				self.emit("request",  new request_response_b(req, res));
 			}
 	
 			return false; // Not a HEAD response. (Not even a response!)

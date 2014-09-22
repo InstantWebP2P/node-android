@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.TCP;
-import com.iwebpp.node.TCP.Socket;
+import com.iwebpp.node.net.TCP;
+import com.iwebpp.node.net.TCP.Socket;
 
 public class ReqOptions {
 	

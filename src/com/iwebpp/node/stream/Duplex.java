@@ -1,5 +1,8 @@
-package com.iwebpp.node;
+package com.iwebpp.node.stream;
 
+import com.iwebpp.node.EventEmitter;
+import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext.nextTickCallback;
 
 public abstract class Duplex
@@ -84,7 +87,7 @@ implements Writable {
 				///function onend() {
 				// if we allow half-open state, or if the writable side ended,
 				// then we're ok.
-				if (self.allowHalfOpen || self._writableState.ended)
+				if (self.allowHalfOpen || self._writableState.isEnded())
 					return;
 
 				// no more data can be written.

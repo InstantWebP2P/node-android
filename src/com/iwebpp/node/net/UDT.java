@@ -1,4 +1,4 @@
-package com.iwebpp.node;
+package com.iwebpp.node.net;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -16,8 +16,27 @@ import com.iwebpp.libuvpp.cb.StreamShutdownCallback;
 import com.iwebpp.libuvpp.cb.StreamWriteCallback;
 import com.iwebpp.libuvpp.handles.LoopHandle;
 import com.iwebpp.libuvpp.handles.UDTHandle;
-import com.iwebpp.node.Writable2.WriteReq;
+import com.iwebpp.libuvpp.handles.UDTHandle;
+import com.iwebpp.node.EventEmitter;
+import com.iwebpp.node.EventEmitter2;
+import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.Timers;
+import com.iwebpp.node.Util;
+import com.iwebpp.node.EventEmitter.Listener;
+import com.iwebpp.node.NodeContext.nextTickCallback;
 import com.iwebpp.node.http.IncomingParser;
+import com.iwebpp.node.net.UDT.Server;
+import com.iwebpp.node.net.UDT.Socket;
+import com.iwebpp.node.net.UDT.Server.CloseCallback;
+import com.iwebpp.node.net.UDT.Server.ConnectionCallback;
+import com.iwebpp.node.net.UDT.Server.ListeningCallback;
+import com.iwebpp.node.net.UDT.Socket.ConnectCallback;
+import com.iwebpp.node.net.UDT.Socket.Options;
+import com.iwebpp.node.stream.Duplex;
+import com.iwebpp.node.stream.Readable2;
+import com.iwebpp.node.stream.Writable2;
+import com.iwebpp.node.stream.Writable.WriteCB;
+import com.iwebpp.node.stream.Writable2.WriteReq;
 
 public final class UDT {
 	private final static String TAG = "UDT";
@@ -154,7 +173,7 @@ public final class UDT {
 					}
 
 					Log.d(TAG, "onSocketFinish");
-					if (!self.readable() || self.get_readableState().ended) {
+					if (!self.readable() || self.get_readableState().isEnded()) {
 						Log.d(TAG, "oSF: ended, destroy "+self.get_readableState());
 						self.destroy(null);
 						return;
@@ -188,7 +207,7 @@ public final class UDT {
 							if (self.destroyed)
 								return;
 
-							if (self.get_readableState().ended) {
+							if (self.get_readableState().isEnded()) {
 								Log.d(TAG, "readableState ended, destroying");
 								self.destroy(null);
 							} else {
@@ -228,8 +247,8 @@ public final class UDT {
 					// ended should already be true, since this is called *after*
 					// the EOF errno and onread has eof'ed
 					Log.d(TAG, "onSocketEnd "+self.get_readableState());
-					self.get_readableState().ended = true;
-					if (self.get_readableState().endEmitted) {
+					self.get_readableState().setEnded(true);
+					if (self.get_readableState().isEndEmitted()) {
 						self.readable(false);
 						maybeDestroy(self);
 					} else {
@@ -261,7 +280,7 @@ public final class UDT {
 			this._pendingEncoding = "";
 
 			// handle strings directly
-			this._writableState.decodeStrings = false;
+			this._writableState.setDecodeStrings(false);
 
 			// default to *not* allowing half open sockets
 			this.allowHalfOpen = options.allowHalfOpen;
@@ -279,7 +298,7 @@ public final class UDT {
 			if (this.writable())
 				this.end(null, null, null);
 
-			if (this._writableState.finished)
+			if (this._writableState.isFinished())
 				this.destroy(null);
 			else
 				this.once("finish", new Listener(){
@@ -362,7 +381,7 @@ public final class UDT {
 
 						Log.d(TAG, "EOF");
 
-						if (self.get_readableState().length == 0) {
+						if (self.get_readableState().getLength() == 0) {
 							self.readable(false);
 							maybeDestroy(self);
 						}
@@ -393,7 +412,7 @@ public final class UDT {
 					!socket.writable() &&
 					!socket.destroyed &&
 					!socket._connecting &&
-					socket._writableState.length==0) {
+					socket._writableState.getLength()==0) {
 				socket.destroy(null);
 			}
 		}
@@ -413,7 +432,7 @@ public final class UDT {
 				@Override
 				public void onEvent(Object data) throws Exception {
 					if (cb != null) cb.onEvent(exception);
-					if (exception!=null && !self._writableState.errorEmitted) {
+					if (exception!=null && !self._writableState.isErrorEmitted()) {
 						// TBD...
 						///process.nextTick(function() {
 						context.nextTick(new NodeContext.nextTickCallback() {
@@ -423,7 +442,7 @@ public final class UDT {
 							}
 
 						});
-						self._writableState.errorEmitted = true;
+						self._writableState.setErrorEmitted(true);
 					}
 				}
 
@@ -618,7 +637,7 @@ public final class UDT {
 
 		public int bytesWritten() throws UnsupportedEncodingException {
 			int bytes = this._bytesDispatched;
-			com.iwebpp.node.Writable2.State state = this._writableState;
+			com.iwebpp.node.stream.Writable2.State state = this._writableState;
 			Object data = this._pendingData;
 			String encoding = this._pendingEncoding;
 
@@ -628,7 +647,7 @@ public final class UDT {
 				else
 					bytes += Buffer.byteLength(el.chunk, el.encoding);
 			});*/
-			for (WriteReq el : state.buffer) {
+			for (WriteReq el : state.getBuffer()) {
 				if (Util.isBuffer(el.getChunk()))
 					bytes += Util.chunkLength(el.getChunk());
 				else
@@ -658,7 +677,7 @@ public final class UDT {
 		@Override
 		public boolean write(Object chunk, String encoding, WriteCB cb) throws Exception {
 			// check on writeAfterFIN 
-			if (!this.allowHalfOpen && this.get_readableState().ended) {
+			if (!this.allowHalfOpen && this.get_readableState().isEnded()) {
 				return writeAfterFIN(chunk, encoding, cb);
 			} else {
 				if (!Util.isString(chunk) && !Util.isBuffer(chunk))
@@ -713,7 +732,7 @@ public final class UDT {
 
 		public int bufferSize() {
 			if (this._handle != null) {
-				return (int) (this._handle.writeQueueSize() + this._writableState.length);
+				return (int) (this._handle.writeQueueSize() + this._writableState.getLength());
 			}
 
 			return 0;
@@ -757,7 +776,7 @@ public final class UDT {
 			///DTRACE_NET_STREAM_END(this);
 
 			// just in case we're waiting for an EOF.
-			if (this.readable() && !this.get_readableState().endEmitted)
+			if (this.readable() && !this.get_readableState().isEndEmitted())
 				this.read(0);
 			else
 				maybeDestroy(this);
@@ -963,13 +982,13 @@ Socket.prototype._writev = function(chunks, cb) {
 		public void connect(int port, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
-				this.get_readableState().reading = false;
-				this.get_readableState().ended = false;
-				this.get_readableState().endEmitted = false;
-				this._writableState.ended = false;
-				this._writableState.ending = false;
-				this._writableState.finished = false;
-				this._writableState.errorEmitted = false;
+				this.get_readableState().setReading(false);
+				this.get_readableState().setEnded(false);
+				this.get_readableState().setEndEmitted(false);
+				this._writableState.setEnded(false);
+				this._writableState.setEnding(false);
+				this._writableState.setFinished(false);
+				this._writableState.setErrorEmitted(false);
 				this.destroyed = false;
 				this._handle = null;
 			}
@@ -1010,13 +1029,13 @@ Socket.prototype._writev = function(chunks, cb) {
 		public void connect(String address ,int port, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
-				this.get_readableState().reading = false;
-				this.get_readableState().ended = false;
-				this.get_readableState().endEmitted = false;
-				this._writableState.ended = false;
-				this._writableState.ending = false;
-				this._writableState.finished = false;
-				this._writableState.errorEmitted = false;
+				this.get_readableState().setReading(false);
+				this.get_readableState().setEnded(false);
+				this.get_readableState().setEndEmitted(false);
+				this._writableState.setEnded(false);
+				this._writableState.setEnding(false);
+				this._writableState.setFinished(false);
+				this._writableState.setErrorEmitted(false);
 				this.destroyed = false;
 				this._handle = null;
 			}
@@ -1059,13 +1078,13 @@ Socket.prototype._writev = function(chunks, cb) {
 				int localPort, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
-				this.get_readableState().reading = false;
-				this.get_readableState().ended = false;
-				this.get_readableState().endEmitted = false;
-				this._writableState.ended = false;
-				this._writableState.ending = false;
-				this._writableState.finished = false;
-				this._writableState.errorEmitted = false;
+				this.get_readableState().setReading(false);
+				this.get_readableState().setEnded(false);
+				this.get_readableState().setEndEmitted(false);
+				this._writableState.setEnded(false);
+				this._writableState.setEnding(false);
+				this._writableState.setFinished(false);
+				this._writableState.setErrorEmitted(false);
 				this.destroyed = false;
 				this._handle = null;
 			}
@@ -1108,13 +1127,13 @@ Socket.prototype._writev = function(chunks, cb) {
 				String localAddress, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
-				this.get_readableState().reading = false;
-				this.get_readableState().ended = false;
-				this.get_readableState().endEmitted = false;
-				this._writableState.ended = false;
-				this._writableState.ending = false;
-				this._writableState.finished = false;
-				this._writableState.errorEmitted = false;
+				this.get_readableState().setReading(false);
+				this.get_readableState().setEnded(false);
+				this.get_readableState().setEndEmitted(false);
+				this._writableState.setEnded(false);
+				this._writableState.setEnding(false);
+				this._writableState.setFinished(false);
+				this._writableState.setErrorEmitted(false);
 				this.destroyed = false;
 				this._handle = null;
 			}
@@ -1157,13 +1176,13 @@ Socket.prototype._writev = function(chunks, cb) {
 				String localAddress, int localPort, final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
-				this.get_readableState().reading = false;
-				this.get_readableState().ended = false;
-				this.get_readableState().endEmitted = false;
-				this._writableState.ended = false;
-				this._writableState.ending = false;
-				this._writableState.finished = false;
-				this._writableState.errorEmitted = false;
+				this.get_readableState().setReading(false);
+				this.get_readableState().setEnded(false);
+				this.get_readableState().setEndEmitted(false);
+				this._writableState.setEnded(false);
+				this._writableState.setEnding(false);
+				this._writableState.setFinished(false);
+				this._writableState.setErrorEmitted(false);
 				this.destroyed = false;
 				this._handle = null;
 			}
@@ -1206,13 +1225,13 @@ Socket.prototype._writev = function(chunks, cb) {
 				final ConnectCallback cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
-				this.get_readableState().reading = false;
-				this.get_readableState().ended = false;
-				this.get_readableState().endEmitted = false;
-				this._writableState.ended = false;
-				this._writableState.ending = false;
-				this._writableState.finished = false;
-				this._writableState.errorEmitted = false;
+				this.get_readableState().setReading(false);
+				this.get_readableState().setEnded(false);
+				this.get_readableState().setEndEmitted(false);
+				this._writableState.setEnded(false);
+				this._writableState.setEnding(false);
+				this._writableState.setFinished(false);
+				this._writableState.setErrorEmitted(false);
 				this.destroyed = false;
 				this._handle = null;
 			}

@@ -1,6 +1,12 @@
-package com.iwebpp.node;
+package com.iwebpp.node.stream;
 
 import java.nio.ByteBuffer;
+
+import com.iwebpp.node.EventEmitter;
+import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.Util;
+import com.iwebpp.node.EventEmitter.Listener;
+
 import android.util.Log;
 
 public final class WrapReadable2 extends Readable2 {

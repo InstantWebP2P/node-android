@@ -5,11 +5,12 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import android.util.Log;
+
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.Readable2;
-import com.iwebpp.node.TCP;
-import com.iwebpp.node.Readable2.Options;
-import com.iwebpp.node.TCP.Socket;
+import com.iwebpp.node.net.TCP;
+import com.iwebpp.node.net.TCP.Socket;
+import com.iwebpp.node.stream.Readable2;
 
 public class IncomingMessage 
 extends Readable2 {
@@ -19,18 +20,15 @@ extends Readable2 {
 	public Map<String, List<String>> headers;
 	public Map<String, List<String>> trailers;
 	private Socket socket;
-	private Socket connection;
 	private String httpVersion;
 	private boolean complete;
 	private List<String> rawHeaders;
 	private List<String> rawTrailers;
 	private List<Object> _pendings;
-	private int _pendingIndex;
 	private String url;
 	private String method;
 	private int statusCode;
 	private String statusMessage;
-	private Socket client;
 	private boolean _consuming;
 	private boolean _dumped;
 	private boolean upgrade;
@@ -58,14 +56,14 @@ extends Readable2 {
 	}
 	public IncomingMessage(NodeContext context, Socket socket) {
 		super(context, new Options(-1, null, false, "utf8", false));
+		
+		Log.d(TAG, "start ...");
 
 		// XXX This implementation is kind of all over the place
 		// When the parser emits body chunks, they go in this list.
 		// _read() pulls them out, and when it finds EOF, it ends.
 
 		this.socket = socket;
-		this.connection = socket;
-
 		this.httpVersion = null;
 		this.setComplete(false);
 		this.headers = new Hashtable<String, List<String>>();
@@ -76,8 +74,6 @@ extends Readable2 {
 		this.readable(true);
 
 		this.set_pendings(new ArrayList<Object>());
-		this._pendingIndex = 0;
-
 		// request (server) only
 		this.url = "";
 		this.setMethod(null);
@@ -85,8 +81,6 @@ extends Readable2 {
 		// response (client) only
 		this.setStatusCode(-1);
 		this.setStatusMessage(null);
-		this.client = this.socket;
-
 		// flag for backwards compatibility grossness.
 		this._consuming = false;
 

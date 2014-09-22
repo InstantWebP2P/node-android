@@ -1,10 +1,19 @@
-package com.iwebpp.node;
+package com.iwebpp.node.stream;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.iwebpp.node.EventEmitter;
+import com.iwebpp.node.EventEmitter2;
+import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.Util;
+import com.iwebpp.node.EventEmitter.Listener;
+import com.iwebpp.node.NodeContext.nextTickCallback;
+import com.iwebpp.node.others.TripleState;
+
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -69,26 +78,26 @@ implements Readable {
 		boolean objectMode;
 		int highWaterMark;
 		List<Object> buffer; // ByteBuffer or String
-		int length;
+		private int length;
 		List<Writable> pipes;
 		int pipesCount;
-		boolean flowing; // change to Boolean simulate three state: null, true, false
+		TripleState flowing;
 		
 		/**
 		 * @param flowing the flowing to set
 		 */
-		public void setFlowing(boolean flowing) {
+		public void setFlowing(TripleState flowing) {
 			this.flowing = flowing;
 		}
 		/**
 		 * @return the flowing
 		 */
-		public boolean isFlowing() {
+		public TripleState isFlowing() {
 			return flowing;
 		}
 		boolean ended;
-		boolean endEmitted;
-		boolean reading;
+		private boolean endEmitted;
+		private boolean reading;
 		boolean sync;
 		boolean needReadable;
 		boolean emittedReadable;
@@ -122,13 +131,13 @@ implements Readable {
 			///this.highWaterMark = ~~this.highWaterMark;
 
 			this.buffer = new ArrayList<Object>();
-			this.length = 0;
+			this.setLength(0);
 			this.pipes = new ArrayList<Writable>();
 			this.pipesCount = 0;
-			this.flowing = false;
+			this.flowing = TripleState.UNKNOWN;
 			this.setEnded(false);
-			this.endEmitted = false;
-			this.reading = false;
+			this.setEndEmitted(false);
+			this.setReading(false);
 
 			// a flag to be able to tell if the onwrite cb is called immediately,
 			// or on a later tick.  We set this to true at first, because any
@@ -214,6 +223,42 @@ implements Readable {
 		public void setResumeScheduled(boolean resumeScheduled) {
 			this.resumeScheduled = resumeScheduled;
 		}
+		/**
+		 * @return the endEmitted
+		 */
+		public boolean isEndEmitted() {
+			return endEmitted;
+		}
+		/**
+		 * @param endEmitted the endEmitted to set
+		 */
+		public void setEndEmitted(boolean endEmitted) {
+			this.endEmitted = endEmitted;
+		}
+		/**
+		 * @return the reading
+		 */
+		public boolean isReading() {
+			return reading;
+		}
+		/**
+		 * @param reading the reading to set
+		 */
+		public void setReading(boolean reading) {
+			this.reading = reading;
+		}
+		/**
+		 * @return the length
+		 */
+		public int getLength() {
+			return length;
+		}
+		/**
+		 * @param length the length to set
+		 */
+		public void setLength(int length) {
+			this.length = length;
+		}
 	}
 
 	protected Readable2(NodeContext context, Options options) {
@@ -244,7 +289,7 @@ implements Readable {
 		if (er != null) {
 			stream.emit("error", er);
 		} else if (chunk == null) {
-			state.reading = false;
+			state.setReading(false);
 			if (!state.isEnded())
 				onEofChunk(stream, state);
 		} else if (state.isObjectMode() || chunk != null && Util.chunkLength(chunk) > 0) {
@@ -252,7 +297,7 @@ implements Readable {
 				///var e = new Error('stream.push() after EOF');
 				String e = "stream.push() after EOF";
 				stream.emit("error", e);
-			} else if (state.endEmitted && addToFront) {
+			} else if (state.isEndEmitted() && addToFront) {
 				////var e = new Error('stream.unshift() after end event');
 				String e = "stream.unshift() after end event";
 				stream.emit("error", e);
@@ -263,15 +308,16 @@ implements Readable {
 				}
 
 				if (!addToFront)
-					state.reading = false;
+					state.setReading(false);
 
 				// if we want the data now, just emit it.
-				if (state.flowing && state.length == 0 && !state.sync) {
+				if (state.flowing==TripleState.TRUE && state.getLength() == 0 && !state.sync) {
 					stream.emit("data", chunk);
 					stream.read(0);
 				} else {
 					// update the buffer info.
-					state.length += state.isObjectMode() ? 1 : Util.chunkLength(chunk);
+					state.setLength(state.getLength()
+							+ (state.isObjectMode() ? 1 : Util.chunkLength(chunk)));
 					if (addToFront) {
 						///state.buffer.unshift(chunk);
 						state.buffer.add(0, chunk);	
@@ -286,7 +332,7 @@ implements Readable {
 				maybeReadMore(stream, state);
 			}
 		} else if (!addToFront) {
-			state.reading = false;
+			state.setReading(false);
 		}
 
 		return needMoreData(state);
@@ -301,13 +347,13 @@ implements Readable {
 	//'readable' event will be triggered.
 	private  boolean needMoreData(State state) {
 		Log.d(TAG, "needMoreData: state.length:"+
-				state.length+",state.highWaterMark:"+
+				state.getLength()+",state.highWaterMark:"+
 				state.highWaterMark);
 
 		return !state.isEnded() &&
 				(state.needReadable ||
-						state.length < state.highWaterMark ||
-						state.length == 0);
+						state.getLength() < state.highWaterMark ||
+						state.getLength() == 0);
 	}
 
 	// backwards compatibility.
@@ -343,7 +389,7 @@ this._readableState.encoding = enc;
 	}
 
 	private  int howMuchToRead(int n, State state) {
-		if (state.length == 0 && state.isEnded())
+		if (state.getLength() == 0 && state.isEnded())
 			return 0;
 
 		if (state.isObjectMode())
@@ -352,10 +398,10 @@ this._readableState.encoding = enc;
 		///if (util.isNull(n) || isNaN(n)) {
 		if (n < 0) {
 			// only flow one buffer at a time
-			if (state.flowing && state.buffer.size() != 0)
+			if (state.flowing==TripleState.TRUE && state.buffer.size() > 0)
 				return Util.chunkLength(state.buffer.get(0));
 			else
-				return state.length;
+				return state.getLength();
 		}
 
 		if (n <= 0)
@@ -369,12 +415,12 @@ this._readableState.encoding = enc;
 			state.highWaterMark = roundUpToNextPowerOf2(n);
 
 		// don't have that much.  return null, unless we've ended.
-		if (n > state.length) {
+		if (n > state.getLength()) {
 			if (!state.isEnded()) {
 				state.needReadable = true;
 				return 0;
 			} else
-				return state.length;
+				return state.getLength();
 		}
 
 		return n;
@@ -395,9 +441,9 @@ this._readableState.encoding = enc;
 		// the 'readable' event and move on.
 		if (n == 0 &&
 				state.needReadable &&
-				(state.length >= state.highWaterMark || state.isEnded())) {
-			Log.d(TAG, "read: emitReadable" + state.length + "" + state.isEnded());
-			if (state.length == 0 && state.isEnded())
+				(state.getLength() >= state.highWaterMark || state.isEnded())) {
+			Log.d(TAG, "read: emitReadable" + state.getLength() + "" + state.isEnded());
+			if (state.getLength() == 0 && state.isEnded())
 				endReadable(this);
 			else
 				emitReadable(this);
@@ -408,7 +454,7 @@ this._readableState.encoding = enc;
 
 		// if we've ended, and we're now clear, then finish it up.
 		if (n == 0 && state.isEnded()) {
-			if (state.length == 0)
+			if (state.getLength() == 0)
 				endReadable(this);
 			return null;
 		}
@@ -440,24 +486,24 @@ this._readableState.encoding = enc;
 		Log.d(TAG, "need readable " + doRead);
 
 		// if we currently have less than the highWaterMark, then also read some
-		if (state.length == 0 || state.length - n < state.highWaterMark) {
+		if (state.getLength() == 0 || state.getLength() - n < state.highWaterMark) {
 			doRead = true;
 			Log.d(TAG, "length less than watermark " + doRead);
 		}
 
 		// however, if we've ended, then there's no point, and if we're already
 		// reading, then it's unnecessary.
-		if (state.isEnded() || state.reading) {
+		if (state.isEnded() || state.isReading()) {
 			doRead = false;
 			Log.d(TAG, "reading or ended " + doRead);
 		}
 
 		if (doRead) {
 			Log.d(TAG, "do read");
-			state.reading = true;
+			state.setReading(true);
 			state.sync = true;
 			// if the length is currently zero, then we *need* a readable event.
-			if (state.length == 0)
+			if (state.getLength() == 0)
 				state.needReadable = true;
 			// call internal read method
 			this._read(state.highWaterMark);
@@ -466,7 +512,7 @@ this._readableState.encoding = enc;
 
 		// If _read pushed data synchronously, then `reading` will be false,
 		// and we need to re-evaluate how much data we can return to the user.
-		if (doRead && !state.reading)
+		if (doRead && !state.isReading())
 			n = howMuchToRead(nOrig, state);
 
 		Object ret;
@@ -481,15 +527,15 @@ this._readableState.encoding = enc;
 			n = 0;
 		}
 
-		state.length -= n;
+		state.setLength(state.getLength() - n);
 
 		// If we have nothing in the buffer, then we want to know
 		// as soon as we *do* get something into the buffer.
-		if (state.length == 0 && !state.isEnded())
+		if (state.getLength() == 0 && !state.isEnded())
 			state.needReadable = true;
 
 		// If we tried to read() past the EOF, then emit end on the next tick.
-		if (nOrig != n && state.isEnded() && state.length == 0)
+		if (nOrig != n && state.isEnded() && state.getLength() == 0)
 			endReadable(this);
 
 		///if (!util.isNull(ret))
@@ -503,7 +549,7 @@ this._readableState.encoding = enc;
 	//Length is the combined lengths of all the buffers in the list.
 	private  Object fromList(int n, State state) {
 		List<Object> list = state.buffer;
-		int length = state.length;
+		int length = state.getLength();
 		boolean stringMode = state.getDecoder() != null;
 		boolean objectMode = !!state.isObjectMode();
 		Object ret;
@@ -618,10 +664,10 @@ this._readableState.encoding = enc;
 
 		// If we get here before consuming all the bytes, then that is a
 		// bug in node.  Should never happen.
-		if (state.length > 0)
+		if (state.getLength() > 0)
 			throw new Exception("endReadable called on non-empty stream");
 
-		if (!state.endEmitted) {
+		if (!state.isEndEmitted()) {
 			state.setEnded(true);
 			///TDB...
 			///process.nextTick(function() {
@@ -630,8 +676,8 @@ this._readableState.encoding = enc;
 				@Override
 				public void onNextTick() throws Exception {
 					// Check that we didn't get one last unshift.
-					if (!state.endEmitted && state.length == 0) {
-						state.endEmitted = true;
+					if (!state.isEndEmitted() && state.getLength() == 0) {
+						state.setEndEmitted(true);
 						stream.readable = false;
 						stream.emit("end");
 					}
@@ -663,16 +709,16 @@ this._readableState.encoding = enc;
 		}
 	}
 	private void maybeReadMore_(Readable2 stream, State state) throws Exception {
-		int len = state.length;
-		while (!state.reading && !state.flowing && !state.isEnded() &&
-				state.length < state.highWaterMark) {
+		int len = state.getLength();
+		while (!state.isReading() && state.flowing!=TripleState.TRUE && !state.isEnded() &&
+				state.getLength() < state.highWaterMark) {
 			Log.d(TAG, "maybeReadMore read 0");
 			stream.read(0);
-			if (len == state.length)
+			if (len == state.getLength())
 				// didn't get any data, stop spinning.
 				break;
 			else
-				len = state.length;
+				len = state.getLength();
 		}
 		state.readingMore = false;
 	}
@@ -710,12 +756,12 @@ this._readableState.encoding = enc;
 	private  void flow(Readable2 stream) throws Exception {
 		State state = stream._readableState;
 		Log.d(TAG, "flow " + state.flowing);
-		if (state.flowing) {
+		if (state.flowing==TripleState.TRUE) {
 			Object chunk;
 			do {
 				///var chunk = stream.read();
 				chunk = stream.read(-1);
-			} while (null != chunk && state.flowing);
+			} while (null != chunk && state.flowing==TripleState.TRUE);
 		}
 	}
 
@@ -873,7 +919,7 @@ this._readableState.encoding = enc;
 		  dest.emit("pipe", src);
 
 		  // start the flow if it hasn't been started already.
-		  if (!state.flowing) {
+		  if (state.flowing!=TripleState.TRUE) {
 		    Log.d(TAG, "pipe resume");
 		    src.resume();
 		  }
@@ -922,7 +968,7 @@ this._readableState.encoding = enc;
 		  dest.once("unpipe", onunpipe);
 		  
 		  final Listener endFn = doEnd ? onend : cleanup;
-		  if (state.endEmitted)
+		  if (state.isEndEmitted())
 			  // TBD...
 			  ///process.nextTick(endFn);
 			  context.nextTick(new NodeContext.nextTickCallback() {
@@ -954,7 +1000,7 @@ this._readableState.encoding = enc;
 				if (state.awaitDrain > 0)
 					state.awaitDrain--;
 				if (state.awaitDrain == 0 && src.listenerCount("data")>0) {
-					state.flowing = true;
+					state.flowing = TripleState.TRUE;
 					flow(src);
 				}
 			}
@@ -987,7 +1033,7 @@ this._readableState.encoding = enc;
 
 			state.pipes.clear();
 			state.pipesCount = 0;
-			state.flowing = false;
+			state.flowing = TripleState.FALSE;
 
 			return this;
 		}
@@ -1003,7 +1049,7 @@ this._readableState.encoding = enc;
 
 			state.pipes.clear();
 			state.pipesCount = 0;
-			state.flowing = false;
+			state.flowing = TripleState.FALSE;
 
 			return this;
 		}
@@ -1032,8 +1078,8 @@ this._readableState.encoding = enc;
 
 		// If listening to data, and it has not explicitly been paused,
 		// then call resume to start the flow of data on the next tick.
-		// TBD... always do resume tom zhou
-		if (ev == "data" /*&& false != this._readableState.flowing*/) {
+		// TBD... always do resume ???
+		if (ev == "data" && TripleState.FALSE != this._readableState.flowing) {
 			this.resume();
 		}
 
@@ -1043,7 +1089,7 @@ this._readableState.encoding = enc;
 				state.readableListening = true;
 				state.emittedReadable = false;
 				state.needReadable = true;
-				if (!state.reading) {
+				if (!state.isReading()) {
 					final Readable2 self = this;
 					///TBD...
 					///process.nextTick(function() {
@@ -1056,7 +1102,7 @@ this._readableState.encoding = enc;
 						}
 						
 					});
-				} else if (state.length > 0) {
+				} else if (state.getLength() > 0) {
 					emitReadable(this);
 				}
 			}
@@ -1069,9 +1115,9 @@ this._readableState.encoding = enc;
 	// If the user uses them, then switch into old mode.
 	public Readable resume() throws Exception {
 		State state = this._readableState;
-		if (!state.flowing) {
+		if (state.flowing!=TripleState.TRUE) {
 			Log.d(TAG, "resume");
-			state.flowing = true;
+			state.flowing = TripleState.TRUE;
 			resume(this, state);
 		}
 		return this;
@@ -1094,7 +1140,7 @@ this._readableState.encoding = enc;
 	}
 
 	private  void resume_(Readable2 stream, State state) throws Exception {
-		if (!state.reading) {
+		if (!state.isReading()) {
 			Log.d(TAG, "resume read 0");
 			stream.read(0);
 		}
@@ -1104,15 +1150,15 @@ this._readableState.encoding = enc;
 		stream.emit("resume");
 		flow(stream);
 
-		if (state.flowing && !state.reading)
+		if (state.flowing==TripleState.TRUE && !state.isReading())
 			stream.read(0);
 	}
 
 	public Readable pause() throws Exception {
 		Log.d(TAG, "call pause flowing=" + this._readableState.flowing);
-		if (false != this._readableState.flowing) {
+		if (TripleState.FALSE != this._readableState.flowing) {
 			Log.d(TAG, "pause");
-			this._readableState.flowing = false;
+			this._readableState.flowing = TripleState.FALSE;
 			this.emit("pause");
 		}
 		return this;

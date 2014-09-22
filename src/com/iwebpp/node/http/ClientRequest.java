@@ -9,11 +9,12 @@ import android.util.Log;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.NodeContext.nextTickCallback;
 import com.iwebpp.node.NodeError;
-import com.iwebpp.node.TCP;
-import com.iwebpp.node.TCP.Socket;
 import com.iwebpp.node.HttpParser.http_parser_type;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.http.Http.response_socket_head_t;
+import com.iwebpp.node.http.Http.response_socket_head_b;
+import com.iwebpp.node.net.TCP;
+import com.iwebpp.node.net.TCP.Socket;
+import com.iwebpp.node.others.TripleState;
 
 public class ClientRequest 
 extends OutgoingMessage {
@@ -36,8 +37,6 @@ extends OutgoingMessage {
 	private int maxHeadersCount = 4000;
 
 	protected long aborted = -1;
-
-	private String socketPath;
 
 	private String path;
 
@@ -91,8 +90,6 @@ extends OutgoingMessage {
 			  ///if (util.isUndefined(options.setHost)) {
 			  boolean setHost = options.setHost;
 			  ///}
-
-			  self.socketPath = options.socketPath;
 
 			  String method = self.method = (options.method!=null? options.method : "GET").toUpperCase();
 			  self.path = options.path!=null? options.path : "/";
@@ -343,13 +340,26 @@ extends OutgoingMessage {
 
 	// POJO beans
 	private class enable_initialDelay_b {
-		public boolean enable;
-		public int     initialDelay;
+		/**
+		 * @return the enable
+		 */
+		public boolean isEnable() {
+			return enable;
+		}
+		/**
+		 * @return the initialDelay
+		 */
+		public int getInitialDelay() {
+			return initialDelay;
+		}
+		private boolean enable;
+		private int     initialDelay;
 
 		public enable_initialDelay_b(boolean enable, int initialDelay) {
 			this.enable = enable;
 			this.initialDelay = initialDelay;
 		}
+		@SuppressWarnings("unused")
 		private enable_initialDelay_b(){}
 	}
 
@@ -391,9 +401,9 @@ extends OutgoingMessage {
 
 			@Override
 			public void onEvent(Object raw) throws Exception {      
-				response_socket_head_t data = (response_socket_head_t)raw;
+				response_socket_head_b data = (response_socket_head_b)raw;
 
-				cb.onConnect(data.response, data.socket, data.head);
+				cb.onConnect(data.getResponse(), data.getSocket(), data.getHead());
 			}
 
 		});
@@ -407,9 +417,9 @@ extends OutgoingMessage {
 
 			@Override
 			public void onEvent(Object raw) throws Exception {      
-				response_socket_head_t data = (response_socket_head_t)raw;
+				response_socket_head_b data = (response_socket_head_b)raw;
 
-				cb.onUpgrade(data.response, data.socket, data.head);
+				cb.onUpgrade(data.getResponse(), data.getSocket(), data.getHead());
 			}
 
 		});
@@ -441,6 +451,7 @@ extends OutgoingMessage {
 			super(ctx, http_parser_type.HTTP_RESPONSE, socket);
 			this.context = ctx;
 		}
+		@SuppressWarnings("unused")
 		private parserOnIncomingClient(){}
 
 		@Override
@@ -589,11 +600,9 @@ extends OutgoingMessage {
 		///parser.onIncoming = parserOnIncomingClient;
 		this.socketErrorListener = new socketErrorListener(context, socket);
 		socket.on("error", socketErrorListener);
-
-		// do resume to switch to legacy mode
-		// TBD...
-		socket.get_readableState().setFlowing(true);
 		
+		// set flowing ??? TBD...
+		socket.get_readableState().setFlowing(TripleState.TRUE);
 		this.socketOnData = new socketOnData(context, socket);
 		socket.on("data", socketOnData);
 
@@ -603,8 +612,6 @@ extends OutgoingMessage {
 		this.socketCloseListener = new socketCloseListener(context, socket);
 		socket.on("close", socketCloseListener);
 		
-		Log.d(TAG, "socket.resume()");
-
 		req.emit("socket", socket);
 		
 		Log.d(TAG, "emit socket: "+socket);
@@ -647,13 +654,12 @@ extends OutgoingMessage {
 
 	private class socketCloseListener 
 	implements Listener {
-		private NodeContext context;
 		private TCP.Socket  socket;
 
 		public socketCloseListener(NodeContext ctx, TCP.Socket socket) {
-			this.context = ctx;
 			this.socket  = socket;
 		}
+		@SuppressWarnings("unused")
 		private socketCloseListener(){}
 
 		@Override
@@ -713,13 +719,12 @@ extends OutgoingMessage {
 	}
 	private class socketErrorListener 
 	implements Listener {
-		private NodeContext context;
 		private TCP.Socket  socket;
 
 		public socketErrorListener(NodeContext ctx, TCP.Socket socket) {
-			this.context = ctx;
 			this.socket  = socket;
 		}
+		@SuppressWarnings("unused")
 		private socketErrorListener(){}
 
 		@Override
@@ -748,13 +753,12 @@ extends OutgoingMessage {
 
 	private class socketOnEnd
 	implements Listener {
-		private NodeContext context;
 		private TCP.Socket  socket;
 
 		public socketOnEnd(NodeContext ctx, TCP.Socket socket) {
-			this.context = ctx;
 			this.socket  = socket;
 		}
+		@SuppressWarnings("unused")
 		private socketOnEnd(){}
 
 		@Override
@@ -780,13 +784,12 @@ extends OutgoingMessage {
 
 	private class socketOnData
 	implements Listener {
-		private NodeContext context;
 		private TCP.Socket  socket;
 
 		public socketOnData(NodeContext ctx, TCP.Socket socket) {
-			this.context = ctx;
 			this.socket  = socket;
 		}
+		@SuppressWarnings("unused")
 		private socketOnData(){}
 
 		@Override
@@ -828,9 +831,9 @@ extends OutgoingMessage {
 
 					// TODO(isaacs): Need a way to reset a stream to fresh state
 					// IE, not flowing, and not explicitly paused.
-					socket.get_readableState().setFlowing(false);
+					socket.get_readableState().setFlowing(TripleState.UNKNOWN);
 
-					req.emit(eventName, new Http.response_socket_head_t(res, socket, bodyHead));
+					req.emit(eventName, new Http.response_socket_head_b(res, socket, bodyHead));
 					req.emit("close");
 				} else {
 					// Got Upgrade header or CONNECT method, but have no handler.

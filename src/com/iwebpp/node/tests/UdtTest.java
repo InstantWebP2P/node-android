@@ -4,17 +4,17 @@ import android.util.Log;
 
 import com.iwebpp.libuvpp.handles.TimerHandle;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.UDT;
-import com.iwebpp.node.UDT.Server.ListeningCallback;
-import com.iwebpp.node.UDT.Server.CloseCallback;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext.IntervalCallback;
 import com.iwebpp.node.NodeContext.TimeoutCallback;
-import com.iwebpp.node.UDT.Socket.ConnectCallback;
-import com.iwebpp.node.UDT.Server;
-import com.iwebpp.node.UDT.Socket;
-import com.iwebpp.node.Writable.WriteCB;
+import com.iwebpp.node.net.UDT;
+import com.iwebpp.node.net.UDT.Server;
+import com.iwebpp.node.net.UDT.Socket;
+import com.iwebpp.node.net.UDT.Server.CloseCallback;
+import com.iwebpp.node.net.UDT.Server.ListeningCallback;
+import com.iwebpp.node.net.UDT.Socket.ConnectCallback;
+import com.iwebpp.node.stream.Writable.WriteCB;
 
 public final class UdtTest {
 	private static final String TAG = "UdtTest";

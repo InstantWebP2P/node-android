@@ -9,9 +9,9 @@ import android.util.Log;
 
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.TCP;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.TCP.Socket;
+import com.iwebpp.node.net.TCP;
+import com.iwebpp.node.net.TCP.Socket;
 
 //New Agent code.
 

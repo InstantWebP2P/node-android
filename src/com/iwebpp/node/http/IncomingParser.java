@@ -10,8 +10,8 @@ import android.util.Log;
 
 import com.iwebpp.node.HttpParser;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.TCP;
-import com.iwebpp.node.TCP.Socket;
+import com.iwebpp.node.net.TCP;
+import com.iwebpp.node.net.TCP.Socket;
 
 public abstract class IncomingParser 
 extends HttpParser {

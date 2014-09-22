@@ -5,17 +5,17 @@ import java.nio.charset.Charset;
 
 import android.util.Log;
 
-import com.iwebpp.node.Duplex;
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.NodeContext.IntervalCallback;
-import com.iwebpp.node.Readable;
-import com.iwebpp.node.Readable2;
-import com.iwebpp.node.Transform;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.Writable;
-import com.iwebpp.node.Writable.WriteCB;
-import com.iwebpp.node.Writable2;
+import com.iwebpp.node.stream.Duplex;
+import com.iwebpp.node.stream.Readable;
+import com.iwebpp.node.stream.Readable2;
+import com.iwebpp.node.stream.Transform;
+import com.iwebpp.node.stream.Writable;
+import com.iwebpp.node.stream.Writable2;
+import com.iwebpp.node.stream.Writable.WriteCB;
 
 public final class StreamTest {
 	private static final String TAG = "StreamTest";

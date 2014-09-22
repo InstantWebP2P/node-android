@@ -12,14 +12,11 @@ import android.util.Log;
 
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.TCP;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.NodeContext.nextTickCallback;
-import com.iwebpp.node.TCP.Socket;
-import com.iwebpp.node.Writable;
-import com.iwebpp.node.Writable.WriteCB;
-import com.iwebpp.node.Writable2.Options;
-import com.iwebpp.node.Writable2;
+import com.iwebpp.node.net.TCP;
+import com.iwebpp.node.net.TCP.Socket;
+import com.iwebpp.node.stream.Writable;
 
 public abstract class OutgoingMessage  
 extends EventEmitter2 
@@ -282,7 +279,7 @@ this.socket.setTimeout(msecs);
 			this.messageHeader = message;
 		}
 		@SuppressWarnings("unused")
-		protected _State(){}
+		private _State(){}
 	}
 
 	protected void _storeHeader(String firstLine, Map<String, List<String>> headers) throws Exception {

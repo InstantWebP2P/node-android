@@ -7,14 +7,14 @@ import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.NodeContext.IntervalCallback;
 import com.iwebpp.node.NodeContext.TimeoutCallback;
-import com.iwebpp.node.TCP;
-import com.iwebpp.node.TCP.Server.CloseCallback;
-import com.iwebpp.node.TCP.Socket.ConnectCallback;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.TCP.Server;
-import com.iwebpp.node.TCP.Server.ListeningCallback;
-import com.iwebpp.node.TCP.Socket;
-import com.iwebpp.node.Writable.WriteCB;
+import com.iwebpp.node.net.TCP;
+import com.iwebpp.node.net.TCP.Server;
+import com.iwebpp.node.net.TCP.Socket;
+import com.iwebpp.node.net.TCP.Server.CloseCallback;
+import com.iwebpp.node.net.TCP.Server.ListeningCallback;
+import com.iwebpp.node.net.TCP.Socket.ConnectCallback;
+import com.iwebpp.node.stream.Writable.WriteCB;
 
 public final class TcpTest {
 	private static final String TAG = "TcpTest";

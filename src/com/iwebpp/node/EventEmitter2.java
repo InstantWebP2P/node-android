@@ -1,6 +1,5 @@
 package com.iwebpp.node;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -79,17 +78,24 @@ implements EventEmitter {
 	public EventEmitter addListener(String event, Listener cb, int priority) {
 		// check maxListens
 		if (maxEvents.containsKey(event) && 
-			maxEvents.get(event) < listenerCount(event)) {
+				maxEvents.get(event) < listenerCount(event)) {
 			Log.w(TAG, "exceed maxListeners@"+event+" at="+this);
 
 			///return this;
 		}
-		
+
 		if (!events.containsKey(event)) {
 			events.put(event, new LinkedList<Listener>());
 		}
+
+		int lsncnt = listenerCount(event);
 		
-		events.get(event).add(priority, cb);
+		if (lsncnt == 0)
+			events.get(event).add(cb);
+		else if (priority < lsncnt)
+			events.get(event).add(priority, cb);
+		else 
+			events.get(event).add(lsncnt - 1, cb);
 		
 		return this;
 	}

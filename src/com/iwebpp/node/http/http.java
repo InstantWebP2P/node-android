@@ -5,8 +5,8 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import com.iwebpp.node.EventEmitter.Listener;
+import com.iwebpp.node.net.TCP;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.TCP;
 
 
 public final class Http {
@@ -107,56 +107,116 @@ public final class Http {
 	}
 
 	// POJO beans
-	public static class request_response_t {
-		public IncomingMessage request;
-		public ServerResponse  response;
+	public static class request_response_b {
+		/**
+		 * @return the request
+		 */
+		public IncomingMessage getRequest() {
+			return request;
+		}
+		/**
+		 * @return the response
+		 */
+		public ServerResponse getResponse() {
+			return response;
+		}
+		private IncomingMessage request;
+		private ServerResponse  response;
 		
-		public request_response_t(IncomingMessage request, ServerResponse response) {
+		public request_response_b(IncomingMessage request, ServerResponse response) {
 			this.request  = request;
 			this.response = response;
 		}
 		@SuppressWarnings("unused")
-		private request_response_t(){}
+		private request_response_b(){}
 	}
 	
-	public static class request_socket_head_t {
-		public IncomingMessage request;
-		public TCP.Socket      socket;
-		public ByteBuffer      head;
+	public static class request_socket_head_b {
+		/**
+		 * @return the request
+		 */
+		public IncomingMessage getRequest() {
+			return request;
+		}
+		/**
+		 * @return the socket
+		 */
+		public TCP.Socket getSocket() {
+			return socket;
+		}
+		/**
+		 * @return the head
+		 */
+		public ByteBuffer getHead() {
+			return head;
+		}
+		private IncomingMessage request;
+		private TCP.Socket      socket;
+		private ByteBuffer      head;
 		
-		public request_socket_head_t(IncomingMessage request, TCP.Socket socket, ByteBuffer head) {
+		public request_socket_head_b(IncomingMessage request, TCP.Socket socket, ByteBuffer head) {
 			this.request = request;
 			this.socket  = socket;
 			this.head    = head;
 		}
 		@SuppressWarnings("unused")
-		private request_socket_head_t(){}
+		private request_socket_head_b(){}
 	}
 	
-	public static class exception_socket_t {
-		public String     exception;
-		public TCP.Socket socket;
+	public static class exception_socket_b {
+		/**
+		 * @return the exception
+		 */
+		public String getException() {
+			return exception;
+		}
+		/**
+		 * @return the socket
+		 */
+		public TCP.Socket getSocket() {
+			return socket;
+		}
+		private String     exception;
+		private TCP.Socket socket;
 		
-		public exception_socket_t(String exception, TCP.Socket socket) {
+		public exception_socket_b(String exception, TCP.Socket socket) {
 			this.exception = exception;
 			this.socket    = socket;
 		}
 		@SuppressWarnings("unused")
-		private exception_socket_t(){}
+		private exception_socket_b(){}
 	}
 	
-	public static class response_socket_head_t {
-		public IncomingMessage response;
-		public TCP.Socket      socket;
-		public ByteBuffer      head;
+	public static class response_socket_head_b {
+		/**
+		 * @return the response
+		 */
+		public IncomingMessage getResponse() {
+			return response;
+		}
+		/**
+		 * @return the socket
+		 */
+		public TCP.Socket getSocket() {
+			return socket;
+		}
+		/**
+		 * @return the head
+		 */
+		public ByteBuffer getHead() {
+			return head;
+		}
+		private IncomingMessage response;
+		private TCP.Socket      socket;
+		private ByteBuffer      head;
 		
-		public response_socket_head_t(IncomingMessage response, TCP.Socket socket, ByteBuffer head) {
+		public response_socket_head_b(IncomingMessage response, TCP.Socket socket, ByteBuffer head) {
 			this.response = response;
 			this.socket   = socket;
 			this.head     = head;
 		}
 		@SuppressWarnings("unused")
-		private response_socket_head_t(){}
+		private response_socket_head_b(){}
 	}
 	
 	// Http.createServer([requestListener])

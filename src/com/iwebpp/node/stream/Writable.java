@@ -1,4 +1,6 @@
-package com.iwebpp.node;
+package com.iwebpp.node.stream;
+
+import com.iwebpp.node.EventEmitter;
 
 
 public interface Writable extends EventEmitter {

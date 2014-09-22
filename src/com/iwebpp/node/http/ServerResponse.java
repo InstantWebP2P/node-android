@@ -1,6 +1,5 @@
 package com.iwebpp.node.http;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -9,12 +8,8 @@ import java.util.regex.Pattern;
 import android.util.Log;
 
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.TCP;
-import com.iwebpp.node.TCP.Socket;
-import com.iwebpp.node.Writable.WriteCB;
-import com.iwebpp.node.Writable2.Options;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.http.Http.request_response_t;
+import com.iwebpp.node.net.TCP;
 
 public class ServerResponse 
 extends OutgoingMessage {

@@ -1,7 +1,14 @@
-package com.iwebpp.node;
+package com.iwebpp.node.stream;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+
+import com.iwebpp.node.EventEmitter;
+import com.iwebpp.node.EventEmitter2;
+import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.Util;
+import com.iwebpp.node.EventEmitter.Listener;
+import com.iwebpp.node.NodeContext.nextTickCallback;
 
 public abstract class Writable2 
 extends EventEmitter2 
@@ -93,7 +100,7 @@ implements Writable {
 	}
 
 	public class State {
-		ArrayList<WriteReq> buffer;
+		private ArrayList<WriteReq> buffer;
 		boolean objectMode;
 		int highWaterMark;
 		boolean needDrain;
@@ -105,12 +112,12 @@ implements Writable {
 		}
 
 
-		boolean ending;
-		boolean ended;
-		boolean finished;
-		boolean decodeStrings;
+		private boolean ending;
+		private boolean ended;
+		private boolean finished;
+		private boolean decodeStrings;
 		String defaultEncoding;
-		int length;
+		private int length;
 		boolean writing;
 		int corked;
 		boolean sync;
@@ -120,7 +127,7 @@ implements Writable {
 		int writelen;
 		int pendingcb;
 		boolean prefinished;
-		boolean errorEmitted;
+		private boolean errorEmitted;
 
 
 		public State(Options options, final Writable2 stream) {
@@ -145,17 +152,17 @@ implements Writable {
 
 			this.needDrain = false;
 			// at the start of calling end()
-			this.ending = false;
+			this.setEnding(false);
 			// when end() has been called, and returned
-			this.ended = false;
+			this.setEnded(false);
 			// when 'finish' is emitted
-			this.finished = false;
+			this.setFinished(false);
 
 			// should we decode strings into buffers before passing to _write?
 			// this is here so that some node-core streams can optimize string
 			// handling at a lower level.
 			boolean noDecode = options.decodeStrings == false;
-			this.decodeStrings = !noDecode;
+			this.setDecodeStrings(!noDecode);
 
 			// Crypto is kind of old and crusty.  Historically, its default string
 			// encoding is 'binary' so we have to make this configurable.
@@ -165,7 +172,7 @@ implements Writable {
 			// not an actual buffer we keep track of, but a measurement
 			// of how much we're waiting to get pushed to some underlying
 			// socket or file.
-			this.length = 0;
+			this.setLength(0);
 
 			// a flag to see when we're in the middle of a write.
 			this.writing = false;
@@ -199,7 +206,7 @@ implements Writable {
 			this.writelen = 0;
 
 			// WriteReq buffer
-			this.buffer = new ArrayList<WriteReq>();
+			this.setBuffer(new ArrayList<WriteReq>());
 
 			// number of pending user-supplied write callbacks
 			// this must be 0 before 'finish' can be emitted
@@ -208,6 +215,118 @@ implements Writable {
 			// emit prefinish if the only thing we're waiting for is _write cbs
 			// This is relevant for synchronous Transform streams
 			this.prefinished = false;
+		}
+
+
+		/**
+		 * @return the ended
+		 */
+		public boolean isEnded() {
+			return ended;
+		}
+
+
+		/**
+		 * @param ended the ended to set
+		 */
+		public void setEnded(boolean ended) {
+			this.ended = ended;
+		}
+
+
+		/**
+		 * @return the ending
+		 */
+		public boolean isEnding() {
+			return ending;
+		}
+
+
+		/**
+		 * @param ending the ending to set
+		 */
+		public void setEnding(boolean ending) {
+			this.ending = ending;
+		}
+
+
+		/**
+		 * @return the finished
+		 */
+		public boolean isFinished() {
+			return finished;
+		}
+
+
+		/**
+		 * @param finished the finished to set
+		 */
+		public void setFinished(boolean finished) {
+			this.finished = finished;
+		}
+
+
+		/**
+		 * @return the errorEmitted
+		 */
+		public boolean isErrorEmitted() {
+			return errorEmitted;
+		}
+
+
+		/**
+		 * @param errorEmitted the errorEmitted to set
+		 */
+		public void setErrorEmitted(boolean errorEmitted) {
+			this.errorEmitted = errorEmitted;
+		}
+
+
+		/**
+		 * @return the decodeStrings
+		 */
+		public boolean isDecodeStrings() {
+			return decodeStrings;
+		}
+
+
+		/**
+		 * @param decodeStrings the decodeStrings to set
+		 */
+		public void setDecodeStrings(boolean decodeStrings) {
+			this.decodeStrings = decodeStrings;
+		}
+
+
+		/**
+		 * @return the length
+		 */
+		public int getLength() {
+			return length;
+		}
+
+
+		/**
+		 * @param length the length to set
+		 */
+		public void setLength(int length) {
+			this.length = length;
+		}
+
+
+		/**
+		 * @return the buffer
+		 */
+		public ArrayList<WriteReq> getBuffer() {
+			return buffer;
+		}
+
+
+		/**
+		 * @param buffer the buffer to set
+		 */
+		public void setBuffer(ArrayList<WriteReq> buffer) {
+			this.buffer = buffer;
 		}
 	}
 
@@ -322,7 +441,7 @@ implements Writable {
     		}
     	};
 
-    	if (state.ended)
+    	if (state.isEnded())
     		writeAfterEnd(this, state, cb);
     	else if (validChunk(this, state, chunk, cb)) {
     		state.pendingcb++;
@@ -355,17 +474,17 @@ implements Writable {
     	}
 
     	// ignore unnecessary end() calls.
-    	if (!state.ending && !state.finished)
+    	if (!state.isEnding() && !state.isFinished())
     		endWritable(this, state, cb);
     	
     	return false;
     }
 
     private void endWritable(Writable2 stream, State state, final WriteCB cb) throws Exception {
-    	state.ending = true;
+    	state.setEnding(true);
     	finishMaybe(stream, state);
     	if (cb != null) {
-    		if (state.finished)
+    		if (state.isFinished())
     			///process.nextTick(cb);
     			context.nextTick(new NodeContext.nextTickCallback() {
 
@@ -385,7 +504,7 @@ implements Writable {
     				}
     			});
     	}
-    	state.ended = true;
+    	state.setEnded(true);
     }
 
     public void cork() {
@@ -402,9 +521,9 @@ implements Writable {
 
     		if (!state.writing &&
     			 state.corked == 0 &&
-    			!state.finished &&
+    			!state.isFinished() &&
     			!state.bufferProcessing &&
-    			 state.buffer.size() > 0)
+    			 state.getBuffer().size() > 0)
     			clearBuffer(this, state);
     	}
     }
@@ -423,15 +542,15 @@ implements Writable {
     		encoding = "buffer";
     	int len = state.objectMode ? 1 : Util.chunkLength(chunk);
 
-    	state.length += len;
+    	state.setLength(state.getLength() + len);
 
-    	boolean ret = state.length < state.highWaterMark;
+    	boolean ret = state.getLength() < state.highWaterMark;
     	// we must ensure that previous needDrain will not be reset to false.
     	if (!ret)
     		state.needDrain = true;
 
     	if (state.writing || state.corked != 0)
-    		state.buffer.add(new WriteReq(chunk, encoding, cb));
+    		state.getBuffer().add(new WriteReq(chunk, encoding, cb));
     	else
     		doWrite(stream, state, false, len, chunk, encoding, cb);
 
@@ -440,7 +559,7 @@ implements Writable {
 
     private Object decodeChunk(State state, Object chunk, String encoding) throws Exception {
     	if (!state.objectMode &&
-    		 state.decodeStrings != false &&
+    		 state.isDecodeStrings() != false &&
     		 Util.isString(chunk)) {
     		chunk = ByteBuffer.wrap(((String)chunk).getBytes(encoding));
     	}
@@ -463,7 +582,7 @@ implements Writable {
 			if (!finished &&
 					state.corked == 0 &&
 					!state.bufferProcessing &&
-					state.buffer.size() > 0) {
+					state.getBuffer().size() > 0) {
 				clearBuffer(stream, state);
 			}
 
@@ -510,8 +629,8 @@ implements Writable {
 		{
 			// Slow case, write chunks one-by-one
 			int c = 0;
-			for (c = 0; c < state.buffer.size(); c++) {
-				WriteReq entry = state.buffer.get(c);
+			for (c = 0; c < state.getBuffer().size(); c++) {
+				WriteReq entry = state.getBuffer().get(c);
 				Object chunk = entry.chunk;
 				String encoding = entry.encoding;
 				WriteCB cb = entry.callback;
@@ -529,10 +648,10 @@ implements Writable {
 					}
 			}
 
-			if (c < state.buffer.size())
-				state.buffer = (ArrayList<WriteReq>) state.buffer.subList(c, state.buffer.size());
+			if (c < state.getBuffer().size())
+				state.setBuffer((ArrayList<WriteReq>) state.getBuffer().subList(c, state.getBuffer().size()));
 			else
-				state.buffer.clear();
+				state.getBuffer().clear();
 		}
 
 		state.bufferProcessing = false;
@@ -565,7 +684,7 @@ implements Writable {
 		if (need) {
 			if (state.pendingcb == 0) {
 				prefinish(stream, state);
-				state.finished = true;
+				state.setFinished(true);
 				stream.emit("finish");
 			} else
 				prefinish(stream, state);
@@ -584,17 +703,17 @@ implements Writable {
 	// emit 'drain' before the write() consumer gets the 'false' return
 	// value, and has a chance to attach a 'drain' listener.
 	private void onwriteDrain(Writable2 stream, State state) throws Exception {
-		if (state.length == 0 && state.needDrain) {
+		if (state.getLength() == 0 && state.needDrain) {
 			state.needDrain = false;
 			stream.emit("drain");
 		}
 	}
 
 	private boolean needFinish(Writable2 stream, State state) {
-		return (state.ending &&
-				state.length == 0 &&
-				state.buffer.size() == 0 &&
-				!state.finished &&
+		return (state.isEnding() &&
+				state.getLength() == 0 &&
+				state.getBuffer().size() == 0 &&
+				!state.isFinished() &&
 				!state.writing);
 	}
 
@@ -623,7 +742,7 @@ implements Writable {
 	private void onwriteStateUpdate(State state) {
 		state.writing = false;
 		state.writecb = null;
-		state.length -= state.writelen;
+		state.setLength(state.getLength() - state.writelen);
 		state.writelen = 0;
 	}
 

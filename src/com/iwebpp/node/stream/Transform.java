@@ -1,4 +1,9 @@
-package com.iwebpp.node;
+package com.iwebpp.node.stream;
+
+import com.iwebpp.node.EventEmitter;
+import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.Util;
+import com.iwebpp.node.EventEmitter.Listener;
 
 public abstract class Transform 
 extends Duplex {
@@ -51,8 +56,8 @@ extends Duplex {
 				cb.writeDone(er);
 
 			State rs = stream.get_readableState();
-			rs.reading = false;
-			if (rs.needReadable || rs.length < rs.highWaterMark) {
+			rs.setReading(false);
+			if (rs.needReadable || rs.getLength() < rs.highWaterMark) {
 				stream._read(rs.highWaterMark);
 			}
 		}
@@ -118,7 +123,7 @@ extends Duplex {
 			State rs = this.get_readableState();
 			if (ts.needTransform ||
 				rs.needReadable ||
-				rs.length < rs.highWaterMark)
+				rs.getLength() < rs.highWaterMark)
 				this._read(rs.highWaterMark);
 		}
 	}
@@ -157,10 +162,10 @@ extends Duplex {
 
 		// if there's nothing in the write buffer, then that means
 		// that nothing more will ever be provided
-		com.iwebpp.node.Writable2.State ws = stream._writableState;
+		com.iwebpp.node.stream.Writable2.State ws = stream._writableState;
 		TransformState ts = stream._transformState;
 
-		if (ws.length!=0)
+		if (ws.getLength()!=0)
 			throw new Exception("calling transform done when ws.length != 0");
 
 		if (ts.transforming)

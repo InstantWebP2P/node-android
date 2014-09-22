@@ -9,16 +9,17 @@ import android.util.Log;
 
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.TCP.Socket;
-import com.iwebpp.node.TCP.Socket.ConnectCallback;
-import com.iwebpp.node.Writable.WriteCB;
 import com.iwebpp.node.http.ClientRequest;
 import com.iwebpp.node.http.ClientRequest.socketListener;
 import com.iwebpp.node.http.Http;
 import com.iwebpp.node.http.IncomingMessage;
 import com.iwebpp.node.http.ReqOptions;
 import com.iwebpp.node.http.Server;
+import com.iwebpp.node.http.Server.clientErrorListener;
 import com.iwebpp.node.http.ServerResponse;
+import com.iwebpp.node.net.TCP.Socket;
+import com.iwebpp.node.net.TCP.Socket.ConnectCallback;
+import com.iwebpp.node.stream.Writable.WriteCB;
 
 public final class HttpTest {
 	private static final String TAG = "HttpTest";
@@ -76,6 +77,17 @@ public final class HttpTest {
 					res.end(null, null, null);
 				}
 
+			});
+			
+			srv.onClientError(new clientErrorListener(){
+
+				@Override
+				public void onClientError(String exception, Socket socket)
+						throws Exception {
+					// TODO Auto-generated method stub
+					Log.e(TAG, "client error: "+exception + "@"+socket);
+				}
+				
 			});
 
 			srv.listen(port, "0.0.0.0", 4, 10, new Server.ListeningCallback() {
@@ -139,8 +151,8 @@ public final class HttpTest {
 			});
 
 			// write data to request body
-			for (int i = 0; i < 6; i ++)
-			    req.write("data\n", "utf-8", null);
+			for (int i = 0; i < 6000; i ++)
+			    req.write("data"+i+"\n", "utf-8", null);
 			
 			req.end(null, null, null);
 
@@ -189,53 +201,53 @@ public final class HttpTest {
 				@Override
 				public void onListening() throws Exception {
 					Log.d(TAG, "Http server listening on "+port);		
-
-					// client
-					ReqOptions ropt = new ReqOptions();
-					ropt.host = "localhost";
-					ropt.port = port;
-					ropt.method = "GET";
-					ropt.path = "/";
-
-					ClientRequest req = Http.request(ctx, ropt, new ClientRequest.responseListener() {
-
-						@Override
-						public void onResponse(IncomingMessage res) throws Exception {
-							Log.d(TAG, "STATUS: " + res.statusCode());
-							Log.d(TAG, "HEADERS: " + res.headers);
-
-							res.setEncoding("utf-8");
-
-							res.on("data", new Listener(){
-
-								@Override
-								public void onEvent(Object chunk) throws Exception {
-									Log.d(TAG, "BODY: " + chunk);
-
-								}
-
-							});
-						}
-
-					});
-
-					req.on("error", new Listener(){
-
-						@Override
-						public void onEvent(Object e) throws Exception {
-							Log.d(TAG, "problem with request: " + e);					
-						}
-
-					});
-
-					// write data to request body
-					req.write("data\n", "utf-8", null);
-					req.write("data\n", "utf-8", null);
-					req.end(null, null, null);
 				}
 				
 			});
+			
+			// client
+			ReqOptions ropt = new ReqOptions();
+			ropt.host = "localhost";
+			ropt.port = port;
+			ropt.method = "GET";
+			ropt.path = "/";
 
+			ClientRequest req = Http.request(ctx, ropt, new ClientRequest.responseListener() {
+
+				@Override
+				public void onResponse(IncomingMessage res) throws Exception {
+					Log.d(TAG, "STATUS: " + res.statusCode());
+					Log.d(TAG, "HEADERS: " + res.headers);
+
+					res.setEncoding("utf-8");
+
+					res.on("data", new Listener(){
+
+						@Override
+						public void onEvent(Object chunk) throws Exception {
+							Log.d(TAG, "BODY: " + chunk);
+
+						}
+
+					});
+				}
+
+			});
+
+			req.on("error", new Listener(){
+
+				@Override
+				public void onEvent(Object e) throws Exception {
+					Log.d(TAG, "problem with request: " + e);					
+				}
+
+			});
+
+			// write data to request body
+			///req.write("data\n", "utf-8", null);
+			///req.write("data\n", "utf-8", null);
+			req.end(null, null, null);
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
