@@ -26,7 +26,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE           := uvpp-jni
 
 LOCAL_SRC_FILES        := \
-                        hello-jni.c \
+                        node-android.cpp \
                         async.cpp \
                         check.cpp \
                         child_process.cpp \
