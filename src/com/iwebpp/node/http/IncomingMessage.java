@@ -2,6 +2,7 @@ package com.iwebpp.node.http;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,14 +35,20 @@ extends Readable2 {
 	private boolean upgrade;
 
 	private ClientRequest  req;
-	private ServerResponse res;
-
 	private int httpVersionMajor;
 
 	private int httpVersionMinor;
 
 	private IncomingParser parser;
 
+	private int _pendingIndex;
+
+	/**
+	 * @return the _pendingIndex
+	 */
+	public int get_pendingIndex() {
+		return _pendingIndex;
+	}
 	/**
 	 * @return the upgrade
 	 */
@@ -73,7 +80,9 @@ extends Readable2 {
 
 		this.readable(true);
 
-		this.set_pendings(new ArrayList<Object>());
+		this.set_pendings(new LinkedList<Object>());
+		this._pendingIndex = 0;
+
 		// request (server) only
 		this.url = "";
 		this.setMethod(null);
@@ -242,7 +251,7 @@ extends Readable2 {
 
 	public static void readStart(TCP.Socket socket) throws Exception {
 		///if (socket && !socket._paused && socket.readable)
-		if (socket!=null && !socket._paused && socket.readable())
+		if (socket!=null && !socket.is_paused() && socket.readable())
 			socket.resume();
 	}
 

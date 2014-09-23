@@ -3903,7 +3903,7 @@ struct http_parser_settings {
 	private boolean upgrade = false;
 
 	/** PUBLIC **/
-	protected final Object data; /* A pointer to get hook to the "connection" or "socket" object */
+	private final Object data; /* A pointer to get hook to the "connection" or "socket" object */
 	///};
 	
 }

@@ -439,14 +439,13 @@ extends OutgoingMessage {
 			super(ctx, http_parser_type.HTTP_RESPONSE, socket);
 			this.context = ctx;
 		}
-		@SuppressWarnings("unused")
 		private parserOnIncomingClient(){super(null, null, null);}
 
 		@Override
 		protected boolean onIncoming(final IncomingMessage res,
 				boolean shouldKeepAlive) throws Exception {
 			Socket socket = this.socket;
-			final ClientRequest req = (ClientRequest)socket._httpMessage;
+			final ClientRequest req = (ClientRequest)socket.get_httpMessage();
 
 
 			// propogate "domain" setting...
@@ -569,8 +568,8 @@ extends OutgoingMessage {
 		parser.incoming = null;
 		req.setParser(parser);
 
-		socket.parser = parser;
-		socket._httpMessage = req;
+		socket.setParser(parser);
+		socket.set_httpMessage(req);
 
 		Log.d(TAG, "req.connection: "+req.connection);
 
@@ -667,7 +666,7 @@ extends OutgoingMessage {
 		@Override
 		public void onEvent(Object data) throws Exception {
 			///var socket = this;
-			final ClientRequest req = (ClientRequest)socket._httpMessage;
+			final ClientRequest req = (ClientRequest)socket.get_httpMessage();
 			Log.d(TAG, "HTTP socket close");
 
 			// Pull through final chunk, if anything is buffered.
@@ -678,7 +677,7 @@ extends OutgoingMessage {
 
 			// NOTE: Its important to get parser here, because it could be freed by
 			// the `socketOnData`.
-			parserOnIncomingClient parser = (parserOnIncomingClient) socket.parser;
+			parserOnIncomingClient parser = (parserOnIncomingClient) socket.getParser();
 			req.emit("close");
 			if (req.res!=null && req.res.readable()) {
 				// Socket closed before we emitted 'end' below.
@@ -732,8 +731,8 @@ extends OutgoingMessage {
 		@Override
 		public void onEvent(Object err) throws Exception {
 			///var socket = this;
-			parserOnIncomingClient parser = (parserOnIncomingClient) socket.parser;
-			ClientRequest req = (ClientRequest) socket._httpMessage;
+			parserOnIncomingClient parser = (parserOnIncomingClient) socket.getParser();
+			ClientRequest req = (ClientRequest) socket.get_httpMessage();
 			Log.d(TAG, "SOCKET ERROR: " + err);/// err.message, err.stack);
 
 			if (req != null) {
@@ -766,8 +765,8 @@ extends OutgoingMessage {
 		@Override
 		public void onEvent(Object data) throws Exception {
 			///var socket = this;
-			ClientRequest req = (ClientRequest) socket._httpMessage;
-			parserOnIncomingClient parser = (parserOnIncomingClient) socket.parser;
+			ClientRequest req = (ClientRequest) socket.get_httpMessage();
+			parserOnIncomingClient parser = (parserOnIncomingClient) socket.getParser();
 
 			if (req.res==null && !req.socket.is_hadError()) {
 				// If we don't have a response then we know that the socket
@@ -798,8 +797,8 @@ extends OutgoingMessage {
 		public void onEvent(Object raw) throws Exception {
 			ByteBuffer d = (ByteBuffer)raw;
 			///var socket = this;
-			ClientRequest req = (ClientRequest) socket._httpMessage;
-			parserOnIncomingClient parser = (parserOnIncomingClient) socket.parser;
+			ClientRequest req = (ClientRequest) socket.get_httpMessage();
+			parserOnIncomingClient parser = (parserOnIncomingClient) socket.getParser();
 
 			assert(parser!=null && parser.socket == socket);
 

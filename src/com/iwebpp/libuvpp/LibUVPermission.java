@@ -25,8 +25,6 @@
 
 package com.iwebpp.libuvpp;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 ///import java.nio.file.LinkPermission;
 import java.security.BasicPermission;
 

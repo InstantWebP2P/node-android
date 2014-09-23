@@ -3,7 +3,7 @@ package com.iwebpp.node.stream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.iwebpp.node.EventEmitter;
@@ -128,9 +128,9 @@ implements Readable {
 			// cast to ints.
 			///this.highWaterMark = ~~this.highWaterMark;
 
-			this.buffer = new ArrayList<Object>();
+			this.buffer = new LinkedList<Object>();
 			this.setLength(0);
-			this.pipes = new ArrayList<Writable>();
+			this.pipes = new LinkedList<Writable>();
 			this.pipesCount = 0;
 			this.flowing = TripleState.MAYBE;
 			this.setEnded(false);

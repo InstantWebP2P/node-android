@@ -1,7 +1,7 @@
 package com.iwebpp.node.http;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -23,7 +23,7 @@ extends TCP.Server {
 	private boolean httpAllowHalfOpen;
 	private NodeContext context;
 	
-	private class connectionListenerImpl 
+	private static class connectionListenerImpl 
 	implements connectionListener {
 		private final static String TAG = "connectionListenerImpl";
 
@@ -70,7 +70,7 @@ extends TCP.Server {
 					
 			parser.Reinitialize(http_parser_type.HTTP_REQUEST);
 			parser.socket = socket;
-			socket.parser = parser;
+			socket.setParser(parser);
 			parser.incoming = null;
 
 			// Propagate headers limit from server instance to parser
@@ -88,8 +88,8 @@ extends TCP.Server {
 				public void onEvent(Object data) throws Exception {
 					Log.d(TAG, "server socket close");
 					// mark this parser as reusable
-					if (socket.parser != null)
-						IncomingParser.freeParser(socket.parser, null);
+					if (socket.getParser() != null)
+						IncomingParser.freeParser(socket.getParser(), null);
 
 					parser.abortIncoming();
 				}
@@ -124,8 +124,8 @@ extends TCP.Server {
 					} else if (parser.outgoings.size() > 0) {
 						///outgoing[outgoing.length - 1]._last = true;
 						parser.outgoings.get(parser.outgoings.size()-1).set_last(true);
-					} else if (socket._httpMessage != null) {
-						ServerResponse srvres = (ServerResponse)(socket._httpMessage);
+					} else if (socket.get_httpMessage() != null) {
+						ServerResponse srvres = (ServerResponse)(socket.get_httpMessage());
 						srvres._last = true;
 					} else {
 						if (socket.writable()) socket.end(null, null, null);
@@ -141,7 +141,7 @@ extends TCP.Server {
 					
                     ByteBuffer d = (ByteBuffer)raw;
 					
-					assert(!socket._paused);
+					assert(!socket.is_paused());
 					
 					Log.d(TAG, "SERVER socketOnData " + Util.chunkLength(d));
 					
@@ -179,11 +179,11 @@ extends TCP.Server {
 						}
 					}
 
-					if (socket._paused) {
+					if (socket.is_paused()) {
 						// onIncoming paused the socket, we should pause the parser as well
 						Log.d(TAG, "pause parser");
 						///socket.parser.pause();
-						socket.parser.Pause(false);
+						socket.getParser().Pause(false);
 					}					
 				}
 				
@@ -193,16 +193,16 @@ extends TCP.Server {
 			// new message. In this callback we setup the response object and pass it
 			// to the user.
 
-			socket._paused = false;
+			socket.set_paused(false);
 			
 			Listener socketOnDrain = new Listener() {
 				public void onEvent(final Object data) throws Exception {
 					// If we previously paused, then start reading again.
-					if (socket._paused) {
-						socket._paused = false;
+					if (socket.is_paused()) {
+						socket.set_paused(false);
 						// TDB...
 						///socket.parser.resume();
-						socket.parser.Pause(false);
+						socket.getParser().Pause(false);
 						socket.resume();
 					}
 				}
@@ -431,7 +431,7 @@ extends TCP.Server {
 	}
 	
 	// Parser on request
-	private class parserOnIncoming 
+	private static class parserOnIncoming 
 	extends IncomingParser {
 		private static final String TAG = "parserOnIncoming";
 		
@@ -448,11 +448,10 @@ extends TCP.Server {
 			this.context = ctx;
 			this.self    = srv;
 	
-			incomings = new ArrayList<IncomingMessage>();
-			outgoings = new ArrayList<ServerResponse>();
+			incomings = new LinkedList<IncomingMessage>();
+			outgoings = new LinkedList<ServerResponse>();
 
 		}
-		@SuppressWarnings("unused")
 		private parserOnIncoming() {super(null, null, null);}
 	
 		@Override
@@ -463,10 +462,10 @@ extends TCP.Server {
 			// If the writable end isn't consuming, then stop reading
 			// so that we don't become overwhelmed by a flood of
 			// pipelined requests that may never be resolved.
-			if (!socket._paused) {
+			if (!socket.is_paused()) {
 				boolean needPause = socket.get_writableState().isNeedDrain();
 				if (needPause) {
-					socket._paused = true;
+					socket.set_paused(true);
 					// We also need to pause the parser, but don't do that until after
 					// the call to execute, because we may still be processing the last
 					// chunk.
@@ -481,7 +480,7 @@ extends TCP.Server {
 			//DTRACE_HTTP_SERVER_REQUEST(req, socket);
 			//COUNTER_HTTP_SERVER_REQUEST();
 	
-			if (socket._httpMessage != null) {
+			if (socket.get_httpMessage() != null) {
 				// There are already pending outgoing res, append.
 				outgoings.add(res);
 				

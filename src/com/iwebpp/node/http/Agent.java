@@ -1,7 +1,7 @@
 package com.iwebpp.node.http;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -116,7 +116,7 @@ extends EventEmitter2 {
 				} else {
 					// If there are no pending requests, then put it in
 					// the freeSockets pool, but only if we're allowed to do so.
-					ClientRequest req = (ClientRequest) socket._httpMessage;
+					ClientRequest req = (ClientRequest) socket.get_httpMessage();
 					if (req!=null &&
 						req.shouldKeepAlive &&
 						!socket.isDestroyed() &&
@@ -132,11 +132,11 @@ extends EventEmitter2 {
 							self.removeSocket(socket, options);
 							socket.destroy(null);
 						} else {
-							freeSockets = freeSockets!=null ? freeSockets : new ArrayList<TCP.Socket>();
+							freeSockets = freeSockets!=null ? freeSockets : new LinkedList<TCP.Socket>();
 							self.freeSockets.put(name, freeSockets);
 							socket.setKeepAlive(true, self.keepAliveMsecs);
 							socket.unref();
-							socket._httpMessage = null;
+							socket.set_httpMessage(null);
 							self.removeSocket(socket, options);
 							freeSockets.add(socket);
 						}
@@ -206,7 +206,7 @@ extends EventEmitter2 {
 	    this.sockets[name] = [];
 	  }*/
 	  if (!this.sockets.containsKey(name))
-		  this.sockets.put(name, new ArrayList<TCP.Socket>());
+		  this.sockets.put(name, new LinkedList<TCP.Socket>());
 
 	  ///var freeLen = this.freeSockets[name] ? this.freeSockets[name].length : 0;
 	  ///var sockLen = freeLen + this.sockets[name].length;
@@ -235,7 +235,7 @@ extends EventEmitter2 {
 	    Log.d(TAG, "wait for socket");
 	    // We are over limit so we'll add it to the queue.
 	    if (!this.requests.containsKey(name)) {
-	    	this.requests.put(name, new ArrayList<ClientRequest>());
+	    	this.requests.put(name, new LinkedList<ClientRequest>());
 	    }
 	    this.requests.get(name).add(req);
 	  }
@@ -283,7 +283,7 @@ extends EventEmitter2 {
 				null);
 		
 		if (!self.sockets.containsKey(name)) {
-			self.sockets.put(name, new ArrayList<TCP.Socket>());
+			self.sockets.put(name, new LinkedList<TCP.Socket>());
 		}
 		this.sockets.get(name).add(s);
 

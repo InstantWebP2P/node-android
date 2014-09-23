@@ -1,7 +1,7 @@
 package com.iwebpp.node.tests;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -10,7 +10,6 @@ import android.util.Log;
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.http.ClientRequest;
-import com.iwebpp.node.http.ClientRequest.socketListener;
 import com.iwebpp.node.http.Http;
 import com.iwebpp.node.http.IncomingMessage;
 import com.iwebpp.node.http.ReqOptions;
@@ -18,7 +17,6 @@ import com.iwebpp.node.http.Server;
 import com.iwebpp.node.http.Server.clientErrorListener;
 import com.iwebpp.node.http.ServerResponse;
 import com.iwebpp.node.net.TCP.Socket;
-import com.iwebpp.node.net.TCP.Socket.ConnectCallback;
 import com.iwebpp.node.stream.Writable.WriteCB;
 
 public final class HttpTest {
@@ -58,9 +56,9 @@ public final class HttpTest {
 					Log.d(TAG, "got reqeust, headers: "+req.headers());
 
 					Map<String, List<String>> headers = new Hashtable<String, List<String>>();
-					headers.put("content-type", new ArrayList<String>());
+					headers.put("content-type", new LinkedList<String>());
 					headers.get("content-type").add("text/plain");
-					///headers.put("te", new ArrayList<String>());
+					///headers.put("te", new LinkedList<String>());
 					///headers.get("te").add("chunk");
 					
 					res.writeHead(200, headers);
@@ -176,9 +174,9 @@ public final class HttpTest {
 					Log.d(TAG, "got reqeust, headers: "+req.headers());
 
 					Map<String, List<String>> headers = new Hashtable<String, List<String>>();
-					headers.put("content-type", new ArrayList<String>());
+					headers.put("content-type", new LinkedList<String>());
 					headers.get("content-type").add("text/plain");
-					///headers.put("te", new ArrayList<String>());
+					///headers.put("te", new LinkedList<String>());
 					///headers.get("te").add("chunk");
 
 					res.writeHead(200, headers);
@@ -266,8 +264,8 @@ public final class HttpTest {
 				Log.d(TAG, "start test");
 
 				///testListening();
-				///testConnection();
-				testConnect();
+				testConnection();
+				///testConnect();
 				///testConnectPair();
 				
 				// run loop

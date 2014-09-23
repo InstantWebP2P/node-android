@@ -37,7 +37,6 @@ public final class TCP {
 		private boolean _connecting;
 		private boolean _hadError;
 		private TCPHandle _handle;
-		private String _host;
 		private Object _pendingData;
 		private String _pendingEncoding;
 		private boolean allowHalfOpen;
@@ -51,11 +50,7 @@ public final class TCP {
 
 		private int bytesRead;
 		private int _bytesDispatched;
-		private Object _writev;
-
 		private Server server;
-
-		private boolean _consuming;
 
 		private Address _sockname;
 
@@ -63,11 +58,11 @@ public final class TCP {
 
 		private NodeContext context;
 
-		public boolean _paused;
+		private boolean _paused;
 
-		public EventEmitter _httpMessage;
+		private EventEmitter _httpMessage;
 
-		public IncomingParser parser;
+		private IncomingParser parser;
 
 		public static class Options {
 
@@ -110,7 +105,7 @@ public final class TCP {
 			this._connecting = false;
 			this.set_hadError(false);
 			this._handle = null;
-			this._host = null;
+			
 
 			/*if (Util.isNumber(options))
 			    options = { fd: options }; // Legacy interface.
@@ -387,10 +382,6 @@ public final class TCP {
 				};
 				///self._handle.onread = onread;
 				self._handle.setReadCallback(onread);
-
-				// If handle doesn't support writev - neither do we
-				///if (!self._handle.writev)
-				self._writev = null;
 			}
 		}
 
@@ -551,11 +542,6 @@ public final class TCP {
 			}
 		}
 
-		private void _onTimeout() throws Exception {
-			Log.d(TAG, "_onTimeout");
-			this.emit("timeout");
-		}
-
 		public void setNoDelay(final boolean enable) {
 			// backwards compatibility: assume true when `enable` is omitted
 			if (this._handle /*&& this._handle.setNoDelay*/ != null)
@@ -658,8 +644,6 @@ public final class TCP {
 			if (n == 0)
 				return super.read(n);
 
-			///this.read = stream.Readable.prototype.read;
-			this._consuming = true;
 			return super.read(n);
 		}
 
@@ -1442,6 +1426,48 @@ Socket.prototype._writev = function(chunks, cb) {
 			this._hadError = _hadError;
 		}
 
+		/**
+		 * @return the _httpMessage
+		 */
+		public EventEmitter get_httpMessage() {
+			return _httpMessage;
+		}
+
+		/**
+		 * @param _httpMessage the _httpMessage to set
+		 */
+		public void set_httpMessage(EventEmitter _httpMessage) {
+			this._httpMessage = _httpMessage;
+		}
+
+		/**
+		 * @return the parser
+		 */
+		public IncomingParser getParser() {
+			return parser;
+		}
+
+		/**
+		 * @param parser the parser to set
+		 */
+		public void setParser(IncomingParser parser) {
+			this.parser = parser;
+		}
+
+		/**
+		 * @return the _paused
+		 */
+		public boolean is_paused() {
+			return _paused;
+		}
+
+		/**
+		 * @param _paused the _paused to set
+		 */
+		public void set_paused(boolean _paused) {
+			this._paused = _paused;
+		}
+
 	}
 
 	// /* [ options, ] listener */
@@ -1450,11 +1476,8 @@ Socket.prototype._writev = function(chunks, cb) {
 
 		private int _connections;
 		private TCPHandle _handle;
-		private boolean _usingSlaves;
 		private List<List<Socket>> _slaves;
 		private boolean allowHalfOpen;
-
-		private String _connectionKey;
 
 		private int maxConnections = 1024;
 
@@ -1527,7 +1550,6 @@ Socket.prototype._writev = function(chunks, cb) {
   });*/
 
 			this._handle = null;
-			this._usingSlaves = false;
 			this._slaves = new ArrayList< List<Socket> >();
 
 			this.allowHalfOpen = options.allowHalfOpen;
@@ -1744,9 +1766,6 @@ Socket.prototype._writev = function(chunks, cb) {
 				return;
 			}
 
-			// generate connection key, this should be unique to the connection
-			this._connectionKey = addressType + ':' + address + ':' + port;
-
 			///process.nextTick(function() {
 			context.nextTick(new NodeContext.nextTickCallback() {
 
@@ -1884,7 +1903,6 @@ Socket.prototype._writev = function(chunks, cb) {
 		}
 
 		protected void _setupSlave(List<Socket> socketList) {
-			this._usingSlaves = true;
 			this._slaves.add(socketList);
 		}
 

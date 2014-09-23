@@ -22,7 +22,7 @@ implements EventEmitter {
     }
     
 	@Override
-	public boolean emit(String event) throws Exception {
+	public boolean emit(final String event) throws Exception {
 		if (events.containsKey(event)) {
 			Log.d(TAG, "emit "+event+" at="+this);
 			for (Listener cb : events.get(event))
@@ -35,7 +35,7 @@ implements EventEmitter {
 	}
 
 	@Override
-	public boolean emit(String event, Object data) throws Exception {
+	public boolean emit(final String event, final Object data) throws Exception {
 		if (events.containsKey(event)) {
 			Log.d(TAG, "emit "+event+" data="+data+" at="+this);
 
@@ -54,7 +54,7 @@ implements EventEmitter {
 	}
 		
 	@Override
-	public EventEmitter addListener(String event, Listener cb) {
+	public EventEmitter addListener(final String event, final Listener cb) {
 		// check maxListens
 		if (maxEvents.containsKey(event) && 
 			maxEvents.get(event) < listenerCount(event)) {
@@ -75,7 +75,7 @@ implements EventEmitter {
 	}
 	
 	@Override
-	public EventEmitter addListener(String event, Listener cb, int priority) {
+	public EventEmitter addListener(final String event, final Listener cb, final int priority) {
 		// check maxListens
 		if (maxEvents.containsKey(event) && 
 				maxEvents.get(event) < listenerCount(event)) {
@@ -87,21 +87,17 @@ implements EventEmitter {
 		if (!events.containsKey(event)) {
 			events.put(event, new LinkedList<Listener>());
 		}
-
-		int lsncnt = listenerCount(event);
 		
-		if (lsncnt == 0)
-			events.get(event).add(cb);
-		else if (priority < lsncnt)
+		if (priority < listenerCount(event))
 			events.get(event).add(priority, cb);
 		else 
-			events.get(event).add(lsncnt - 1, cb);
+			events.get(event).add(cb);
 		
 		return this;
 	}
 
 	@Override
-	public EventEmitter on(String event, Listener cb) throws Exception {
+	public EventEmitter on(final String event, final Listener cb) throws Exception {
 		return addListener(event, cb);
 	}
 
@@ -122,7 +118,7 @@ implements EventEmitter {
 	}
 
 	@Override
-	public EventEmitter removeListener(String event, Listener cb) {
+	public EventEmitter removeListener(final String event, final Listener cb) {
 		if (events.containsKey(event) && events.get(event).contains(cb))
 			events.get(event).remove(cb);
 
@@ -130,7 +126,7 @@ implements EventEmitter {
 	}
 
 	@Override
-	public EventEmitter removeListener(String event) {
+	public EventEmitter removeListener(final String event) {
 		if (events.containsKey(event))
 			events.remove(event);
 		
@@ -145,20 +141,20 @@ implements EventEmitter {
 	}
 
 	@Override
-	public EventEmitter setMaxListeners(String event, int n) {
+	public EventEmitter setMaxListeners(final String event, final int n) {
 		// TODO Auto-generated method stub
 		this.maxEvents.put(event, n);
 		return this;
 	}
 
 	@Override
-	public List<Listener> listeners(String event) {
+	public List<Listener> listeners(final String event) {
 		// TODO Auto-generated method stub
 		return events.containsKey(event) ? events.get(event) : null;
 	}
 
 	@Override
-	public int listenerCount(String event) {
+	public int listenerCount(final String event) {
 		// TODO Auto-generated method stub
 		return events.containsKey(event) ? events.get(event).size() : 0;
 	}

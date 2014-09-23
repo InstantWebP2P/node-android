@@ -79,8 +79,8 @@ extends OutgoingMessage {
 	}
 
 	public void assignSocket(final TCP.Socket socket) throws Exception {
-		assert(null == socket._httpMessage);
-		socket._httpMessage = this;
+		assert(null == socket.get_httpMessage());
+		socket.set_httpMessage(this);
 
 		onServerResponseClose = new Listener() {
 
@@ -103,7 +103,7 @@ extends OutgoingMessage {
 				// Ergo, we need to deal with stale 'close' events and handle the case
 				// where the ServerResponse object has already been deconstructed.
 				// Fortunately, that requires only a single if check. :-)
-				if (socket._httpMessage!=null) ((ServerResponse)(socket._httpMessage)).emit("close");
+				if (socket.get_httpMessage()!=null) ((ServerResponse)(socket.get_httpMessage())).emit("close");
 			}
 
 		};
@@ -118,9 +118,9 @@ extends OutgoingMessage {
 
 
 	public void detachSocket(TCP.Socket socket) {
-		assert(socket._httpMessage == this);
+		assert(socket.get_httpMessage() == this);
 		socket.removeListener("close", onServerResponseClose);
-		socket._httpMessage = null;
+		socket.set_httpMessage(null);
 		this.socket = this.connection = null;
 	}
 

@@ -190,7 +190,7 @@ extends HttpParser {
 	  parser.incoming.url = url;
 		 */
 		// TBD...
-		this.incoming = new IncomingMessage(context, (TCP.Socket)super.data);
+		this.incoming = new IncomingMessage(context, (TCP.Socket)super.getData());
         this.incoming.setHttpVersionMajor(info.versionMajor);
         this.incoming.setHttpVersionMinor(info.versionMinor);
         this.incoming.httpVersion(info.versionMajor + "." + info.versionMinor);
@@ -288,7 +288,7 @@ extends HttpParser {
 				stream.push(null, null);
 		}
 
-		if (stream!=null && 0<incoming.get_pendings().size()) {
+		if (stream!=null && 0==incoming.get_pendings().size()) {
 			// For emit end event
 			stream.push(null, null);
 		}
@@ -424,7 +424,7 @@ extends HttpParser {
 	    parser._headers.clear();
 	    ///parser.onIncoming = null;
 	    if (parser.socket != null)
-	      parser.socket.parser = null;
+	      parser.socket.setParser(null);
 	    parser.socket = null;
 	    parser.incoming = null;
 	    ///parsers.free(parser);

@@ -30,7 +30,6 @@ import java.util.Objects;
 import com.iwebpp.libuvpp.Address;
 import com.iwebpp.libuvpp.LibUVPermission;
 import com.iwebpp.libuvpp.LibUVPermission.AddressResolver;
-import com.iwebpp.node.net.TCP.Socket;
 
 public class TCPHandle extends StreamHandle {
 

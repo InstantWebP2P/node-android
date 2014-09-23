@@ -3,6 +3,7 @@ package com.iwebpp.node.http;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -105,9 +106,9 @@ implements Writable {
 		super();
 		this.context = ctx;
 
-		this.output = new ArrayList<Object>();
-		this.outputEncodings = new ArrayList<String>();
-		this.outputCallbacks = new ArrayList<WriteCB>();
+		this.output = new LinkedList<Object>();
+		this.outputEncodings = new LinkedList<String>();
+		this.outputCallbacks = new LinkedList<WriteCB>();
 
 		// TBD... change default to false
 		///this.writable = true;
@@ -211,7 +212,7 @@ this.socket.setTimeout(msecs);
 		
 		// TBD...
 		if (this.connection!=null &&
-			this.connection._httpMessage == this &&
+			this.connection.get_httpMessage() == this &&
 			this.connection.writable() &&
 			!this.connection.isDestroyed()) {
 			// There might be pending data in the this.output buffer.
@@ -681,7 +682,7 @@ this.socket.setTimeout(msecs);
 		// There is the first message on the outgoing queue, and we've sent
 		// everything to the socket.
 		Log.d(TAG, "outgoing message end.");
-		if (this.output.size() == 0 && this.connection._httpMessage == this) {
+		if (this.output.size() == 0 && this.connection.get_httpMessage() == this) {
 			this._finish();
 		}
 

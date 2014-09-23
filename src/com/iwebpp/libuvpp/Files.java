@@ -670,7 +670,6 @@ public class Files {
     }
 
     private void callback(final int type, final Object callback, final Exception error,final Object context) {
-        Integer fd;
         switch (type) {
             case UV_FS_CUSTOM:
                 if (onCustom != null) {

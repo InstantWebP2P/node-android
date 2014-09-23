@@ -1,7 +1,8 @@
 package com.iwebpp.node.stream;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.iwebpp.node.EventEmitter;
 import com.iwebpp.node.EventEmitter2;
@@ -98,7 +99,7 @@ implements Writable {
 	}
 
 	public class State {
-		private ArrayList<WriteReq> buffer;
+		private List<WriteReq> buffer;
 		boolean objectMode;
 		int highWaterMark;
 		boolean needDrain;
@@ -204,7 +205,7 @@ implements Writable {
 			this.writelen = 0;
 
 			// WriteReq buffer
-			this.setBuffer(new ArrayList<WriteReq>());
+			this.setBuffer(new LinkedList<WriteReq>());
 
 			// number of pending user-supplied write callbacks
 			// this must be 0 before 'finish' can be emitted
@@ -315,7 +316,7 @@ implements Writable {
 		/**
 		 * @return the buffer
 		 */
-		public ArrayList<WriteReq> getBuffer() {
+		public List<WriteReq> getBuffer() {
 			return buffer;
 		}
 
@@ -323,7 +324,7 @@ implements Writable {
 		/**
 		 * @param buffer the buffer to set
 		 */
-		public void setBuffer(ArrayList<WriteReq> buffer) {
+		public void setBuffer(List<WriteReq> buffer) {
 			this.buffer = buffer;
 		}
 	}
@@ -647,7 +648,7 @@ implements Writable {
 			}
 
 			if (c < state.getBuffer().size())
-				state.setBuffer((ArrayList<WriteReq>) state.getBuffer().subList(c, state.getBuffer().size()));
+				state.setBuffer((LinkedList<WriteReq>) state.getBuffer().subList(c, state.getBuffer().size()));
 			else
 				state.getBuffer().clear();
 		}

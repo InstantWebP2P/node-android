@@ -96,7 +96,7 @@ public final class Http {
 
 			@Override
 			public void onEvent(Object data) throws Exception {
-				if (socket._httpMessage!=null) socket._httpMessage.emit("drain");
+				if (socket.get_httpMessage()!=null) socket.get_httpMessage().emit("drain");
 
 			}
 
