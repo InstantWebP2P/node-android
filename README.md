@@ -1,7 +1,7 @@
-libuvpp-android
+node-android
 ===============
 
-Android native wrapper of libuvpp by porting libuv-java jni part
+Node.js rewrited for Android
 
 third-party: libuv-java by Oracle
 
