@@ -15,7 +15,7 @@ import com.iwebpp.node.net.TCP.Socket;
 
 public abstract class IncomingParser 
 extends HttpParser {
-	protected final static String TAG = "IncomingParser";
+	private final static String TAG = "IncomingParser";
 
 	protected TCP.Socket socket;
 	protected IncomingMessage incoming;
@@ -58,7 +58,7 @@ extends HttpParser {
 
 		this.current_buffer_ = null;
 	}
-	protected IncomingParser(){super(null, null);}
+	private IncomingParser(){super(null, null);}
 
 
 	protected void Init(http_parser_type type) {
@@ -432,10 +432,10 @@ extends HttpParser {
 	  }
 	  if (req != null) {
 		  if (req instanceof IncomingMessage)
-			  ((IncomingMessage)req).parser = null;
+			  ((IncomingMessage)req).setParser(null);
 		  
 		  if (req instanceof ClientRequest)
-			  ((ClientRequest)req).parser = null;
+			  ((ClientRequest)req).setParser(null);
 	  }
 	}
 	

@@ -168,6 +168,8 @@ class StreamHandle extends Handle {
 
     public int write(final String str, final String encoding) throws UnsupportedEncodingException {
         Objects.requireNonNull(str);
+        Objects.requireNonNull(encoding);
+
         final byte[] data = str.getBytes(encoding);
         return write(ByteBuffer.wrap(data), 0, data.length);
     }

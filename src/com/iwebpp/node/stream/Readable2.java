@@ -10,8 +10,6 @@ import com.iwebpp.node.EventEmitter;
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.EventEmitter.Listener;
-import com.iwebpp.node.NodeContext.nextTickCallback;
 import com.iwebpp.node.others.TripleState;
 
 import android.text.TextUtils;
@@ -134,7 +132,7 @@ implements Readable {
 			this.setLength(0);
 			this.pipes = new ArrayList<Writable>();
 			this.pipesCount = 0;
-			this.flowing = TripleState.UNKNOWN;
+			this.flowing = TripleState.MAYBE;
 			this.setEnded(false);
 			this.setEndEmitted(false);
 			this.setReading(false);
@@ -1209,10 +1207,5 @@ this._readableState.encoding = enc;
 	public State get_readableState() {
 		return _readableState;
 	}
-	/**
-	 * @param _readableState the _readableState to set
-	 */
-	public void set_readableState(State _readableState) {
-		this._readableState = _readableState;
-	}
+	
 }

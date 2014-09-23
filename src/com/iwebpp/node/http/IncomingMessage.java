@@ -17,8 +17,8 @@ extends Readable2 {
 
 	private final static String TAG = "IncomingMessage";
 
-	public Map<String, List<String>> headers;
-	public Map<String, List<String>> trailers;
+	private Map<String, List<String>> headers;
+	private Map<String, List<String>> trailers;
 	private Socket socket;
 	private String httpVersion;
 	private boolean complete;
@@ -33,14 +33,14 @@ extends Readable2 {
 	private boolean _dumped;
 	private boolean upgrade;
 
-	public ClientRequest  req;
-	public ServerResponse res;
+	private ClientRequest  req;
+	private ServerResponse res;
 
 	private int httpVersionMajor;
 
 	private int httpVersionMinor;
 
-	public IncomingParser parser;
+	private IncomingParser parser;
 
 	/**
 	 * @return the upgrade
@@ -66,7 +66,7 @@ extends Readable2 {
 		this.socket = socket;
 		this.httpVersion = null;
 		this.setComplete(false);
-		this.headers = new Hashtable<String, List<String>>();
+		this.setHeaders(new Hashtable<String, List<String>>());
 		this.rawHeaders = new ArrayList<String>();
 		this.trailers = new Hashtable<String, List<String>>();
 		this.rawTrailers = new ArrayList<String>();
@@ -137,7 +137,7 @@ extends Readable2 {
 				dest = this.trailers;
 			} else {
 				raw = this.rawHeaders;
-				dest = this.headers;
+				dest = this.getHeaders();
 			}
 			raw.addAll(headers);
 
@@ -259,7 +259,7 @@ extends Readable2 {
 	}
 
 	public Map<String, List<String>> headers() {
-		return this.headers;
+		return this.getHeaders();
 	}
 
 	public Map<String, List<String>> trailers() {
@@ -418,6 +418,42 @@ extends Readable2 {
 	 */
 	public void setHttpVersionMinor(int httpVersionMinor) {
 		this.httpVersionMinor = httpVersionMinor;
+	}
+	/**
+	 * @return the req
+	 */
+	public ClientRequest getReq() {
+		return req;
+	}
+	/**
+	 * @param req the req to set
+	 */
+	public void setReq(ClientRequest req) {
+		this.req = req;
+	}
+	/**
+	 * @return the parser
+	 */
+	public IncomingParser getParser() {
+		return parser;
+	}
+	/**
+	 * @param parser the parser to set
+	 */
+	public void setParser(IncomingParser parser) {
+		this.parser = parser;
+	}
+	/**
+	 * @return the headers
+	 */
+	public Map<String, List<String>> getHeaders() {
+		return headers;
+	}
+	/**
+	 * @param headers the headers to set
+	 */
+	public void setHeaders(Map<String, List<String>> headers) {
+		this.headers = headers;
 	}
 	public static interface closeListener {
 		public void onClose() throws Exception;

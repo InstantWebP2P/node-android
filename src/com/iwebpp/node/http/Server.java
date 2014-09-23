@@ -17,7 +17,7 @@ import com.iwebpp.node.net.TCP;
 import com.iwebpp.node.net.TCP.Socket;
 import com.iwebpp.node.others.TripleState;
 
-public class Server 
+public final class Server 
 extends TCP.Server {
 
 	private boolean httpAllowHalfOpen;
@@ -171,7 +171,7 @@ extends TCP.Server {
 
 							// TODO(isaacs): Need a way to reset a stream to fresh state
 							// IE, not flowing, and not explicitly paused.
-							socket.get_readableState().setFlowing(TripleState.UNKNOWN);
+							socket.get_readableState().setFlowing(TripleState.MAYBE);
 							self.emit(eventName, new request_socket_head_b(req, socket, bodyHead));
 						} else {
 							// Got upgrade header or CONNECT method, but have no handler.
@@ -433,6 +433,8 @@ extends TCP.Server {
 	// Parser on request
 	private class parserOnIncoming 
 	extends IncomingParser {
+		private static final String TAG = "parserOnIncoming";
+		
 		private NodeContext context;
 
 		private List<IncomingMessage> incomings;	
@@ -527,11 +529,11 @@ extends TCP.Server {
 			};			
 			res.on("prefinish", resOnFinish);
 	
-			if ( req.headers.containsKey("expect") && 
-				!req.headers.get("expect").isEmpty() &&
+			if ( req.getHeaders().containsKey("expect") && 
+				!req.getHeaders().get("expect").isEmpty() &&
 				(req.getHttpVersionMajor() == 1 && req.getHttpVersionMinor() == 1) &&
 				///Http.continueExpression == req.headers.get("expect").get(0)) {
-				Pattern.matches(Http.continueExpression, req.headers.get("expect").get(0))) {
+				Pattern.matches(Http.continueExpression, req.getHeaders().get("expect").get(0))) {
 				res.set_expect_continue(true);
 
 				if (self.listenerCount("checkContinue") > 0) {

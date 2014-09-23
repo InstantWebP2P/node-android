@@ -2,9 +2,9 @@ package com.iwebpp.node.others;
 
 //@desc three states: -1,0,1 map to null,false,true
 public enum TripleState {
-    UNKNOWN    (-1),
-    FALSE      ( 0),
-    TRUE       ( 1);
+    MAYBE    (-1),
+    FALSE    ( 0),
+    TRUE     ( 1);
     
     private int state;
     private TripleState(int state) {
@@ -16,7 +16,7 @@ public enum TripleState {
     public String toString() {
     	if (this.state ==  0) return "false";
     	if (this.state ==  1) return "true";
-    	return "unknown";
+    	                      return "maybe";
     }
 }
 

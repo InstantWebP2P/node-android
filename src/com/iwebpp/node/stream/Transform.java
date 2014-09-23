@@ -1,9 +1,7 @@
 package com.iwebpp.node.stream;
 
-import com.iwebpp.node.EventEmitter;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.EventEmitter.Listener;
 
 public abstract class Transform 
 extends Duplex {

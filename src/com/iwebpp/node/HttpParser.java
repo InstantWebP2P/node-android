@@ -2,8 +2,6 @@ package com.iwebpp.node;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-
 import android.util.Log;
 
 public abstract class HttpParser {
@@ -261,7 +259,7 @@ public abstract class HttpParser {
 		///XX(INVALID_INTERNAL_STATE, "encountered unexpected internal State")
 		///XX(STRICT, "strict mode assertion failed")                        
 		///XX(PAUSED, "parser is paused")                                     
-		///XX(UNKNOWN, "an unknown error occurred")
+		///XX(MAYBE, "an unknown error occurred")
 		HPE_INVALID_HOST("invalid host"),
 		HPE_INVALID_PORT("invalid port"),
 		HPE_INVALID_PATH("invalid path"),
@@ -822,7 +820,7 @@ struct http_parser_settings {
 	private final static long HTTP_PARSER_VERSION_MINOR = 3;
 	private final static long HTTP_PARSER_VERSION_PATCH = 0;
 
-	protected long version() {
+	public long version() {
 		return HTTP_PARSER_VERSION_MAJOR * 0x10000 |
 			   HTTP_PARSER_VERSION_MINOR * 0x00100 |
 			   HTTP_PARSER_VERSION_PATCH * 0x00001;

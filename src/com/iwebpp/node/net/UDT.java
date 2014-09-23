@@ -16,26 +16,15 @@ import com.iwebpp.libuvpp.cb.StreamShutdownCallback;
 import com.iwebpp.libuvpp.cb.StreamWriteCallback;
 import com.iwebpp.libuvpp.handles.LoopHandle;
 import com.iwebpp.libuvpp.handles.UDTHandle;
-import com.iwebpp.libuvpp.handles.UDTHandle;
 import com.iwebpp.node.EventEmitter;
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Timers;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.EventEmitter.Listener;
-import com.iwebpp.node.NodeContext.nextTickCallback;
 import com.iwebpp.node.http.IncomingParser;
-import com.iwebpp.node.net.UDT.Server;
-import com.iwebpp.node.net.UDT.Socket;
-import com.iwebpp.node.net.UDT.Server.CloseCallback;
-import com.iwebpp.node.net.UDT.Server.ConnectionCallback;
-import com.iwebpp.node.net.UDT.Server.ListeningCallback;
-import com.iwebpp.node.net.UDT.Socket.ConnectCallback;
-import com.iwebpp.node.net.UDT.Socket.Options;
 import com.iwebpp.node.stream.Duplex;
 import com.iwebpp.node.stream.Readable2;
 import com.iwebpp.node.stream.Writable2;
-import com.iwebpp.node.stream.Writable.WriteCB;
 import com.iwebpp.node.stream.Writable2.WriteReq;
 
 public final class UDT {
@@ -1543,6 +1532,8 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			this.allowHalfOpen = options.allowHalfOpen;
 		}
+		@SuppressWarnings("unused")
+		private Server(){}
 
 		public static class Options {
 

@@ -1,8 +1,6 @@
 package com.iwebpp.node.stream;
 
-import com.iwebpp.node.EventEmitter;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext.nextTickCallback;
 
 public abstract class Duplex

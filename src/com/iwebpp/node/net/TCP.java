@@ -1532,6 +1532,8 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			this.allowHalfOpen = options.allowHalfOpen;
 		}
+		@SuppressWarnings("unused")
+		private Server(){}
 
 		public static class Options {
 

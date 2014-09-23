@@ -7,8 +7,6 @@ import com.iwebpp.node.EventEmitter;
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.EventEmitter.Listener;
-import com.iwebpp.node.NodeContext.nextTickCallback;
 
 public abstract class Writable2 
 extends EventEmitter2 

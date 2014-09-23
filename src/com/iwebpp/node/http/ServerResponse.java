@@ -11,7 +11,7 @@ import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.net.TCP;
 
-public class ServerResponse 
+public final class ServerResponse 
 extends OutgoingMessage {
 	private final static String TAG = "ServerResponse";
 
@@ -23,7 +23,7 @@ extends OutgoingMessage {
 	
 	private Listener onServerResponseClose;
 	
-	protected ServerResponse(NodeContext context, IncomingMessage req) {
+	public ServerResponse(NodeContext context, IncomingMessage req) {
 		super(context);
 
 		this.statusCode = 200;
@@ -36,7 +36,7 @@ extends OutgoingMessage {
 		if (req.getHttpVersionMajor() < 1 || req.getHttpVersionMinor() < 1) {
 			// TBD...
 			///this.useChunkedEncodingByDefault = Http.chunkExpression.test(req.headers.te);
-			this.useChunkedEncodingByDefault = (req.headers.containsKey("te") && Pattern.matches(Http.chunkExpression, req.headers.get("te").get(0)));
+			this.useChunkedEncodingByDefault = (req.getHeaders().containsKey("te") && Pattern.matches(Http.chunkExpression, req.getHeaders().get("te").get(0)));
 			this.shouldKeepAlive = false;
 		}
 	}
@@ -129,7 +129,7 @@ extends OutgoingMessage {
 		this._sent100 = true;
 	}
 
-	public void _implicitHeader() throws Exception {
+	protected void _implicitHeader() throws Exception {
 		this.writeHead(this.statusCode, null, null);
 	}
 

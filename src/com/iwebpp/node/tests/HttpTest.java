@@ -125,7 +125,7 @@ public final class HttpTest {
 				@Override
 				public void onResponse(IncomingMessage res) throws Exception {
 					Log.d(TAG, "STATUS: " + res.statusCode());
-					Log.d(TAG, "HEADERS: " + res.headers);
+					Log.d(TAG, "HEADERS: " + res.getHeaders());
 
 					res.setEncoding("utf-8");
 					res.on("data", new Listener(){
@@ -217,7 +217,7 @@ public final class HttpTest {
 				@Override
 				public void onResponse(IncomingMessage res) throws Exception {
 					Log.d(TAG, "STATUS: " + res.statusCode());
-					Log.d(TAG, "HEADERS: " + res.headers);
+					Log.d(TAG, "HEADERS: " + res.getHeaders());
 
 					res.setEncoding("utf-8");
 

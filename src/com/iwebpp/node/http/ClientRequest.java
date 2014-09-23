@@ -16,17 +16,17 @@ import com.iwebpp.node.net.TCP;
 import com.iwebpp.node.net.TCP.Socket;
 import com.iwebpp.node.others.TripleState;
 
-public class ClientRequest 
+public final class ClientRequest 
 extends OutgoingMessage {
 	private final static String TAG = "ClientRequest";
 
-	public IncomingParser parser;
+	private IncomingParser parser;
 
-	public IncomingMessage res;
+	private IncomingMessage res;
 
-	public String method;
+	private String method;
 
-	public boolean upgradeOrConnect;
+	private boolean upgradeOrConnect;
 
 	// Socket event listeners
 	private socketCloseListener socketCloseListener;
@@ -36,11 +36,11 @@ extends OutgoingMessage {
 
 	private int maxHeadersCount = 4000;
 
-	protected long aborted = -1;
+	private long aborted = -1;
 
 	private String path;
 
-	protected ClientRequest(NodeContext context, ReqOptions options, responseListener cb) throws Exception {
+	public ClientRequest(NodeContext context, ReqOptions options, responseListener cb) throws Exception {
 		super(context);
 		final ClientRequest self = this;
 
@@ -340,27 +340,13 @@ extends OutgoingMessage {
 
 	// POJO beans
 	private class enable_initialDelay_b {
-		/**
-		 * @return the enable
-		 */
-		public boolean isEnable() {
-			return enable;
-		}
-		/**
-		 * @return the initialDelay
-		 */
-		public int getInitialDelay() {
-			return initialDelay;
-		}
 		private boolean enable;
 		private int     initialDelay;
 
-		public enable_initialDelay_b(boolean enable, int initialDelay) {
+		private enable_initialDelay_b(boolean enable, int initialDelay) {
 			this.enable = enable;
 			this.initialDelay = initialDelay;
 		}
-		@SuppressWarnings("unused")
-		private enable_initialDelay_b(){}
 	}
 
 	// Event listeners
@@ -445,6 +431,8 @@ extends OutgoingMessage {
 	// Parser on response
 	private class parserOnIncomingClient 
 	extends IncomingParser {
+		private static final String TAG = "parserOnIncoming";
+
 		private NodeContext context;
 
 		public parserOnIncomingClient(NodeContext ctx, TCP.Socket socket) {
@@ -452,7 +440,7 @@ extends OutgoingMessage {
 			this.context = ctx;
 		}
 		@SuppressWarnings("unused")
-		private parserOnIncomingClient(){}
+		private parserOnIncomingClient(){super(null, null, null);}
 
 		@Override
 		protected boolean onIncoming(final IncomingMessage res,
@@ -511,7 +499,7 @@ extends OutgoingMessage {
 			///DTRACE_HTTP_CLIENT_RESPONSE(socket, req);
 			///COUNTER_HTTP_CLIENT_RESPONSE();
 			req.res = res;
-			res.req = req;
+			res.setReq(req);
 
 			// add our listener first, so that we guarantee socket cleanup
 			Listener responseOnEnd = new Listener() {
@@ -519,7 +507,7 @@ extends OutgoingMessage {
 				@Override
 				public void onEvent(Object data) throws Exception {
 					///var res = this;
-					ClientRequest req = res.req;
+					ClientRequest req = res.getReq();
 					final Socket socket = req.socket;
 
 					if (!req.shouldKeepAlive) {
@@ -579,7 +567,7 @@ extends OutgoingMessage {
 		parser.Reinitialize(http_parser_type.HTTP_RESPONSE);
 		parser.socket = socket;
 		parser.incoming = null;
-		req.parser = parser;
+		req.setParser(parser);
 
 		socket.parser = parser;
 		socket._httpMessage = req;
@@ -650,6 +638,20 @@ extends OutgoingMessage {
 
 	private static NodeError createHangUpError() {
 		return new NodeError("ECONNRESET", "socket hang up");
+	}
+
+	/**
+	 * @return the parser
+	 */
+	public IncomingParser getParser() {
+		return parser;
+	}
+
+	/**
+	 * @param parser the parser to set
+	 */
+	public void setParser(IncomingParser parser) {
+		this.parser = parser;
 	}
 
 	private class socketCloseListener 
@@ -831,7 +833,7 @@ extends OutgoingMessage {
 
 					// TODO(isaacs): Need a way to reset a stream to fresh state
 					// IE, not flowing, and not explicitly paused.
-					socket.get_readableState().setFlowing(TripleState.UNKNOWN);
+					socket.get_readableState().setFlowing(TripleState.MAYBE);
 
 					req.emit(eventName, new Http.response_socket_head_b(res, socket, bodyHead));
 					req.emit("close");

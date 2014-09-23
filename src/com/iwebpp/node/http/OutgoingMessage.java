@@ -100,7 +100,7 @@ implements Writable {
 
 	protected int statusCode;
 
-	public OutgoingMessage(NodeContext ctx) {
+	protected OutgoingMessage(NodeContext ctx) {
 		///super(ctx, new Options(-1, false, "utf8", false));
 		super();
 		this.context = ctx;
@@ -128,6 +128,8 @@ implements Writable {
 		this.socket = null;
 		this.connection = null;
 	}
+	@SuppressWarnings("unused")
+	private OutgoingMessage(){}
 
 	/*
 	 * OutgoingMessage.prototype.setTimeout = function(msecs, callback) {
@@ -403,7 +405,7 @@ this.socket.setTimeout(msecs);
 
 		// wait until the first body chunk, or close(), is sent to flush,
 		// UNLESS we're sending Expect: 100-continue.
-		if (state.sentExpect) this._send("", null, null);
+		if (state.sentExpect) this._send("", "utf-8", null);
 	}
 
 	protected void storeHeader(_State state, String field, String value) {
@@ -551,7 +553,7 @@ this.socket.setTimeout(msecs);
 				Log.d(TAG, ".......... 2");
 				
 				///len = Buffer.byteLength(chunk, encoding);
-				len = ((String)chunk).getBytes(encoding).length;
+				len = Util.stringByteLength((String) chunk, encoding);
 
 				///chunk = len.toString(16) + CRLF + chunk + CRLF;
 				chunk = Integer.toString(len, 16) + Http.CRLF + chunk + Http.CRLF;
@@ -563,7 +565,7 @@ this.socket.setTimeout(msecs);
 				// buffer, or a non-toString-friendly encoding
 				if (Util.isString(chunk))
 					///len = Buffer.byteLength(chunk, encoding);
-					len = ((String)chunk).getBytes(encoding).length;
+					len = Util.stringByteLength((String) chunk, encoding);
 				else
 					///len = chunk.length;
 					len = Util.chunkLength(chunk);
@@ -755,7 +757,7 @@ this.socket.setTimeout(msecs);
 		if (Util.zeroString(this._header)) {
 			// Force-flush the headers.
 			this._implicitHeader();
-			this._send("", null, null);
+			this._send("", "utf-8", null);
 		}
 	}
 
