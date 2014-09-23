@@ -1,7 +1,7 @@
 node-android
 ===============
 
-Node.js rewrited for Android
+Node.js rewrite for Android
 
 third-party: libuv-java by Oracle
 
