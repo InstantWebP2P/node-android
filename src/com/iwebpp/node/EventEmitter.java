@@ -14,7 +14,7 @@ public interface EventEmitter {
 	public EventEmitter once(final String event, final Listener cb) throws Exception;
 	
 	public EventEmitter addListener(final String event, final Listener cb);
-	public EventEmitter addListener(String event, Listener cb, int priority);
+	public EventEmitter addListener(final String event, final Listener cb, int priority);
 
 	public EventEmitter removeListener(final String event, final Listener cb);
 	public EventEmitter removeListener(final String event);
