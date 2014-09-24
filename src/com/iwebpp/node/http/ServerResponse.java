@@ -40,6 +40,7 @@ extends OutgoingMessage {
 			this.shouldKeepAlive = false;
 		}
 	}
+	private ServerResponse(){super(null);}
 
 	protected void _finish() throws Exception {
 		///DTRACE_HTTP_SERVER_RESPONSE(this.connection);
@@ -108,7 +109,6 @@ extends OutgoingMessage {
 
 		};
 		socket.on("close", onServerResponseClose);
-
 
 		this.socket = socket;
 		this.connection = socket;

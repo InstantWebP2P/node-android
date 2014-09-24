@@ -72,6 +72,8 @@ extends HttpParser {
 		num_fields_ = 0;
 		num_values_ = 0;
 		have_flushed_ = false;
+		
+		current_buffer_ = null;
 	}
 
 	// spill headers and request path to JS land
@@ -150,6 +152,8 @@ extends HttpParser {
 	// processed in a single run. This method is also
 	// called to process trailing HTTP headers.
 	protected void parserOnHeaders(List<String> headers, String url) {
+		Log.d(TAG, "parserOnHeaders ");
+		
 		// Once we exceeded headers limit - stop collecting them
 		if (this.maxHeaderPairs <= 0 ||
 			this._headers.size() < this.maxHeaderPairs) {
@@ -248,6 +252,8 @@ extends HttpParser {
 	// TODO: Http.Parser should be a Writable emits request/response events.
 	///function parserOnBody(b, start, len) {
 	protected void parserOnBody(ByteBuffer b) throws Exception {
+		Log.d(TAG, "parserOnBody ");
+
 		IncomingParser parser = this;
 		IncomingMessage stream = parser.incoming;
 
@@ -270,6 +276,8 @@ extends HttpParser {
 
 	///function parserOnMessageComplete() {
 	protected void parserOnMessageComplete() throws Exception {
+		Log.d(TAG, "parserOnMessageComplete ");
+
 		IncomingParser parser = this;
 		IncomingMessage stream = parser.incoming;
 
@@ -278,7 +286,7 @@ extends HttpParser {
 			// Emit any trailing headers.
 			List<String> headers = parser._headers;
 			if (headers!=null && !headers.isEmpty()) {
-				incoming._addHeaderLines(headers, headers.size());
+				stream._addHeaderLines(headers, headers.size());
 				_headers.clear();
 				_url = "";
 			}
@@ -288,7 +296,7 @@ extends HttpParser {
 				stream.push(null, null);
 		}
 
-		if (stream!=null && 0==incoming.get_pendings().size()) {
+		if (stream!=null && 0==stream.get_pendings().size()) {
 			// For emit end event
 			stream.push(null, null);
 		}

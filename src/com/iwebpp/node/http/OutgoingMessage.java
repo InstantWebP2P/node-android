@@ -112,6 +112,7 @@ implements Writable {
 
 		// TBD... change default to false
 		///this.writable = true;
+		this.writable(true);
 
 		this._last = false;
 		this.chunkedEncoding = false;

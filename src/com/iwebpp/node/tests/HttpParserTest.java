@@ -11,7 +11,8 @@ import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.HttpParser;
 import com.iwebpp.node.HttpParser.http_parser_type;
 
-public final class HttpParserTest extends EventEmitter2 {
+public final class HttpParserTest 
+extends EventEmitter2 {
 	private static final String TAG = "HttpParserTest";
 
 	private class DummyParser extends HttpParser {
@@ -148,6 +149,35 @@ public final class HttpParserTest extends EventEmitter2 {
 
 				// request messages
 				String messages_request[] = {
+						// GET empty
+						"GET / HTTP/1.1\r\n" +
+				         "\r\n"+
+				         "GET / HTTP/1.1\r\n" +
+				         ///"\r\n"+
+				         "GET / HTTP/1.1\r\n" +
+				         "\r\n",
+				         
+				      // GET chain
+							"GET / HTTP/1.1\r\n" +
+					         "Host: 192.188.1.103:6288\r\n"+
+					         "Connection: keep-alive\r\n" +
+					         "\r\n"+
+					         
+					         "GET / HTTP/1.1\r\n" +
+					         "Host: 192.188.1.103:6288\r\n"+
+					         "Connection: keep-alive\r\n" +
+					         "\r\n"+
+					         
+					         "GET / HTTP/1.1\r\n" +
+					         "Host: 192.188.1.103:6288\r\n"+
+					         "Connection: keep-alive\r\n" +
+					         "\r\n"+
+					         
+					         "GET / HTTP/1.1\r\n" +
+					         "Host: 192.188.1.103:6288\r\n"+
+					         "Connection: keep-alive\r\n" +
+					         "\r\n",
+					         
 						// CURL_GET 0
 						"GET /test HTTP/1.1\r\n" +
 						"User-Agent: curl/7.18.0 (i486-pc-linux-gnu) libcurl/7.18.0 OpenSSL/0.9.8g zlib/1.2.3.3 libidn/1.1\r\n" +

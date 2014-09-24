@@ -1,7 +1,7 @@
 package com.iwebpp.node.tests;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.NodeContext.TimeoutCallback;
 import com.iwebpp.node.http.ClientRequest;
 import com.iwebpp.node.http.Http;
 import com.iwebpp.node.http.IncomingMessage;
@@ -56,13 +57,13 @@ public final class HttpTest {
 					Log.d(TAG, "got reqeust, headers: "+req.headers());
 
 					Map<String, List<String>> headers = new Hashtable<String, List<String>>();
-					headers.put("content-type", new LinkedList<String>());
+					headers.put("content-type", new ArrayList<String>());
 					headers.get("content-type").add("text/plain");
 					///headers.put("te", new LinkedList<String>());
 					///headers.get("te").add("chunk");
 					
 					res.writeHead(200, headers);
-					for (int i = 0; i < 10; i ++)
+					///for (int i = 0; i < 10; i ++)
 						res.write("Hello Tom", "utf-8", new WriteCB(){
 
 						@Override
@@ -174,9 +175,9 @@ public final class HttpTest {
 					Log.d(TAG, "got reqeust, headers: "+req.headers());
 
 					Map<String, List<String>> headers = new Hashtable<String, List<String>>();
-					headers.put("content-type", new LinkedList<String>());
+					headers.put("content-type", new ArrayList<String>());
 					headers.get("content-type").add("text/plain");
-					///headers.put("te", new LinkedList<String>());
+					///headers.put("te", new ArrayList<String>());
 					///headers.get("te").add("chunk");
 
 					res.writeHead(200, headers);
@@ -204,47 +205,56 @@ public final class HttpTest {
 			});
 			
 			// client
-			ReqOptions ropt = new ReqOptions();
-			ropt.host = "localhost";
+			final ReqOptions ropt = new ReqOptions();
+			ropt.hostname = "localhost";
 			ropt.port = port;
 			ropt.method = "GET";
 			ropt.path = "/";
 
-			ClientRequest req = Http.request(ctx, ropt, new ClientRequest.responseListener() {
+			// defer 2s to connect
+			ctx.setTimeout(new TimeoutCallback(){
 
 				@Override
-				public void onResponse(IncomingMessage res) throws Exception {
-					Log.d(TAG, "STATUS: " + res.statusCode());
-					Log.d(TAG, "HEADERS: " + res.getHeaders());
-
-					res.setEncoding("utf-8");
-
-					res.on("data", new Listener(){
+				public void onTimeout() throws Exception {
+					
+					ClientRequest req = Http.request(ctx, ropt, new ClientRequest.responseListener() {
 
 						@Override
-						public void onEvent(Object chunk) throws Exception {
-							Log.d(TAG, "BODY: " + chunk);
+						public void onResponse(IncomingMessage res) throws Exception {
+							Log.d(TAG, "STATUS: " + res.statusCode());
+							Log.d(TAG, "HEADERS: " + res.getHeaders());
 
+							res.setEncoding("utf-8");
+
+							res.on("data", new Listener(){
+
+								@Override
+								public void onEvent(Object chunk) throws Exception {
+									Log.d(TAG, "BODY: " + chunk);
+
+								}
+
+							});
 						}
 
 					});
+
+					req.on("error", new Listener(){
+
+						@Override
+						public void onEvent(Object e) throws Exception {
+							Log.d(TAG, "problem with request: " + e);					
+						}
+
+					});
+
+					// write data to request body
+					///req.write("data\n", "utf-8", null);
+					///req.write("data\n", "utf-8", null);
+					req.end(null, null, null);
 				}
 
-			});
-
-			req.on("error", new Listener(){
-
-				@Override
-				public void onEvent(Object e) throws Exception {
-					Log.d(TAG, "problem with request: " + e);					
-				}
-
-			});
-
-			// write data to request body
-			///req.write("data\n", "utf-8", null);
-			///req.write("data\n", "utf-8", null);
-			req.end(null, null, null);
+			}, 2000);
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -266,7 +276,7 @@ public final class HttpTest {
 				///testListening();
 				testConnection();
 				///testConnect();
-				///testConnectPair();
+				testConnectPair();
 				
 				// run loop
 				try {

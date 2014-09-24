@@ -845,6 +845,8 @@ struct http_parser_settings {
         this.nread = 0;
         this.status_code = 0;
         this.upgrade = false;
+        this.header_state = header_state.h_general;
+        this.method = http_method.HTTP_INVALID;
 	}
 	
 	public int execute(ByteBuffer data) throws Exception {
@@ -943,7 +945,7 @@ struct http_parser_settings {
 			break;
 		}
 		
-		Log.d(TAG, "http_parser_execute ...");
+		Log.d(TAG, "http_parser_execute ... state:"+state.state);
 
 		///for (p=data; p != data + len; p++) {
 		for (p = 0; p < len; p ++) {
@@ -988,7 +990,7 @@ struct http_parser_settings {
 
 			///reexecute_byte:
 			while (true) {
-				Log.d(TAG, "reexecute_byte "+reexecute_byte++);
+				Log.d(TAG, "reexecute_byte "+(reexecute_byte++)+",err:"+HTTP_PARSER_ERRNO().desc()+",state:"+state.state);
 
 				switch (state) {
 
@@ -2857,6 +2859,7 @@ struct http_parser_settings {
 
 				case s_headers_done:
 				{
+					///Log.d(TAG, "STRICT_CHECK ch:"+ch+",state:"+state.state);
 					///STRICT_CHECK(ch != '\n');
 					if (ch != '\n') {                                                       
 						SET_ERRNO(http_errno.HPE_STRICT);  
@@ -3311,6 +3314,8 @@ struct http_parser_settings {
 				}
 
 				// break while loop
+				Log.d(TAG, "break while loop, reexecute_byte:"+reexecute_byte+",err:"+HTTP_PARSER_ERRNO().desc());
+
 				break;
 			}
 		}

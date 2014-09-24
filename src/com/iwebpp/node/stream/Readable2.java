@@ -1160,7 +1160,7 @@ this._readableState.encoding = enc;
 			this.emit("pause");
 		}
 		return this;
-	};
+	}
 
 	public boolean readable() {
 		return readable;

@@ -144,6 +144,7 @@ extends TCP.Server {
 					assert(!socket.is_paused());
 					
 					Log.d(TAG, "SERVER socketOnData " + Util.chunkLength(d));
+					Log.d(TAG, "\t\t\t"+Util.chunkToString(d, "utf-8"));
 					
 					int ret = parser.Execute(d);
 					
@@ -457,6 +458,8 @@ extends TCP.Server {
 		@Override
 		protected boolean onIncoming(final IncomingMessage req,
 				boolean shouldKeepAlive) throws Exception {
+			final IncomingParser ips = this;
+			
 			incomings.add(req);
 	
 			// If the writable end isn't consuming, then stop reading
@@ -465,7 +468,7 @@ extends TCP.Server {
 			if (!socket.is_paused()) {
 				boolean needPause = socket.get_writableState().isNeedDrain();
 				if (needPause) {
-					socket.set_paused(true);
+				    socket.set_paused(true);
 					// We also need to pause the parser, but don't do that until after
 					// the call to execute, because we may still be processing the last
 					// chunk.
@@ -492,7 +495,7 @@ extends TCP.Server {
 			}
 	
 			// When we're finished writing the response, check if this is the last
-			// respose, if so destroy the socket.
+			// response, if so destroy the socket.
 			Listener resOnFinish = new Listener() {
 	
 				@Override
@@ -514,7 +517,12 @@ extends TCP.Server {
 					res.detachSocket(socket);
 					Log.d(TAG, "res.detachSocket(socket)");
 
+					// Reset Parser state 
+					ips.Reinitialize(ips.getType());
+					
 					if (res.is_last()) {
+						Log.d(TAG, "res.is_last()");
+
 						socket.destroySoon();
 					} else {
 						// start sending the next message
