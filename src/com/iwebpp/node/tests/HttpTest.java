@@ -9,7 +9,7 @@ import android.util.Log;
 
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.NodeContext.TimeoutCallback;
+import com.iwebpp.node.NodeContext.TimeoutListener;
 import com.iwebpp.node.http.ClientRequest;
 import com.iwebpp.node.http.Http;
 import com.iwebpp.node.http.IncomingMessage;
@@ -212,7 +212,7 @@ public final class HttpTest {
 			ropt.path = "/";
 
 			// defer 2s to connect
-			ctx.setTimeout(new TimeoutCallback(){
+			ctx.setTimeout(new TimeoutListener(){
 
 				@Override
 				public void onTimeout() throws Exception {

@@ -100,7 +100,7 @@ public abstract class HttpParser {
 
 		, s_message_done                        (62);
 		
-	  	private int state;
+	  	private final int state;
 		private State(int state) {
 			this.state = state;
 		}
@@ -192,7 +192,7 @@ public abstract class HttpParser {
 		HTTP_INVALID     ("INVALID\0");
 		
 		
-		private String desc;
+		private final String desc;
 		private http_method(String desc) {
 			this.desc = desc;
 		}
@@ -275,7 +275,7 @@ public abstract class HttpParser {
 		HPE_PAUSED("parser is paused"),
 		HPE_UNKNOWN("an unknown error occurred");
 		
-		private String desc;
+		private final String desc;
 		private http_errno(String desc) {
 			this.desc = desc;
 		}
@@ -299,7 +299,7 @@ public abstract class HttpParser {
 		F_UPGRADE                (1 << 4),
 		F_SKIPBODY               (1 << 5);
 		
-		private int flag;
+		private final int flag;
 		private Flags(int flag) {
 			this.flag= flag;
 		}
@@ -315,7 +315,7 @@ public abstract class HttpParser {
 		UF_USERINFO          (6),
 		UF_MAX               (7);
 		
-		private int field;
+		private final int field;
 
 		private http_parser_url_fields(int field) {
 			this.field = field;
@@ -831,6 +831,7 @@ struct http_parser_settings {
 	
 	///void http_parser_init(http_parser *parser, enum http_parser_type type);
 
+	@SuppressWarnings("static-access")
 	public void reset(http_parser_type type) {
         this.type = type;
         this.http_errno = http_errno.HPE_OK;
@@ -849,6 +850,7 @@ struct http_parser_settings {
         this.method = http_method.HTTP_INVALID;
 	}
 	
+	@SuppressWarnings("static-access")
 	public int execute(ByteBuffer data) throws Exception {
 		char c, ch;
 		int uc;
@@ -3803,6 +3805,7 @@ struct http_parser_settings {
 
 	/* Pause or un-pause the parser; a nonzero value pauses */
 	///void http_parser_pause(http_parser *parser, int paused);
+	@SuppressWarnings("static-access")
 	protected void pause(boolean paused) {
 		/* Users should only be pausing/unpausing a parser that is not in an error
 		 * state. In non-debug builds, there's not much that we can do about this
@@ -3883,9 +3886,6 @@ struct http_parser_settings {
 	 */
 	public boolean isUpgrade() {
 		return upgrade;
-	}
-	public void ugrade(boolean upgrade) {
-		this.upgrade = upgrade;
 	}
 	
 	/**

@@ -40,7 +40,7 @@ public class ReqOptions {
 				NodeContext ctx, 
 				String address, int port,
 				String localAddress, int localPort,
-				final Socket.ConnectCallback cb) throws Exception;
+				final Socket.ConnectListener cb) throws Exception;
 	}
 
 }

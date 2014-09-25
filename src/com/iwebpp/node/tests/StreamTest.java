@@ -7,7 +7,7 @@ import android.util.Log;
 
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.NodeContext.IntervalCallback;
+import com.iwebpp.node.NodeContext.IntervalListener;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.stream.Duplex;
 import com.iwebpp.node.stream.Readable;
@@ -207,7 +207,7 @@ public final class StreamTest {
 
 			});
 			
-			context.setInterval(new IntervalCallback(){
+			context.setInterval(new IntervalListener(){
 
 				@Override
 				public void onInterval() throws Exception {

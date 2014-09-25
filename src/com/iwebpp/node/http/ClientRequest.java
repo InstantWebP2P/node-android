@@ -7,7 +7,7 @@ import java.util.Map;
 import android.util.Log;
 
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.NodeContext.nextTickCallback;
+import com.iwebpp.node.NodeContext.nextTickListener;
 import com.iwebpp.node.NodeError;
 import com.iwebpp.node.HttpParser.http_parser_type;
 import com.iwebpp.node.Util;
@@ -530,7 +530,7 @@ extends OutgoingMessage {
 						// Mark this socket as available, AFTER user-added end
 						// handlers have a chance to run.
 						///process.nextTick(function() {
-						context.nextTick(new nextTickCallback() {
+						context.nextTick(new nextTickListener() {
 
 							@Override
 							public void onNextTick() throws Exception {
@@ -609,7 +609,7 @@ extends OutgoingMessage {
 		
 		Log.d(TAG, "onSocket");
 
-		context.nextTick(new NodeContext.nextTickCallback() {
+		context.nextTick(new NodeContext.nextTickListener() {
 
 			@Override
 			public void onNextTick() throws Exception {

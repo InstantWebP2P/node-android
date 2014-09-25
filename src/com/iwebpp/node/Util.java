@@ -6,12 +6,8 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import com.iwebpp.libuvpp.cb.TimerCallback;
-import com.iwebpp.libuvpp.handles.TimerHandle;
-
-import android.util.Log;
-
 public final class Util {
+	@SuppressWarnings("unused")
 	private static final String TAG = "Util";
 	
 	// Buffer

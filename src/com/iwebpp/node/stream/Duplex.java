@@ -1,7 +1,7 @@
 package com.iwebpp.node.stream;
 
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.NodeContext.nextTickCallback;
+import com.iwebpp.node.NodeContext.nextTickListener;
 
 public abstract class Duplex
 extends Readable2 
@@ -91,7 +91,7 @@ implements Writable {
 				// no more data can be written.
 				// But allow more writes to happen in this tick.
 				///process.nextTick(this.end.bind(this));
-				context.nextTick(new nextTickCallback(){
+				context.nextTick(new nextTickListener(){
 
 					@Override
 					public void onNextTick() throws Exception {

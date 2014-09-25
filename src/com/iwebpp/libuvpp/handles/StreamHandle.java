@@ -41,7 +41,7 @@ import com.iwebpp.libuvpp.cb.StreamWriteCallback;
 import com.iwebpp.libuvpp.ConsString;
 import com.iwebpp.libuvpp.StringUtils;
 
-class StreamHandle extends Handle {
+public class StreamHandle extends Handle {
 
     protected boolean closed;
     protected boolean readStarted;

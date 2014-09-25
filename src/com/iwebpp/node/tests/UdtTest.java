@@ -6,14 +6,14 @@ import com.iwebpp.libuvpp.handles.TimerHandle;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.EventEmitter.Listener;
-import com.iwebpp.node.NodeContext.IntervalCallback;
-import com.iwebpp.node.NodeContext.TimeoutCallback;
+import com.iwebpp.node.NodeContext.IntervalListener;
+import com.iwebpp.node.NodeContext.TimeoutListener;
 import com.iwebpp.node.net.UDT;
+import com.iwebpp.node.net.UDT.Server.CloseListener;
+import com.iwebpp.node.net.UDT.Server.ListeningCallback;
+import com.iwebpp.node.net.UDT.Socket.ConnectListener;
 import com.iwebpp.node.net.UDT.Server;
 import com.iwebpp.node.net.UDT.Socket;
-import com.iwebpp.node.net.UDT.Server.CloseCallback;
-import com.iwebpp.node.net.UDT.Server.ListeningCallback;
-import com.iwebpp.node.net.UDT.Socket.ConnectCallback;
 import com.iwebpp.node.stream.Writable.WriteCB;
 
 public final class UdtTest {
@@ -62,7 +62,7 @@ public final class UdtTest {
 
 			///cln.setEncoding("utf8");
 
-			cln.connect(port, new ConnectCallback(){
+			cln.connect(port, new ConnectListener(){
 
 				@Override
 				public void onConnect() throws Exception {
@@ -85,11 +85,11 @@ public final class UdtTest {
 			});
 
 			// close server after 6s
-			ctx.setTimeout(new TimeoutCallback(){
+			ctx.setTimeout(new TimeoutListener(){
 
 				@Override
 				public void onTimeout() throws Exception {
-					srv.close(new CloseCallback(){
+					srv.close(new CloseListener(){
 
 						@Override
 						public void onClose(String error) {
@@ -159,7 +159,7 @@ public final class UdtTest {
 			
 			cln.setEncoding("utf8");
 			
-			cln.connect(6, "::1", port, new ConnectCallback(){
+			cln.connect(6, "::1", port, new ConnectListener(){
 
 				@Override
 				public void onConnect() throws Exception {
@@ -202,7 +202,7 @@ public final class UdtTest {
 					});
 					
 					// write after 2s
-					TimerHandle interval = ctx.setInterval(new IntervalCallback(){
+					TimerHandle interval = ctx.setInterval(new IntervalListener(){
 
 						@Override
 						public void onInterval() throws Exception {
@@ -249,7 +249,7 @@ public final class UdtTest {
 			
 			cln.setEncoding("utf8");
 			
-			cln.connect(port, new ConnectCallback(){
+			cln.connect(port, new ConnectListener(){
 
 				@Override
 				public void onConnect() throws Exception {
@@ -292,7 +292,7 @@ public final class UdtTest {
 					});
 					
 					// write after 2s
-					TimerHandle interval = ctx.setInterval(new IntervalCallback(){
+					TimerHandle interval = ctx.setInterval(new IntervalListener(){
 
 						@Override
 						public void onInterval() throws Exception {

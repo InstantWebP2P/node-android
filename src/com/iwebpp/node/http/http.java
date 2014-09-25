@@ -14,7 +14,7 @@ public final class Http {
 	public static final Map<Integer, String> STATUS_CODES;
 
 	static {
-		// status codes 
+		// STATUS CODES
 		STATUS_CODES = new Hashtable<Integer, String>();
 
 		STATUS_CODES.put(100, "Continue");
@@ -233,7 +233,10 @@ public final class Http {
 		  return new ClientRequest(ctx, options, onres);
 	}
 	// TBD... parser ReqOptions from URL
-	public static ClientRequest request(String url, ClientRequest.responseListener onres) {
+	public static ClientRequest request(
+			NodeContext ctx, 
+			String url,
+			ClientRequest.responseListener onres) throws Exception {
 
 		return null;
 	}
@@ -251,7 +254,10 @@ public final class Http {
 		req.end(null, null, null);
 		return req;
 	}
-	public static ClientRequest get(String url, ClientRequest.responseListener onres) {
+	public static ClientRequest get(
+			NodeContext ctx, 
+			String url,
+			ClientRequest.responseListener onres) throws Exception {
 
 		return null;
 	}

@@ -14,7 +14,7 @@ import android.util.Log;
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.NodeContext.nextTickCallback;
+import com.iwebpp.node.NodeContext.nextTickListener;
 import com.iwebpp.node.net.TCP;
 import com.iwebpp.node.net.TCP.Socket;
 import com.iwebpp.node.stream.Writable;
@@ -198,7 +198,7 @@ this.socket.setTimeout(msecs);
 			///if (util.isFunction(callback))
 			if (callback != null)
 				///process.nextTick(callback);
-				context.nextTick(new nextTickCallback(){
+				context.nextTick(new nextTickListener(){
 
 					@Override
 					public void onNextTick() throws Exception {
@@ -576,7 +576,7 @@ this.socket.setTimeout(msecs);
 					this.connection.cork();
 					final Socket conn = this.connection;
 					///process.nextTick(function connectionCork() {
-					context.nextTick(new nextTickCallback(){
+					context.nextTick(new nextTickListener(){
 
 						@Override
 						public void onNextTick() throws Exception {

@@ -39,11 +39,11 @@ public final class NodeContext {
 	 * DOM-style timers
 	 */
 	// setTimeout/clearTimeout
-	public static interface TimeoutCallback{
+	public static interface TimeoutListener{
 		public void onTimeout() throws Exception;
 	}
 	// after: ms
-    public TimerHandle setTimeout(final TimeoutCallback callback, int after) {
+    public TimerHandle setTimeout(final TimeoutListener callback, int after) {
     	final TimerHandle timer = new TimerHandle(loop);
     	
     	timer.setCloseCallback(new TimerCallback() {
@@ -73,11 +73,11 @@ public final class NodeContext {
     }
     
     // setInterval/clearInterval
-	public static interface IntervalCallback{
+	public static interface IntervalListener{
 		public void onInterval() throws Exception;
 	}
 	// repeat: ms
-    public TimerHandle setInterval(final IntervalCallback callback, int repeat) {
+    public TimerHandle setInterval(final IntervalListener callback, int repeat) {
     	final TimerHandle timer = new TimerHandle(loop);
     	
     	timer.setCloseCallback(new TimerCallback() {
@@ -105,7 +105,7 @@ public final class NodeContext {
     }
     
     // fire on next tick
-    public void nextTick(final nextTickCallback next) {
+    public void nextTick(final nextTickListener next) {
         final TimerHandle timer = new TimerHandle(loop);
 
         timer.setCloseCallback(new TimerCallback() {
@@ -128,7 +128,7 @@ public final class NodeContext {
 
         timer.start(0, 0);
     }
-    public static interface nextTickCallback {
+    public static interface nextTickListener {
     	void onNextTick() throws Exception;
     }
 
@@ -140,7 +140,7 @@ public final class NodeContext {
     		// TBD... GTC 
     		dateCached = d.toString();
 
-    		setTimeout(new TimeoutCallback() {
+    		setTimeout(new TimeoutListener() {
 
     			@Override
     			public void onTimeout() throws Exception {

@@ -415,7 +415,7 @@ public final class TCP {
 					if (exception!=null && !self._writableState.isErrorEmitted()) {
 						// TBD...
 						///process.nextTick(function() {
-						context.nextTick(new NodeContext.nextTickCallback() {
+						context.nextTick(new NodeContext.nextTickListener() {
 
 							public void onNextTick() throws Exception {
 								self.emit("error", exception);
@@ -676,7 +676,7 @@ public final class TCP {
 			///if (util.isFunction(cb)) {
 			if (cb != null) {
 				///process.nextTick(function() {
-				context.nextTick(new NodeContext.nextTickCallback() {
+				context.nextTick(new NodeContext.nextTickListener() {
 
 					@Override
 					public void onNextTick() throws Exception {	
@@ -938,21 +938,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			return;
 		}
 
-		public void onConnect(final ConnectCallback cb) throws Exception {
-			this.on("connect", new Listener(){
-
-				@Override
-				public void onEvent(Object data) throws Exception {
-					cb.onConnect();					
-				}
-
-			});
-		}
-		public static interface ConnectCallback {
-			public void onConnect() throws Exception;
-		}
-
-		public void connect(int port, final ConnectCallback cb) throws Exception {
+		public void connect(int port, final ConnectListener cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
 				this.get_readableState().setReading(false);
@@ -999,7 +985,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			connect(4, null, port, null, -1);
 		}
 
-		public void connect(String address ,int port, final ConnectCallback cb) throws Exception {
+		public void connect(String address ,int port, final ConnectListener cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
 				this.get_readableState().setReading(false);
@@ -1048,7 +1034,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 		public void connect(
 				String address ,int port,
-				int localPort, final ConnectCallback cb) throws Exception {
+				int localPort, final ConnectListener cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
 				this.get_readableState().setReading(false);
@@ -1097,7 +1083,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 		public void connect(
 				String address ,int port,
-				String localAddress, final ConnectCallback cb) throws Exception {
+				String localAddress, final ConnectListener cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
 				this.get_readableState().setReading(false);
@@ -1146,7 +1132,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 		public void connect(
 				String address ,int port, 
-				String localAddress, int localPort, final ConnectCallback cb) throws Exception {
+				String localAddress, int localPort, final ConnectListener cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
 				this.get_readableState().setReading(false);
@@ -1195,7 +1181,7 @@ Socket.prototype._writev = function(chunks, cb) {
 		}
 
 		public void connect(int addressType, String address ,int port, 
-				final ConnectCallback cb) throws Exception {
+				final ConnectListener cb) throws Exception {
 			// check handle //////////////////////
 			if (this.destroyed) {
 				this.get_readableState().setReading(false);
@@ -1475,6 +1461,110 @@ Socket.prototype._writev = function(chunks, cb) {
 			this._paused = _paused;
 		}
 
+		// Event listeners
+		public void onceConnect(final ConnectListener cb) throws Exception {
+			this.once("connect", new Listener(){
+
+				@Override
+				public void onEvent(Object data) throws Exception {
+					cb.onConnect();					
+				}
+
+			});
+		}
+		public static interface ConnectListener {
+			public void onConnect() throws Exception;
+		}
+		
+		
+		public void onData(final DataListener cb) throws Exception {
+			this.on("data", new Listener(){
+
+				@Override
+				public void onEvent(Object data) throws Exception {
+					cb.onData(data);					
+				}
+
+			});
+		}
+		public static interface DataListener {
+			public void onData(Object data) throws Exception;
+		}
+		
+
+		public void onceEnd(final EndListener cb) throws Exception {
+			this.once("end", new Listener(){
+
+				@Override
+				public void onEvent(Object data) throws Exception {
+					cb.onEnd();					
+				}
+
+			});
+		}
+		public static interface EndListener {
+			public void onEnd() throws Exception;
+		}
+		
+		/* TBD...
+		public void onTimeout(final TimeoutListener cb) throws Exception {
+			this.on("timeout", new Listener(){
+
+				@Override
+				public void onEvent(Object data) throws Exception {
+					cb.onTimeout();					
+				}
+
+			});
+		}
+		public static interface TimeoutListener {
+			public void onTimeout() throws Exception;
+		}*/
+		
+		public void onDrain(final DrainListener cb) throws Exception {
+			this.on("drain", new Listener(){
+
+				@Override
+				public void onEvent(Object data) throws Exception {
+					cb.onDrain();					
+				}
+
+			});
+		}
+		public static interface DrainListener {
+			public void onDrain() throws Exception;
+		}
+		
+		public void onError(final ErrorListener cb) throws Exception {
+			this.on("error", new Listener(){
+
+				@Override
+				public void onEvent(Object data) throws Exception {
+					cb.onError(data!=null? data.toString() : "");					
+				}
+
+			});
+		}
+		public static interface ErrorListener {
+			public void onError(String error) throws Exception;
+		}
+		
+		public void onceClose(final CloseListener cb) throws Exception {
+			this.once("close", new Listener(){
+
+				@Override
+				public void onEvent(Object data) throws Exception {
+					Boolean had_error = (Boolean)data;
+					
+					cb.onClose(had_error);					
+				}
+
+			});
+		}
+		public static interface CloseListener {
+			public void onClose(boolean had_error) throws Exception;
+		}
+		
 	}
 
 	// /* [ options, ] listener */
@@ -1504,7 +1594,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 			// TBD...
 			///process.nextTick(function() {
-			context.nextTick(new NodeContext.nextTickCallback() {
+			context.nextTick(new NodeContext.nextTickListener() {
 
 				@Override
 				public void onNextTick() throws Exception {
@@ -1518,7 +1608,7 @@ Socket.prototype._writev = function(chunks, cb) {
 		public Server(
 				final NodeContext context, 
 				Options options, 
-				final ConnectionCallback listener) throws Exception {
+				final ConnectionListener listener) throws Exception {
 			Server self = this;
 
 			// node context
@@ -1574,50 +1664,6 @@ Socket.prototype._writev = function(chunks, cb) {
 			@SuppressWarnings("unused")
 			private Options(){}
 		} 
-
-		public void onConnection(final ConnectionCallback cb) throws Exception {
-			this.on("connection", new Listener(){
-
-				@Override
-				public void onEvent(Object raw) throws Exception {
-					Socket data = (Socket)raw;
-					cb.onConnection(data);					
-				}
-
-			});
-		}
-		public static interface ConnectionCallback {
-			public void onConnection(Socket socket);
-		}
-
-		public void onClose(final CloseCallback cb) throws Exception {
-			this.on("close", new Listener(){
-
-				@Override
-				public void onEvent(Object raw) throws Exception {
-					String data = (String)raw;
-					cb.onClose(data);					
-				}
-
-			});
-		}
-		public static interface CloseCallback {
-			public void onClose(String error);
-		}
-		
-		public void onListening(final ListeningCallback cb) throws Exception {
-			this.on("listening", new Listener(){
-
-				@Override
-				public void onEvent(Object raw) throws Exception {
-					cb.onListening();					
-				}
-
-			});
-		}
-		public static interface ListeningCallback {
-			public void onListening();
-		}
 
 		private static int _listen(TCPHandle handle, int backlog) {
 			// Use a backlog of 512 entries. We pass 511 to the listen() call because
@@ -1679,7 +1725,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				if (rval == null) {
 					final String error = "err listen";
 					///process.nextTick(function() {
-					context.nextTick(new NodeContext.nextTickCallback() {
+					context.nextTick(new NodeContext.nextTickListener() {
 
 						@Override
 						public void onNextTick() throws Exception {
@@ -1759,7 +1805,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				self._handle.close();
 				self._handle = null;
 				///process.nextTick(function() {
-				context.nextTick(new NodeContext.nextTickCallback() {
+				context.nextTick(new NodeContext.nextTickListener() {
 
 					@Override
 					public void onNextTick() throws Exception {
@@ -1774,7 +1820,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			}
 
 			///process.nextTick(function() {
-			context.nextTick(new NodeContext.nextTickCallback() {
+			context.nextTick(new NodeContext.nextTickListener() {
 
 				@Override
 				public void onNextTick() throws Exception {
@@ -1870,7 +1916,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			return this._connections;
 		}
 
-		public Server close(final CloseCallback cb) throws Exception {
+		public Server close(final CloseListener cb) throws Exception {
 
 			if (cb!=null) {
 				if (null==this._handle) {
@@ -1890,7 +1936,7 @@ Socket.prototype._writev = function(chunks, cb) {
 						@Override
 						public void onEvent(Object data) throws Exception {
 							// TODO Auto-generated method stub
-							cb.onClose((String) data);
+							cb.onClose(data!=null? data.toString() : "");
 						}
 
 					});
@@ -1924,6 +1970,64 @@ Socket.prototype._writev = function(chunks, cb) {
 		}
 
 
+		// Event listeners
+		public void onConnection(final ConnectionListener cb) throws Exception {
+			this.on("connection", new Listener(){
+
+				@Override
+				public void onEvent(Object raw) throws Exception {
+					Socket data = (Socket)raw;
+					cb.onConnection(data);					
+				}
+
+			});
+		}
+		public static interface ConnectionListener {
+			public void onConnection(Socket socket);
+		}
+
+		public void onceClose(final CloseListener cb) throws Exception {
+			this.once("close", new Listener(){
+
+				@Override
+				public void onEvent(Object raw) throws Exception {
+					cb.onClose(raw!=null? raw.toString() : "");					
+				}
+
+			});
+		}
+		public static interface CloseListener {
+			public void onClose(String error);
+		}
+		
+		public void onceListening(final ListeningCallback cb) throws Exception {
+			this.once("listening", new Listener(){
+
+				@Override
+				public void onEvent(Object raw) throws Exception {
+					cb.onListening();					
+				}
+
+			});
+		}
+		public static interface ListeningCallback {
+			public void onListening();
+		}
+
+		public void onError(final ErrorListener cb) throws Exception {
+			this.on("error", new Listener(){
+
+				@Override
+				public void onEvent(Object raw) throws Exception {
+					cb.onError(raw!=null? raw.toString() : "");					
+				}
+
+			});
+		}
+		public static interface ErrorListener {
+			public void onError(String error);
+		}
+		
 	}	
 
 	private static TCPHandle createTCP(final LoopHandle loop) {
@@ -1933,7 +2037,7 @@ Socket.prototype._writev = function(chunks, cb) {
 
 	public static Server createServer(
 			final NodeContext context, 
-			final Server.ConnectionCallback listener) throws Exception {
+			final Server.ConnectionListener listener) throws Exception {
 		return new Server(context, new Server.Options(false), listener);
 	}
 
@@ -1953,7 +2057,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			NodeContext ctx, 
 			String address, int port,
 			String localAddress, int localPort,
-			final Socket.ConnectCallback cb) throws Exception {
+			final Socket.ConnectListener cb) throws Exception {
 		Log.d(TAG, "createConnection " + address + ":" + port + "@"+localAddress+":"+localPort);
 
 		Socket s = new Socket(ctx, new Socket.Options(null, false, false, true));
@@ -1967,7 +2071,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			NodeContext ctx, 
 			String address, int port,
 			String localAddress, int localPort,
-			final Socket.ConnectCallback cb) throws Exception {
+			final Socket.ConnectListener cb) throws Exception {
 		Log.d(TAG, "connect " + address + ":" + port + "@"+localAddress+":"+localPort);
 
 		Socket s = new Socket(ctx, new Socket.Options(null, false, false, true));

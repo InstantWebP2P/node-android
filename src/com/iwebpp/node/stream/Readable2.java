@@ -669,7 +669,7 @@ this._readableState.encoding = enc;
 			state.setEnded(true);
 			///TDB...
 			///process.nextTick(function() {
-			context.nextTick(new NodeContext.nextTickCallback() {
+			context.nextTick(new NodeContext.nextTickListener() {
 
 				@Override
 				public void onNextTick() throws Exception {
@@ -696,7 +696,7 @@ this._readableState.encoding = enc;
 			state.readingMore = true;
 			//TBD...
 			///process.nextTick(function() {
-			context.nextTick(new NodeContext.nextTickCallback() {
+			context.nextTick(new NodeContext.nextTickListener() {
 
 				@Override
 				public void onNextTick() throws Exception {
@@ -733,7 +733,7 @@ this._readableState.encoding = enc;
 			if (state.sync) {
 				//TBD...
 				///process.nextTick(function() {
-				context.nextTick(new NodeContext.nextTickCallback() {
+				context.nextTick(new NodeContext.nextTickListener() {
 
 					@Override
 					public void onNextTick() throws Exception {
@@ -969,7 +969,7 @@ this._readableState.encoding = enc;
 		  if (state.isEndEmitted())
 			  // TBD...
 			  ///process.nextTick(endFn);
-			  context.nextTick(new NodeContext.nextTickCallback() {
+			  context.nextTick(new NodeContext.nextTickListener() {
 
 				  @Override
 				  public void onNextTick() throws Exception {	
@@ -1091,7 +1091,7 @@ this._readableState.encoding = enc;
 					final Readable2 self = this;
 					///TBD...
 					///process.nextTick(function() {
-					context.nextTick(new NodeContext.nextTickCallback() {
+					context.nextTick(new NodeContext.nextTickListener() {
 
 						@Override
 						public void onNextTick() throws Exception {
@@ -1126,7 +1126,7 @@ this._readableState.encoding = enc;
 			state.setResumeScheduled(true);
 			// TBD...
 			///process.nextTick(function() {
-			context.nextTick(new NodeContext.nextTickCallback() {
+			context.nextTick(new NodeContext.nextTickListener() {
 
 				@Override
 				public void onNextTick() throws Exception {
