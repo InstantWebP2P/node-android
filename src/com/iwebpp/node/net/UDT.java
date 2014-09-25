@@ -58,7 +58,7 @@ public final class UDT {
 
 		private NodeContext context;
 
-		private boolean _paused;
+		private boolean _paused = false;
 
 		private EventEmitter _httpMessage;
 
@@ -1315,6 +1315,7 @@ Socket.prototype._writev = function(chunks, cb) {
 				err = this._handle.bind(localAddress, localPort);  
 			}
 			if (err != 0) {
+				Log.e(TAG, "err bind");
 				///self._destroy(errnoException(err, 'bind'));
 				this._destroy("err bind", null);
 				return;
@@ -1364,6 +1365,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			};
 			this._handle.setConnectCallback(afterConnect);
 
+			// TBD... IP validation
 			if (Util.zeroString(address)) {
 				address = (addressType == 6) ? "::1" : "127.0.0.1";
 			}
@@ -1378,10 +1380,15 @@ Socket.prototype._writev = function(chunks, cb) {
 			}
 
 			if (err != 0) {
+				Log.e(TAG, "err connect");
+
 				///self._destroy(errnoException(err, 'connect'));
 				this._destroy("err connect", null);
 			}
-
+			
+			Log.d(TAG, "connect to address: " + address +
+					" and port: " + port);
+			
 			/*
 			  var req = { oncomplete: afterConnect };
 			  if (addressType === 6 || addressType === 4) {
@@ -1961,7 +1968,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			String address, int port,
 			String localAddress, int localPort,
 			final Socket.ConnectCallback cb) throws Exception {
-		Log.d(TAG, "createConnection " + address + ":" + port + "@"+localAddress+":"+localPort);
+		Log.d(TAG, "connect " + address + ":" + port + "@"+localAddress+":"+localPort);
 
 		Socket s = new Socket(ctx, new Socket.Options(null, false, false, true));
 
