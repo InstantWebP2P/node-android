@@ -164,7 +164,7 @@ public final class HttpTest {
 	}
 	
 	private boolean testConnectPair() {
-		final int port = 6388;
+		final int port = 6688;
 
 		try {
 			Server srv = Http.createServer(ctx, new Server.requestListener(){
@@ -206,7 +206,7 @@ public final class HttpTest {
 			
 			// client
 			final ReqOptions ropt = new ReqOptions();
-			ropt.hostname = "localhost";
+			ropt.hostname = "127.0.0.1"; // IP address instead localhost
 			ropt.port = port;
 			ropt.method = "GET";
 			ropt.path = "/";
@@ -273,7 +273,7 @@ public final class HttpTest {
 			public void run() {
 				Log.d(TAG, "start test");
 
-				///testListening();
+				testListening();
 				testConnection();
 				///testConnect();
 				testConnectPair();

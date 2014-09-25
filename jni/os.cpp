@@ -178,3 +178,20 @@ extern "C" JNIEXPORT  jboolean JNICALL Java_com_iwebpp_libuvpp_LibUV__1isIPv6
   }
   return JNI_FALSE;
 }
+
+/*
+ * Class:     com_iwebpp_libuvpp_LibUV
+ * Method:    _isIPv4
+ * Signature: (Ljava/lang/String;)Z
+ */
+extern "C" JNIEXPORT  jboolean JNICALL Java_com_iwebpp_libuvpp_LibUV__1isIPv4
+  (JNIEnv *env, jclass cls, jstring ip) {
+
+  const char *address = env->GetStringUTFChars(ip, JNI_FALSE);
+  char address_buffer[sizeof(struct in_addr)];
+  ///if (uv_inet_pton(AF_INET, address, &address_buffer).code == UV_OK) {
+  if (uv_inet_pton(AF_INET, address, &address_buffer) == 0) {
+    return JNI_TRUE;
+  }
+  return JNI_FALSE;
+}

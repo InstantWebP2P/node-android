@@ -1365,6 +1365,7 @@ Socket.prototype._writev = function(chunks, cb) {
 			};
 			this._handle.setConnectCallback(afterConnect);
 
+			// TBD... IP validation
 			if (Util.zeroString(address)) {
 				address = (addressType == 6) ? "::1" : "127.0.0.1";
 			}

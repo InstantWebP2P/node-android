@@ -109,7 +109,12 @@ public final class LibUV {
         Objects.requireNonNull(ip);
         return _isIPv6(ip);
     }
-
+    
+    public static boolean isIPv4(final String ip) {
+        Objects.requireNonNull(ip);
+        return _isIPv4(ip);
+    }
+    
     // misc
 
     private static native String _version();
@@ -147,5 +152,8 @@ public final class LibUV {
     // dns
 
     private static native boolean _isIPv6(String ip);
-
+    
+    private static native boolean _isIPv4(String ip);
+    
+    
 }
