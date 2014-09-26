@@ -150,7 +150,7 @@ public final class HttpTest {
 			});
 
 			// write data to request body
-			for (int i = 0; i < 6000; i ++)
+			for (int i = 0; i < 8; i ++)
 			    req.write("data"+i+"\n", "utf-8", null);
 			
 			req.end(null, null, null);

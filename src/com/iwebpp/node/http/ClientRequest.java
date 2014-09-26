@@ -64,8 +64,8 @@ extends OutgoingMessage {
 
 		  String protocol = !Util.zeroString(options.protocol) ?  options.protocol : "http:";///defaultAgent.protocol;
 		  String expectedProtocol = "http:";///defaultAgent.protocol;
-		  if (self.agent!=null && self.agent.getProtocol()!=null)
-			  expectedProtocol = self.agent.getProtocol();
+		  if (self.agent!=null && self.agent.protocol()!=null)
+			  expectedProtocol = self.agent.protocol();
 
 		  if (options.path!=null && options.path.contains(" ") /*/ /.test(options.path)*/) {
 			  // The actual regex is more like /[^A-Za-z0-9\-._~!$&'()*+,;=/:@]/
@@ -81,7 +81,7 @@ extends OutgoingMessage {
 		  }
 
 		  int defaultPort = options.defaultPort > 0 ? options.defaultPort :
-			  self.agent!=null ? self.agent.getDefaultPort() : 80;
+			  self.agent!=null ? self.agent.defaultPort() : 80;
 
 			  int port = options.port = options.port > 0 ? options.port : defaultPort;/// || 80;
 			  String host = options.host = options.hostname!=null ? options.hostname :
@@ -167,7 +167,7 @@ extends OutgoingMessage {
 			  // If it's not a keepAlive agent, and the maxSockets==Infinity, then
 			  // there's never a case where this socket will actually be reused
 			  ///if (!self.agent.isKeepAlive() && !Number.isFinite(self.agent.getMaxSockets())) {
-			  if (!self.agent.isKeepAlive() && self.agent.getMaxSockets()==Agent.defaultMaxSockets) {
+			  if (!self.agent.keepAlive() && self.agent.maxSockets()==Agent.defaultMaxSockets) {
 				  self._last = true;
 				  self.shouldKeepAlive = false;
 			  } else {

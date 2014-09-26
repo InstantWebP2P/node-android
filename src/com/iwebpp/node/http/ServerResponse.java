@@ -204,6 +204,14 @@ extends OutgoingMessage {
 		this.writeHead(statusCode, null, null);
 	}
 
+	public boolean sendDate() {
+		return super.sendDate;
+	}
+	
+	public int statusCode() {
+		return super.statusCode;
+	}
+	
 	/**
 	 * @return the _expect_continue
 	 */

@@ -310,8 +310,8 @@ extends Readable2 {
 	}
 
 	// Event listeners
-	public void onClose(final closeListener cb) throws Exception {
-		this.on("close", new Listener(){
+	public void onceClose(final closeListener cb) throws Exception {
+		this.once("close", new Listener(){
 
 			@Override
 			public void onEvent(Object data) throws Exception {                   

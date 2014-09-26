@@ -34,7 +34,7 @@ extends EventEmitter2 {
 	/**
 	 * @return the defaultPort
 	 */
-	public int getDefaultPort() {
+	public int defaultPort() {
 		return defaultPort;
 	}
 
@@ -42,7 +42,7 @@ extends EventEmitter2 {
 	/**
 	 * @return the protocol
 	 */
-	public String getProtocol() {
+	public String protocol() {
 		return protocol;
 	}
 
@@ -51,7 +51,7 @@ extends EventEmitter2 {
 	/**
 	 * @return the requests
 	 */
-	public Map<String, List<ClientRequest>> getRequests() {
+	public Map<String, List<ClientRequest>> requests() {
 		return requests;
 	}
 
@@ -59,7 +59,7 @@ extends EventEmitter2 {
 	/**
 	 * @return the sockets
 	 */
-	public Map<String, List<Socket>> getSockets() {
+	public Map<String, List<Socket>> sockets() {
 		return sockets;
 	}
 
@@ -98,7 +98,7 @@ extends EventEmitter2 {
 				TCP.Socket  socket = data.socket;
 				ReqOptions options = data.options;
 				
-				String name = self.getName(options);
+				String name = self.name(options);
 				Log.d(TAG, "agent.on(free) " + name);
 
 				if (!socket.isDestroyed() &&
@@ -165,7 +165,7 @@ extends EventEmitter2 {
 	
 
 	// Get the key for a given set of request options
-	public String getName(ReqOptions options) {
+	public String name(ReqOptions options) {
 	  String name = "";
 
 	  if (!Util.zeroString(options.host))
@@ -201,7 +201,7 @@ extends EventEmitter2 {
 	    };
 	  }*/
 
-	  String name = this.getName(options);
+	  String name = this.name(options);
 	  /*if (!this.sockets[name]) {
 	    this.sockets[name] = [];
 	  }*/
@@ -244,14 +244,14 @@ extends EventEmitter2 {
 	/**
 	 * @return the maxSockets
 	 */
-	public int getMaxSockets() {
+	public int maxSockets() {
 		return maxSockets;
 	}
 
 	/**
 	 * @return the keepAlive
 	 */
-	public boolean isKeepAlive() {
+	public boolean keepAlive() {
 		return keepAlive;
 	}
 
@@ -269,7 +269,7 @@ extends EventEmitter2 {
 			}
 		}
 
-		String name = self.getName(options);
+		String name = self.name(options);
 
 		Log.d(TAG, "createConnection "+name+" "+options);
 
@@ -334,7 +334,7 @@ extends EventEmitter2 {
 	}
 
 	public void removeSocket(TCP.Socket s, ReqOptions options) throws Exception {
-		String name = this.getName(options);
+		String name = this.name(options);
 
 		Log.d(TAG, "removeSocket "+ name+ " destroyed:" + s.isDestroyed());
 
