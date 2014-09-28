@@ -11,7 +11,9 @@ Usage:
   clone the code, open Android eclipse ADT and import the project.
 
 
+<br/>
+### License
+
 (The MIT License)
 
-Copyright (c) 2012-2013 Tom Zhou(iwebpp@gmail.com)
-
+Copyright (c) 2014 Tom Zhou(iwebpp@gmail.com)
