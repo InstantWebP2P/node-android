@@ -12,8 +12,7 @@ import java.util.Map;
 import android.util.Log;
 
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.net.TCP;
-import com.iwebpp.node.net.TCP.Socket;
+import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.stream.Readable2;
 
 public class IncomingMessage 
@@ -23,7 +22,7 @@ extends Readable2 {
 
 	private Map<String, List<String>> headers;
 	private Map<String, List<String>> trailers;
-	private Socket socket;
+	private AbstractSocket socket;
 	private String httpVersion;
 	private boolean complete;
 	private List<String> rawHeaders;
@@ -64,7 +63,7 @@ extends Readable2 {
 	public void setUpgrade(boolean upgrade) {
 		this.upgrade = upgrade;
 	}
-	public IncomingMessage(NodeContext context, Socket socket) {
+	public IncomingMessage(NodeContext context, AbstractSocket socket) {
 		super(context, new Options(-1, null, false, "utf8", false));
 		
 		Log.d(TAG, "start ...");
@@ -252,13 +251,13 @@ extends Readable2 {
 		}
 	}
 
-	public static void readStart(TCP.Socket socket) throws Exception {
+	public static void readStart(AbstractSocket socket) throws Exception {
 		///if (socket && !socket._paused && socket.readable)
 		if (socket!=null && !socket.is_paused() && socket.readable())
 			socket.resume();
 	}
 
-	public static void readStop(TCP.Socket socket) throws Exception {
+	public static void readStop(AbstractSocket socket) throws Exception {
 		if (socket != null)
 			socket.pause();
 	}
@@ -302,7 +301,7 @@ extends Readable2 {
 		this.setStatusCode(statusCode);
 	}
 
-	public TCP.Socket socket() {
+	public AbstractSocket socket() {
 		return this.socket;
 	}
 

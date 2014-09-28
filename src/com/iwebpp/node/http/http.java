@@ -8,6 +8,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import com.iwebpp.node.EventEmitter.Listener;
+import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.net.TCP;
 import com.iwebpp.node.NodeContext;
 
@@ -70,7 +71,7 @@ public final class Http {
 		STATUS_CODES.put(429, "Too Many Requests");
 		STATUS_CODES.put(431, "Request Header Fields Too Large");
 
-		STATUS_CODES.put(500, "Internal Server Error");
+		STATUS_CODES.put(500, "Internal AbstractServer Error");
 		STATUS_CODES.put(501, "Not Implemented");
 		STATUS_CODES.put(502, "Bad Gateway");
 		STATUS_CODES.put(503, "Service Unavailable");
@@ -94,7 +95,7 @@ public final class Http {
 	public static final String continueExpression = "100-continue";
 
 
-	public static void httpSocketSetup(final TCP.Socket socket) throws Exception {
+	public static void httpSocketSetup(final AbstractSocket socket) throws Exception {
 		Listener ondrain = new Listener(){
 
 			@Override
@@ -144,7 +145,7 @@ public final class Http {
 		/**
 		 * @return the socket
 		 */
-		public TCP.Socket getSocket() {
+		public AbstractSocket getSocket() {
 			return socket;
 		}
 		/**
@@ -154,10 +155,10 @@ public final class Http {
 			return head;
 		}
 		private IncomingMessage request;
-		private TCP.Socket      socket;
+		private AbstractSocket      socket;
 		private ByteBuffer      head;
 		
-		public request_socket_head_b(IncomingMessage request, TCP.Socket socket, ByteBuffer head) {
+		public request_socket_head_b(IncomingMessage request, AbstractSocket socket, ByteBuffer head) {
 			this.request = request;
 			this.socket  = socket;
 			this.head    = head;
@@ -176,13 +177,13 @@ public final class Http {
 		/**
 		 * @return the socket
 		 */
-		public TCP.Socket getSocket() {
+		public AbstractSocket getSocket() {
 			return socket;
 		}
 		private String     exception;
-		private TCP.Socket socket;
+		private AbstractSocket socket;
 		
-		public exception_socket_b(String exception, TCP.Socket socket) {
+		public exception_socket_b(String exception, AbstractSocket socket) {
 			this.exception = exception;
 			this.socket    = socket;
 		}

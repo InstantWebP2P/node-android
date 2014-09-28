@@ -20,7 +20,7 @@ import com.iwebpp.node.http.ReqOptions;
 import com.iwebpp.node.http.Server;
 import com.iwebpp.node.http.Server.clientErrorListener;
 import com.iwebpp.node.http.ServerResponse;
-import com.iwebpp.node.net.TCP.Socket;
+import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.stream.Writable.WriteCB;
 
 public final class HttpTest {
@@ -84,8 +84,7 @@ public final class HttpTest {
 			srv.onClientError(new clientErrorListener(){
 
 				@Override
-				public void onClientError(String exception, Socket socket)
-						throws Exception {
+				public void onClientError(String exception, AbstractSocket socket) throws Exception {
 					// TODO Auto-generated method stub
 					Log.e(TAG, "client error: "+exception + "@"+socket);
 				}

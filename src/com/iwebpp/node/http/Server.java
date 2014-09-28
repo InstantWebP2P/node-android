@@ -16,8 +16,8 @@ import com.iwebpp.node.Util;
 import com.iwebpp.node.http.Http.exception_socket_b;
 import com.iwebpp.node.http.Http.request_response_b;
 import com.iwebpp.node.http.Http.request_socket_head_b;
+import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.net.TCP;
-import com.iwebpp.node.net.TCP.Socket;
 import com.iwebpp.node.others.TripleState;
 
 public final class Server 
@@ -44,7 +44,7 @@ extends TCP.Server {
 		private connectionListenerImpl(){}
 
 		@Override
-		public void onConnection(final Socket socket) throws Exception {
+		public void onConnection(final AbstractSocket socket) throws Exception {
 			
 			Log.d(TAG, "SERVER new Http connection");
 
@@ -244,7 +244,7 @@ extends TCP.Server {
 		this.onClientError(new clientErrorListener(){
 
 			@Override
-			public void onClientError(String err, Socket conn)
+			public void onClientError(String err, AbstractSocket conn)
 					throws Exception {
 				// TODO Auto-generated method stub
 				conn.destroy(err);
@@ -272,7 +272,7 @@ extends TCP.Server {
 		this.onClientError(new clientErrorListener(){
 
 			@Override
-			public void onClientError(String err, Socket conn)
+			public void onClientError(String err, AbstractSocket conn)
 					throws Exception {
 				// TODO Auto-generated method stub
 				conn.destroy(err);
@@ -353,7 +353,7 @@ extends TCP.Server {
 		});
 	}
 	public static interface connectionListener {
-		public void onConnection(TCP.Socket socket) throws Exception;
+		public void onConnection(AbstractSocket socket) throws Exception;
 	}
 
 	public void onClose(final closeListener cb) throws Exception {
@@ -399,7 +399,7 @@ extends TCP.Server {
 		});
 	}
 	public static interface connectListener {
-		public void onConnect(IncomingMessage request, Socket socket, ByteBuffer head) throws Exception;
+		public void onConnect(IncomingMessage request, AbstractSocket socket, ByteBuffer head) throws Exception;
 	}
 
 	public void onUpgrade(final upgradeListener cb) throws Exception {
@@ -415,7 +415,7 @@ extends TCP.Server {
 		});
 	}
 	public static interface upgradeListener {
-		public void onUpgrade(IncomingMessage request, Socket socket, ByteBuffer head) throws Exception;
+		public void onUpgrade(IncomingMessage request, AbstractSocket socket, ByteBuffer head) throws Exception;
 	}
 
 	public void onClientError(final clientErrorListener cb) throws Exception {
@@ -431,7 +431,7 @@ extends TCP.Server {
 		});
 	}
 	public static interface clientErrorListener {
-		public void onClientError(String exception, Socket socket) throws Exception;
+		public void onClientError(String exception, AbstractSocket socket) throws Exception;
 	}
 	
 	// Parser on request
@@ -447,7 +447,7 @@ extends TCP.Server {
 		private Server self;
 	
 	
-		public parserOnIncoming(NodeContext ctx, Server srv, TCP.Socket socket) {
+		public parserOnIncoming(NodeContext ctx, Server srv, AbstractSocket socket) {
 			super(ctx, http_parser_type.HTTP_REQUEST, socket);
 			this.context = ctx;
 			this.self    = srv;

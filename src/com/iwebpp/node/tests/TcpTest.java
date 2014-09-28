@@ -11,12 +11,12 @@ import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.NodeContext.IntervalListener;
 import com.iwebpp.node.NodeContext.TimeoutListener;
 import com.iwebpp.node.Util;
+import com.iwebpp.node.net.AbstractServer.CloseListener;
+import com.iwebpp.node.net.AbstractServer.ListeningCallback;
+import com.iwebpp.node.net.AbstractSocket.ConnectListener;
 import com.iwebpp.node.net.TCP;
 import com.iwebpp.node.net.TCP.Server;
 import com.iwebpp.node.net.TCP.Socket;
-import com.iwebpp.node.net.TCP.Server.CloseListener;
-import com.iwebpp.node.net.TCP.Server.ListeningCallback;
-import com.iwebpp.node.net.TCP.Socket.ConnectListener;
 import com.iwebpp.node.stream.Writable.WriteCB;
 
 public final class TcpTest {

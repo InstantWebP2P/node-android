@@ -53,6 +53,7 @@ public class StreamHandle extends Handle {
     protected StreamConnectionCallback onConnection = null;
     protected StreamCloseCallback onClose = null;
     protected StreamShutdownCallback onShutdown = null;
+	public boolean reading;
 
     static {
         _static_initialize();

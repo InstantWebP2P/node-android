@@ -18,8 +18,7 @@ import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.NodeContext.nextTickListener;
-import com.iwebpp.node.net.TCP;
-import com.iwebpp.node.net.TCP.Socket;
+import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.stream.Writable;
 
 public abstract class OutgoingMessage  
@@ -89,8 +88,8 @@ implements Writable {
 	protected String _trailer;
 	protected boolean finished;
 	protected boolean _hangupClose;
-	protected TCP.Socket socket;
-	protected Socket connection;
+	protected AbstractSocket socket;
+	protected AbstractSocket connection;
 	protected Map<String, Boolean> _removedHeader;
 	protected boolean _headerSent;
 	protected String _header;
@@ -161,7 +160,7 @@ this.socket.setTimeout(msecs);
 
 				@Override
 				public void onEvent(Object data) throws Exception {
-					TCP.Socket socket = (TCP.Socket)data;
+					AbstractSocket socket = (AbstractSocket)data;
 					socket.destroy(error);
 				}
 
@@ -577,7 +576,7 @@ this.socket.setTimeout(msecs);
 
 				if (this.connection!=null && this.connection.corked()==0 ) {
 					this.connection.cork();
-					final Socket conn = this.connection;
+					final AbstractSocket conn = this.connection;
 					///process.nextTick(function connectionCork() {
 					context.nextTick(new nextTickListener(){
 
@@ -729,7 +728,7 @@ this.socket.setTimeout(msecs);
 	// the socket yet. Thus the outgoing messages need to be prepared to queue
 	// up data internally before sending it on further to the socket's queue.
 	//
-	// This function, outgoingFlush(), is called by both the Server and Client
+	// This function, outgoingFlush(), is called by both the AbstractServer and Client
 	// to attempt to flush any pending messages out to the socket.
 	protected void _flush() throws Exception {
 		if (this.socket!=null && this.socket.writable()) {

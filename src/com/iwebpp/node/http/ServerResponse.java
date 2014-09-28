@@ -12,7 +12,7 @@ import android.util.Log;
 
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.net.TCP;
+import com.iwebpp.node.net.AbstractSocket;
 
 public final class ServerResponse 
 extends OutgoingMessage {
@@ -82,7 +82,7 @@ extends OutgoingMessage {
 		public void onFinish() throws Exception;
 	}
 
-	public void assignSocket(final TCP.Socket socket) throws Exception {
+	public void assignSocket(final AbstractSocket socket) throws Exception {
 		assert(null == socket.get_httpMessage());
 		socket.set_httpMessage(this);
 
@@ -120,7 +120,7 @@ extends OutgoingMessage {
 	}
 
 
-	public void detachSocket(TCP.Socket socket) {
+	public void detachSocket(AbstractSocket socket) {
 		assert(socket.get_httpMessage() == this);
 		socket.removeListener("close", onServerResponseClose);
 		socket.set_httpMessage(null);

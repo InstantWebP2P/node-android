@@ -424,7 +424,7 @@ extends EventEmitter2 {
 				         "Expires: Tue, 26 May 2009 11:11:49 GMT\r\n" +
 				         "X-$PrototypeBI-Version: 1.6.0.3\r\n" + /* $ char in header field */
 				         "Cache-Control: public, max-age=2592000\r\n" +
-				         "Server: gws\r\n" +
+				         "AbstractServer: gws\r\n" +
 				         "Content-Length:  219  \r\n" +
 				         "\r\n" +
 				         "<HTML><HEAD><meta Http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n" +
@@ -437,7 +437,7 @@ extends EventEmitter2 {
 						// NO_CONTENT_LENGTH_RESPONSE 1
 						"HTTP/1.1 200 OK\r\n" +
 				         "Date: Tue, 04 Aug 2009 07:59:32 GMT\r\n" +
-				         "Server: Apache\r\n" +
+				         "AbstractServer: Apache\r\n" +
 				         "X-Powered-By: Servlet/2.5 JSP/2.1\r\n" +
 				         "Content-Type: text/xml; charset=utf-8\r\n" +
 				         "Connection: close\r\n" +
@@ -490,7 +490,7 @@ extends EventEmitter2 {
 				         
 						// UNDERSTORE_HEADER_KEY 7
 						"HTTP/1.1 200 OK\r\n" +
-				         "Server: DCLK-AdSvr\r\n" +
+				         "AbstractServer: DCLK-AdSvr\r\n" +
 				         "Content-Type: text/xml\r\n" +
 				         "Content-Length: 0\r\n" +
 				         "DCLK_imp: v7;x;114750856;0-0;0;17820020;0/0;21603567/21621457/1;;~okv=;dcmt=text/xml;;~cs=o\r\n\r\n" ,
@@ -498,7 +498,7 @@ extends EventEmitter2 {
 						//  BONJOUR_MADAME_FR 8
 						"HTTP/1.0 301 Moved Permanently\r\n" +
 				         "Date: Thu, 03 Jun 2010 09:56:32 GMT\r\n" +
-				         "Server: Apache/2.2.3 (Red Hat)\r\n" +
+				         "AbstractServer: Apache/2.2.3 (Red Hat)\r\n" +
 				         "Cache-Control: public\r\n" +
 				         "Pragma: \r\n" +
 				         "Location: Http://www.bonjourmadame.fr/\r\n" +
@@ -511,7 +511,7 @@ extends EventEmitter2 {
 						// RES_FIELD_UNDERSCORE 9
 						"HTTP/1.1 200 OK\r\n" +
 				         "Date: Tue, 28 Sep 2010 01:14:13 GMT\r\n" +
-				         "Server: Apache\r\n" +
+				         "AbstractServer: Apache\r\n" +
 				         "Cache-Control: no-cache, must-revalidate\r\n" +
 				         "Expires: Mon, 26 Jul 1997 05:00:00 GMT\r\n" +
 				         ".et-Cookie: PlaxoCS=1274804622353690521; path=/; domain=.plaxo.com\r\n" +
@@ -574,7 +574,7 @@ extends EventEmitter2 {
 						//  AMAZON_COM 20
 						"HTTP/1.1 301 MovedPermanently\r\n" +
 				         "Date: Wed, 15 May 2013 17:06:33 GMT\r\n" +
-				         "Server: Server\r\n" +
+				         "AbstractServer: AbstractServer\r\n" +
 				         "x-amz-id-1: 0GPHKXSJQ826RK7GZEB2\r\n" +
 				         "p3p: policyref=\"Http://www.amazon.com/w3c/p3p.xml\",CP=\"CAO DSP LAW CUR ADM IVAo IVDo CONo OTPo OUR DELi PUBi OTRi BUS PHY ONL UNI PUR FIN COM NAV INT DEM CNT STA HEA PRE LOC GOV OTC \"\r\n" +
 				         "x-amz-id-2: STN69VZxIFSz9YJLbz1GDbxpbjG6Qjmmq5E3DxRhOUw+Et0p4hr7c/Q8qNcx4oAD\r\n" +

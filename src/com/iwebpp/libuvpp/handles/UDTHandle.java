@@ -11,7 +11,6 @@ import com.iwebpp.libuvpp.LibUVPermission.AddressResolver;
 public class UDTHandle extends StreamHandle {
 
     private int bindPort = 0;
-	public boolean reading = false;
 
     public UDTHandle(final LoopHandle loop) {
         super(_new(loop.pointer()), loop);

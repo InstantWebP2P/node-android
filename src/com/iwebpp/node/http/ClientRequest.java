@@ -15,8 +15,8 @@ import com.iwebpp.node.NodeError;
 import com.iwebpp.node.HttpParser.http_parser_type;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.http.Http.response_socket_head_b;
+import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.net.TCP;
-import com.iwebpp.node.net.TCP.Socket;
 import com.iwebpp.node.others.TripleState;
 
 public final class ClientRequest 
@@ -31,7 +31,7 @@ extends OutgoingMessage {
 
 	private boolean upgradeOrConnect;
 
-	// Socket event listeners
+	// AbstractSocket event listeners
 	private socketCloseListener socketCloseListener;
 	private socketErrorListener socketErrorListener;
 	private socketOnData        socketOnData;
@@ -447,7 +447,7 @@ extends OutgoingMessage {
 		@Override
 		protected boolean onIncoming(final IncomingMessage res,
 				boolean shouldKeepAlive) throws Exception {
-			Socket socket = this.socket;
+			AbstractSocket socket = this.socket;
 			final ClientRequest req = (ClientRequest)socket.get_httpMessage();
 
 
@@ -491,7 +491,7 @@ extends OutgoingMessage {
 			}
 
 			if (req.shouldKeepAlive && !shouldKeepAlive && !req.upgradeOrConnect) {
-				// Server MUST respond with Connection:keep-alive for us to enable it.
+				// AbstractServer MUST respond with Connection:keep-alive for us to enable it.
 				// If we've been upgraded (via WebSockets) we also shouldn't try to
 				// keep the connection open.
 				req.shouldKeepAlive = false;
@@ -510,7 +510,7 @@ extends OutgoingMessage {
 				public void onEvent(Object data) throws Exception {
 					///var res = this;
 					ClientRequest req = res.getReq();
-					final Socket socket = req.socket;
+					final AbstractSocket socket = req.socket;
 
 					if (!req.shouldKeepAlive) {
 						if (socket.writable()) {
@@ -683,7 +683,7 @@ extends OutgoingMessage {
 			parserOnIncomingClient parser = (parserOnIncomingClient) socket.getParser();
 			req.emit("close");
 			if (req.res!=null && req.res.readable()) {
-				// Socket closed before we emitted 'end' below.
+				// AbstractSocket closed before we emitted 'end' below.
 				req.res.emit("aborted");
 				final IncomingMessage res = req.res;
 				res.on("end", new Listener(){

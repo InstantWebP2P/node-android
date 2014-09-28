@@ -13,14 +13,13 @@ import android.util.Log;
 
 import com.iwebpp.node.HttpParser;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.net.TCP;
-import com.iwebpp.node.net.TCP.Socket;
+import com.iwebpp.node.net.AbstractSocket;
 
 public abstract class IncomingParser 
 extends HttpParser {
 	private final static String TAG = "IncomingParser";
 
-	protected TCP.Socket socket;
+	protected AbstractSocket socket;
 	protected IncomingMessage incoming;
 	protected CharsetDecoder decoder;
 
@@ -40,7 +39,7 @@ extends HttpParser {
 
 	private NodeContext context;
 
-	protected IncomingParser(NodeContext ctx, http_parser_type type, TCP.Socket socket) {
+	protected IncomingParser(NodeContext ctx, http_parser_type type, AbstractSocket socket) {
 		super(type, socket);
 		this.context = ctx;
 		
@@ -197,7 +196,7 @@ extends HttpParser {
 	  parser.incoming.url = url;
 		 */
 		// TBD...
-		this.incoming = new IncomingMessage(context, (TCP.Socket)super.getData());
+		this.incoming = new IncomingMessage(context, (AbstractSocket)super.getData());
         this.incoming.setHttpVersionMajor(info.versionMajor);
         this.incoming.setHttpVersionMinor(info.versionMinor);
         this.incoming.httpVersion(info.versionMajor + "." + info.versionMinor);
@@ -264,7 +263,7 @@ extends HttpParser {
 		if (null==stream)
 			return;
 
-		Socket socket = stream.socket();
+		AbstractSocket socket = stream.socket();
 
 		int len = b == null ? 0 : b.capacity();
 
