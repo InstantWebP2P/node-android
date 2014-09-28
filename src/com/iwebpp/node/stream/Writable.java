@@ -1,3 +1,6 @@
+// Copyright (c) 2014 Tom Zhou<iwebpp@gmail.com>
+
+
 package com.iwebpp.node.stream;
 
 import com.iwebpp.node.EventEmitter;

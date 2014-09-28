@@ -1,3 +1,6 @@
+// Copyright (c) 2014 Tom Zhou<iwebpp@gmail.com>
+
+
 package com.iwebpp.node.net;
 
 import java.io.UnsupportedEncodingException;

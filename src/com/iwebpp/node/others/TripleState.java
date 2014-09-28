@@ -1,3 +1,6 @@
+// Copyright (c) 2014 Tom Zhou<iwebpp@gmail.com>
+
+
 package com.iwebpp.node.others;
 
 //@desc three states: -1,0,1 map to null,false,true
