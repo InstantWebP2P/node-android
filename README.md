@@ -1,9 +1,11 @@
 node-android
 ===============
 
-Node.js rewrite for Android
+Node.js rewrite for Android with the compatible API.
 
-third-party: libuv-java by Oracle
+
+
+third-party: libuvpp, libuv-java JNI code by Oracle.
 
 
 Usage:
