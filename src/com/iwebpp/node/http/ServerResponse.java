@@ -128,7 +128,7 @@ extends OutgoingMessage {
 	}
 
 	public void writeContinue(WriteCB cb) throws Exception {
-		this._writeRaw("http/1.1 100 Continue" + http.CRLF + http.CRLF, "utf-8", cb);
+		this._writeRaw("HTTP/1.1 100 Continue" + http.CRLF + http.CRLF, "utf-8", cb);
 		this._sent100 = true;
 	}
 
@@ -166,7 +166,7 @@ extends OutgoingMessage {
 			headers = obj;
 		}
 
-		String statusLine = "http/1.1 " + statusCode + " " +
+		String statusLine = "HTTP/1.1 " + statusCode + " " +
 				this.statusMessage + http.CRLF;
 
 		if (statusCode == 204 || statusCode == 304 ||

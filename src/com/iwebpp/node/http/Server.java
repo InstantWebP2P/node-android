@@ -46,7 +46,7 @@ extends TCP.Server {
 		@Override
 		public void onConnection(final AbstractSocket socket) throws Exception {
 			
-			Log.d(TAG, "SERVER new http connection");
+			Log.d(TAG, "SERVER new HTTP connection");
 
 			http.httpSocketSetup(socket);
 

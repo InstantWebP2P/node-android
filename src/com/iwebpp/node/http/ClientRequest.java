@@ -152,10 +152,10 @@ extends OutgoingMessage {
 			  }
 
 			  if (null!=options.headers/*util.isArray(options.headers)*/) {
-				  self._storeHeader(self.method + " " + self.path + " http/1.1\r\n",
+				  self._storeHeader(self.method + " " + self.path + " HTTP/1.1\r\n",
 						  options.headers);
 			  } else if (self.getHeader("expect")!=null) {
-				  self._storeHeader(self.method + " " + self.path + " http/1.1\r\n",
+				  self._storeHeader(self.method + " " + self.path + " HTTP/1.1\r\n",
 						  self._renderHeaders());
 			  }
 
@@ -634,7 +634,7 @@ extends OutgoingMessage {
 
 	@Override
 	protected void _implicitHeader() throws Exception {
-		this._storeHeader(this.method + " " + this.path + " http/1.1\r\n",
+		this._storeHeader(this.method + " " + this.path + " HTTP/1.1\r\n",
 				this._renderHeaders());
 	}
 

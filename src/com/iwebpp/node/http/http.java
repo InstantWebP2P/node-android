@@ -76,7 +76,7 @@ public final class http {
 		STATUS_CODES.put(502, "Bad Gateway");
 		STATUS_CODES.put(503, "Service Unavailable");
 		STATUS_CODES.put(504, "Gateway Time-out");
-		STATUS_CODES.put(505, "http Version Not Supported");
+		STATUS_CODES.put(505, "HTTP Version Not Supported");
 		STATUS_CODES.put(506, "Variant Also Negotiates");
 		STATUS_CODES.put(507, "Insufficient Storage");
 		STATUS_CODES.put(509, "Bandwidth Limit Exceeded");

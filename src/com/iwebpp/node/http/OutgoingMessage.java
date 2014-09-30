@@ -289,8 +289,8 @@ this.socket.setTimeout(msecs);
 	}
 
 	protected void _storeHeader(String firstLine, Map<String, List<String>> headers) throws Exception {
-		// firstLine in the case of request is: 'GET /index.html http/1.1\r\n'
-		// in the case of response it is: 'http/1.1 200 OK\r\n'
+		// firstLine in the case of request is: 'GET /index.html HTTP/1.1\r\n'
+		// in the case of response it is: 'HTTP/1.1 200 OK\r\n'
 		/*var state = {
 				sentConnectionHeader: false,
 				sentContentLengthHeader: false,
