@@ -14,7 +14,7 @@ import com.iwebpp.node.NodeContext.nextTickListener;
 import com.iwebpp.node.NodeError;
 import com.iwebpp.node.HttpParser.http_parser_type;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.http.HTTP.response_socket_head_b;
+import com.iwebpp.node.http.http.response_socket_head_b;
 import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.net.TCP;
 import com.iwebpp.node.others.TripleState;
@@ -152,10 +152,10 @@ extends OutgoingMessage {
 			  }
 
 			  if (null!=options.headers/*util.isArray(options.headers)*/) {
-				  self._storeHeader(self.method + " " + self.path + " HTTP/1.1\r\n",
+				  self._storeHeader(self.method + " " + self.path + " http/1.1\r\n",
 						  options.headers);
 			  } else if (self.getHeader("expect")!=null) {
-				  self._storeHeader(self.method + " " + self.path + " HTTP/1.1\r\n",
+				  self._storeHeader(self.method + " " + self.path + " http/1.1\r\n",
 						  self._renderHeaders());
 			  }
 
@@ -577,7 +577,7 @@ extends OutgoingMessage {
 		Log.d(TAG, "req.connection: "+req.connection);
 
 		// Setup "drain" propogation.
-		HTTP.httpSocketSetup(socket);
+		http.httpSocketSetup(socket);
 
 		// Propagate headers limit from request object to parser
 		if (req.maxHeadersCount  > 0/*util.isNumber(req.maxHeadersCount)*/) {
@@ -634,7 +634,7 @@ extends OutgoingMessage {
 
 	@Override
 	protected void _implicitHeader() throws Exception {
-		this._storeHeader(this.method + " " + this.path + " HTTP/1.1\r\n",
+		this._storeHeader(this.method + " " + this.path + " http/1.1\r\n",
 				this._renderHeaders());
 	}
 
@@ -670,7 +670,7 @@ extends OutgoingMessage {
 		public void onEvent(Object data) throws Exception {
 			///var socket = this;
 			final ClientRequest req = (ClientRequest)socket.get_httpMessage();
-			Log.d(TAG, "HTTP socket close");
+			Log.d(TAG, "http socket close");
 
 			// Pull through final chunk, if anything is buffered.
 			// the ondata function will handle it properly, and this
@@ -837,7 +837,7 @@ extends OutgoingMessage {
 					// IE, not flowing, and not explicitly paused.
 					socket.get_readableState().setFlowing(TripleState.MAYBE);
 
-					req.emit(eventName, new HTTP.response_socket_head_b(res, socket, bodyHead));
+					req.emit(eventName, new http.response_socket_head_b(res, socket, bodyHead));
 					req.emit("close");
 				} else {
 					// Got Upgrade header or CONNECT method, but have no handler.

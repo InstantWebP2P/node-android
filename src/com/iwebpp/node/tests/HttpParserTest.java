@@ -153,43 +153,43 @@ extends EventEmitter2 {
 				// request messages
 				String messages_request[] = {
 						// GET empty
-						"GET / HTTP/1.1\r\n" +
+						"GET / http/1.1\r\n" +
 				         "\r\n"+
-				         "GET / HTTP/1.1\r\n" +
+				         "GET / http/1.1\r\n" +
 				         ///"\r\n"+
-				         "GET / HTTP/1.1\r\n" +
+				         "GET / http/1.1\r\n" +
 				         "\r\n",
 				         
 				      // GET chain
-							"GET / HTTP/1.1\r\n" +
+							"GET / http/1.1\r\n" +
 					         "Host: 192.188.1.103:6288\r\n"+
 					         "Connection: keep-alive\r\n" +
 					         "\r\n"+
 					         
-					         "GET / HTTP/1.1\r\n" +
+					         "GET / http/1.1\r\n" +
 					         "Host: 192.188.1.103:6288\r\n"+
 					         "Connection: keep-alive\r\n" +
 					         "\r\n"+
 					         
-					         "GET / HTTP/1.1\r\n" +
+					         "GET / http/1.1\r\n" +
 					         "Host: 192.188.1.103:6288\r\n"+
 					         "Connection: keep-alive\r\n" +
 					         "\r\n"+
 					         
-					         "GET / HTTP/1.1\r\n" +
+					         "GET / http/1.1\r\n" +
 					         "Host: 192.188.1.103:6288\r\n"+
 					         "Connection: keep-alive\r\n" +
 					         "\r\n",
 					         
 						// CURL_GET 0
-						"GET /test HTTP/1.1\r\n" +
+						"GET /test http/1.1\r\n" +
 						"User-Agent: curl/7.18.0 (i486-pc-linux-gnu) libcurl/7.18.0 OpenSSL/0.9.8g zlib/1.2.3.3 libidn/1.1\r\n" +
 						"Host: 0.0.0.0=5000\r\n" +
 						"Accept: */*\r\n" +
 						"\r\n" ,
 
 						// FIREFOX_GET 1
-						"GET /favicon.ico HTTP/1.1\r\n" +
+						"GET /favicon.ico http/1.1\r\n" +
 				         "Host: 0.0.0.0=5000\r\n" +
 				         "User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9) Gecko/2008061015 Firefox/3.0\r\n" +
 				         "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n" +
@@ -201,31 +201,31 @@ extends EventEmitter2 {
 				         "\r\n" ,
 						
 						// DUMBFUCK 2
-						"GET /dumbfuck HTTP/1.1\r\n" +
+						"GET /dumbfuck http/1.1\r\n" +
 				         "aaaaaaaaaaaaa:++++++++++\r\n" +
 				         "\r\n" ,
 						
 						// FRAGMENT_IN_URI 3
-						"GET /forums/1/topics/2375?page=1#posts-17408 HTTP/1.1\r\n" +
+						"GET /forums/1/topics/2375?page=1#posts-17408 http/1.1\r\n" +
 				         "\r\n" ,
 						
 						// GET_NO_HEADERS_NO_BODY 4
-						"GET /get_no_headers_no_body/world HTTP/1.1\r\n" +
+						"GET /get_no_headers_no_body/world http/1.1\r\n" +
 				         "\r\n" ,
 						
 						// GET_ONE_HEADER_NO_BODY 5
-						"GET /get_one_header_no_body HTTP/1.1\r\n" +
+						"GET /get_one_header_no_body http/1.1\r\n" +
 				         "Accept: */*\r\n" +
 				         "\r\n" ,
 						
 						// GET_FUNKY_CONTENT_LENGTH 6
-						"GET /get_funky_content_length_body_hello HTTP/1.0\r\n" +
+						"GET /get_funky_content_length_body_hello http/1.0\r\n" +
 				         "conTENT-Length: 5\r\n" +
 				         "\r\n" +
 				         "HELLO",
 				         
 						// POST_IDENTITY_BODY_WORLD 7
-						"POST /post_identity_body_world?q=search#hey HTTP/1.1\r\n" +
+						"POST /post_identity_body_world?q=search#hey http/1.1\r\n" +
 				         "Accept: */*\r\n" +
 				         "Transfer-Encoding: identity\r\n" +
 				         "Content-Length: 5\r\n" +
@@ -233,7 +233,7 @@ extends EventEmitter2 {
 				         "World",
 						
 						// POST_CHUNKED_ALL_YOUR_BASE 8
-						"POST /post_chunked_all_your_base HTTP/1.1\r\n" +
+						"POST /post_chunked_all_your_base http/1.1\r\n" +
 				         "Transfer-Encoding: chunked\r\n" +
 				         "\r\n" +
 				         "1e\r\nall your base are belong to us\r\n" +
@@ -241,7 +241,7 @@ extends EventEmitter2 {
 				         "\r\n" ,
 						
 						// TWO_CHUNKS_MULT_ZERO_END 9
-						"POST /two_chunks_mult_zero_end HTTP/1.1\r\n" +
+						"POST /two_chunks_mult_zero_end http/1.1\r\n" +
 				         "Transfer-Encoding: chunked\r\n" +
 				         "\r\n" +
 				         "5\r\nhello\r\n" +
@@ -250,7 +250,7 @@ extends EventEmitter2 {
 				         "\r\n" ,
 						
 						// CHUNKED_W_TRAILING_HEADERS 10
-						"POST /chunked_w_trailing_headers HTTP/1.1\r\n" +
+						"POST /chunked_w_trailing_headers http/1.1\r\n" +
 				         "Transfer-Encoding: chunked\r\n" +
 				         "\r\n" +
 				         "5\r\nhello\r\n" +
@@ -261,7 +261,7 @@ extends EventEmitter2 {
 				         "\r\n" ,
 						
 						// CHUNKED_W_BULLSHIT_AFTER_LENGTH 11
-						"POST /chunked_w_bullshit_after_length HTTP/1.1\r\n" +
+						"POST /chunked_w_bullshit_after_length http/1.1\r\n" +
 				         "Transfer-Encoding: chunked\r\n" +
 				         "\r\n" +
 				         "5; ihatew3;whatthefuck=aretheseparametersfor\r\nhello\r\n" +
@@ -270,34 +270,34 @@ extends EventEmitter2 {
 				         "\r\n" ,
 						
 						// WITH_QUOTES 12
-						"GET /with_\"stupid\"_quotes?foo=\"bar\" HTTP/1.1\r\n\r\n" ,
+						"GET /with_\"stupid\"_quotes?foo=\"bar\" http/1.1\r\n\r\n" ,
 						
 						// APACHEBENCH_GET 13
-						"GET /test HTTP/1.0\r\n" +
+						"GET /test http/1.0\r\n" +
 				         "Host: 0.0.0.0:5000\r\n" +
 				         "User-Agent: ApacheBench/2.3\r\n" +
 				         "Accept: */*\r\n\r\n" ,
 						
 						// QUERY_URL_WITH_QUESTION_MARK_GET 14
-						"GET /test.cgi?foo=bar?baz HTTP/1.1\r\n\r\n" ,
+						"GET /test.cgi?foo=bar?baz http/1.1\r\n\r\n" ,
 						
 						// PREFIX_NEWLINE_GET 15
-						"\r\nGET /test HTTP/1.1\r\n\r\n" ,
+						"\r\nGET /test http/1.1\r\n\r\n" ,
 						
 						// UPGRADE_REQUEST 16
-						"GET /demo HTTP/1.1\r\n" +
+						"GET /demo http/1.1\r\n" +
 				         "Host: example.com\r\n" +
 				         "Connection: Upgrade\r\n" +
 				         "Sec-WebSocket-Key2: 12998 5 Y3 1  .P00\r\n" +
 				         "Sec-WebSocket-Protocol: sample\r\n" +
 				         "Upgrade: WebSocket\r\n" +
 				         "Sec-WebSocket-Key1: 4 @1  46546xW%0l 1 5\r\n" +
-				         "Origin: HTTP://example.com\r\n" +
+				         "Origin: http://example.com\r\n" +
 				         "\r\n" +
 				         "Hot diggity dogg",
 						
 						// CONNECT_REQUEST 17
-						"CONNECT 0-home0.netscape.com:443 HTTP/1.0\r\n" +
+						"CONNECT 0-home0.netscape.com:443 http/1.0\r\n" +
 				         "User-agent: Mozilla/1.1N\r\n" +
 				         "Proxy-authorization: basic aGVsbG86d29ybGQ=\r\n" +
 				         "\r\n" +
@@ -305,7 +305,7 @@ extends EventEmitter2 {
 				         "and yet even more data",
 						
 						// REPORT_REQ 18
-						"REPORT /test HTTP/1.1\r\n" +
+						"REPORT /test http/1.1\r\n" +
 				         "\r\n" ,
 						
 						// NO_HTTP_VERSION 19
@@ -313,14 +313,14 @@ extends EventEmitter2 {
 				         "\r\n" ,
 						
 						// MSEARCH_REQ 20
-						"M-SEARCH * HTTP/1.1\r\n" +
+						"M-SEARCH * http/1.1\r\n" +
 				         "HOST: 239.255.255.250:1900\r\n" +
 				         "MAN: \"ssdp:discover\"\r\n" +
 				         "ST: \"ssdp:all\"\r\n" +
 				         "\r\n" ,
 						
 						// LINE_FOLDING_IN_HEADER 21
-						"GET / HTTP/1.1\r\n" +
+						"GET / http/1.1\r\n" +
 				         "Line1:   abc\r\n" +
 				         "\tdef\r\n" +
 				         " ghi\r\n" +
@@ -337,19 +337,19 @@ extends EventEmitter2 {
 				         "\r\n" ,
 						
 						// QUERY_TERMINATED_HOST 22
-						"GET HTTP://hypnotoad.org?hail=all HTTP/1.1\r\n" +
+						"GET http://hypnotoad.org?hail=all http/1.1\r\n" +
 				         "\r\n" ,
 						
 						// QUERY_TERMINATED_HOSTPORT 23
-						"GET HTTP://hypnotoad.org:1234?hail=all HTTP/1.1\r\n" +
+						"GET http://hypnotoad.org:1234?hail=all http/1.1\r\n" +
 				         "\r\n" ,
 						
 						// SPACE_TERMINATED_HOSTPORT 24
-						"GET HTTP://hypnotoad.org:1234 HTTP/1.1\r\n" +
+						"GET http://hypnotoad.org:1234 http/1.1\r\n" +
 				         "\r\n" ,
 						
 						// PATCH_REQ 25
-						"PATCH /file.txt HTTP/1.1\r\n" +
+						"PATCH /file.txt http/1.1\r\n" +
 				         "Host: www.example.com\r\n" +
 				         "Content-Type: application/example\r\n" +
 				         "If-Match: \"e0023aa4e\"\r\n" +
@@ -358,13 +358,13 @@ extends EventEmitter2 {
 				         "cccccccccc",
 						
 						// CONNECT_CAPS_REQUEST 26
-						 "CONNECT HOME0.NETSCAPE.COM:443 HTTP/1.0\r\n" +
+						 "CONNECT HOME0.NETSCAPE.COM:443 http/1.0\r\n" +
 				         "User-agent: Mozilla/1.1N\r\n" +
 				         "Proxy-authorization: basic aGVsbG86d29ybGQ=\r\n" +
 				         "\r\n" ,
 						
 						// EAT_TRAILING_CRLF_NO_CONNECTION_CLOSE 27
-						"POST / HTTP/1.1\r\n" +
+						"POST / http/1.1\r\n" +
 				         "Host: www.example.com\r\n" +
 				         "Content-Type: application/x-www-form-urlencoded\r\n" +
 				         "Content-Length: 4\r\n" +
@@ -372,7 +372,7 @@ extends EventEmitter2 {
 				         "q=42\r\n" ,
 						
 						// EAT_TRAILING_CRLF_WITH_CONNECTION_CLOSE 28
-						"POST / HTTP/1.1\r\n" +
+						"POST / http/1.1\r\n" +
 				         "Host: www.example.com\r\n" +
 				         "Content-Type: application/x-www-form-urlencoded\r\n" +
 				         "Content-Length: 4\r\n" +
@@ -381,21 +381,21 @@ extends EventEmitter2 {
 				         "q=42\r\n" ,
 						
 						// PURGE_REQ 29
-						"PURGE /file.txt HTTP/1.1\r\n" +
+						"PURGE /file.txt http/1.1\r\n" +
 				         "Host: www.example.com\r\n" +
 				         "\r\n" ,
 						
 						// SEARCH_REQ 30
-						"SEARCH / HTTP/1.1\r\n" +
+						"SEARCH / http/1.1\r\n" +
 				         "Host: www.example.com\r\n" +
 				         "\r\n" ,
 						
 						// PROXY_WITH_BASIC_AUTH 31
-						"GET HTTP://a%12:b!&*$@hypnotoad.org:1234/toto HTTP/1.1\r\n" +
+						"GET http://a%12:b!&*$@hypnotoad.org:1234/toto http/1.1\r\n" +
 				         "\r\n" ,
 						
 						// LINE_FOLDING_IN_HEADER_WITH_LF 32
-						"GET / HTTP/1.1\n" +
+						"GET / http/1.1\n" +
 				         "Line1:   abc\n" +
 				         "\tdef\n" +
 				         " ghi\n" +
@@ -417,8 +417,8 @@ extends EventEmitter2 {
 				// response messages
 				String messages_response[] = {
 						// GOOGLE_301 0
-						"HTTP/1.1 301 Moved Permanently\r\n" +
-				         "Location: HTTP://www.google.com/\r\n" +
+						"http/1.1 301 Moved Permanently\r\n" +
+				         "Location: http://www.google.com/\r\n" +
 				         "Content-Type: text/html; charset=UTF-8\r\n" +
 				         "Date: Sun, 26 Apr 2009 11:11:49 GMT\r\n" +
 				         "Expires: Tue, 26 May 2009 11:11:49 GMT\r\n" +
@@ -427,15 +427,15 @@ extends EventEmitter2 {
 				         "AbstractServer: gws\r\n" +
 				         "Content-Length:  219  \r\n" +
 				         "\r\n" +
-				         "<HTML><HEAD><meta HTTP-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n" +
+				         "<HTML><HEAD><meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n" +
 				         "<TITLE>301 Moved</TITLE></HEAD><BODY>\n" +
 				         "<H1>301 Moved</H1>\n" +
 				         "The document has moved\n" +
-				         "<A HREF=\"HTTP://www.google.com/\">here</A>.\r\n" +
+				         "<A HREF=\"http://www.google.com/\">here</A>.\r\n" +
 				         "</BODY></HTML>\r\n" ,
 						
 						// NO_CONTENT_LENGTH_RESPONSE 1
-						"HTTP/1.1 200 OK\r\n" +
+						"http/1.1 200 OK\r\n" +
 				         "Date: Tue, 04 Aug 2009 07:59:32 GMT\r\n" +
 				         "AbstractServer: Apache\r\n" +
 				         "X-Powered-By: Servlet/2.5 JSP/2.1\r\n" +
@@ -443,7 +443,7 @@ extends EventEmitter2 {
 				         "Connection: close\r\n" +
 				         "\r\n" +
 				         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-				         "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"HTTP://schemas.xmlsoap.org/soap/envelope/\">\n" +
+				         "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
 				         "  <SOAP-ENV:Body>\n" +
 				         "    <SOAP-ENV:Fault>\n" +
 				         "       <faultcode>SOAP-ENV:Client</faultcode>\n" +
@@ -453,13 +453,13 @@ extends EventEmitter2 {
 				         "</SOAP-ENV:Envelope>",
 						
 						// NO_HEADERS_NO_BODY_404 2
-						 "HTTP/1.1 404 Not Found\r\n\r\n" ,
+						 "http/1.1 404 Not Found\r\n\r\n" ,
 						
 						// NO_REASON_PHRASE 3
-						"HTTP/1.1 301\r\n\r\n" ,
+						"http/1.1 301\r\n\r\n" ,
 						
 						// TRAILING_SPACE_ON_CHUNKED_BODY 4
-						"HTTP/1.1 200 OK\r\n" +
+						"http/1.1 200 OK\r\n" +
 				         "Content-Type: text/plain\r\n" +
 				         "Transfer-Encoding: chunked\r\n" +
 				         "\r\n" +
@@ -473,14 +473,14 @@ extends EventEmitter2 {
 				         "\r\n" ,
 				         
 						// NO_CARRIAGE_RET 5
-						"HTTP/1.1 200 OK\n" +
+						"http/1.1 200 OK\n" +
 				         "Content-Type: text/html; charset=utf-8\n" +
 				         "Connection: close\n" +
 				         "\n" +
-				         "these headers are from HTTP://news.ycombinator.com/",
+				         "these headers are from http://news.ycombinator.com/",
 				         
 						// PROXY_CONNECTION 6
-						"HTTP/1.1 200 OK\r\n" +
+						"http/1.1 200 OK\r\n" +
 				         "Content-Type: text/html; charset=UTF-8\r\n" +
 				         "Content-Length: 11\r\n" +
 				         "Proxy-Connection: close\r\n" +
@@ -489,19 +489,19 @@ extends EventEmitter2 {
 				         "hello world",
 				         
 						// UNDERSTORE_HEADER_KEY 7
-						"HTTP/1.1 200 OK\r\n" +
+						"http/1.1 200 OK\r\n" +
 				         "AbstractServer: DCLK-AdSvr\r\n" +
 				         "Content-Type: text/xml\r\n" +
 				         "Content-Length: 0\r\n" +
 				         "DCLK_imp: v7;x;114750856;0-0;0;17820020;0/0;21603567/21621457/1;;~okv=;dcmt=text/xml;;~cs=o\r\n\r\n" ,
 				         
 						//  BONJOUR_MADAME_FR 8
-						"HTTP/1.0 301 Moved Permanently\r\n" +
+						"http/1.0 301 Moved Permanently\r\n" +
 				         "Date: Thu, 03 Jun 2010 09:56:32 GMT\r\n" +
 				         "AbstractServer: Apache/2.2.3 (Red Hat)\r\n" +
 				         "Cache-Control: public\r\n" +
 				         "Pragma: \r\n" +
-				         "Location: HTTP://www.bonjourmadame.fr/\r\n" +
+				         "Location: http://www.bonjourmadame.fr/\r\n" +
 				         "Vary: Accept-Encoding\r\n" +
 				         "Content-Length: 0\r\n" +
 				         "Content-Type: text/html; charset=UTF-8\r\n" +
@@ -509,7 +509,7 @@ extends EventEmitter2 {
 				         "\r\n" ,
 				         
 						// RES_FIELD_UNDERSCORE 9
-						"HTTP/1.1 200 OK\r\n" +
+						"http/1.1 200 OK\r\n" +
 				         "Date: Tue, 28 Sep 2010 01:14:13 GMT\r\n" +
 				         "AbstractServer: Apache\r\n" +
 				         "Cache-Control: no-cache, must-revalidate\r\n" +
@@ -525,60 +525,60 @@ extends EventEmitter2 {
 				         "0\r\n\r\n" ,
 				         
 						//  NON_ASCII_IN_STATUS_LINE 10
-						"HTTP/1.1 500 Oriëntatieprobleem\r\n" +
+						"http/1.1 500 Oriëntatieprobleem\r\n" +
 				         "Date: Fri, 5 Nov 2010 23:07:12 GMT+2\r\n" +
 				         "Content-Length: 0\r\n" +
 				         "Connection: close\r\n" +
 				         "\r\n" ,
 				         
 						// HTTP_VERSION_0_9 11
-						"HTTP/0.9 200 OK\r\n" +
+						"http/0.9 200 OK\r\n" +
 				         "\r\n" ,
 				         
 						//NO_CONTENT_LENGTH_NO_TRANSFER_ENCODING_RESPONSE 12
-						"HTTP/1.1 200 OK\r\n" +
+						"http/1.1 200 OK\r\n" +
 				         "Content-Type: text/plain\r\n" +
 				         "\r\n" +
 				         "hello world",
 				         
 						// NO_BODY_HTTP10_KA_200 13
-						"HTTP/1.0 200 OK\r\n" +
+						"http/1.0 200 OK\r\n" +
 				         "Connection: keep-alive\r\n" +
 				         "\r\n" ,
 				         
 						// NO_BODY_HTTP10_KA_204 14
-						"HTTP/1.0 204 No content\r\n" +
+						"http/1.0 204 No content\r\n" +
 				         "Connection: keep-alive\r\n" +
 				         "\r\n" ,
 				         
 						// NO_BODY_HTTP11_KA_200 15
-						"HTTP/1.1 200 OK\r\n" +
+						"http/1.1 200 OK\r\n" +
 				         "\r\n" ,
 				         
 						// NO_BODY_HTTP11_KA_204 16
-						"HTTP/1.1 204 No content\r\n" +
+						"http/1.1 204 No content\r\n" +
 				         "\r\n" ,
 				         
 						// NO_BODY_HTTP11_NOKA_204 17
-						"HTTP/1.1 204 No content\r\n" +
+						"http/1.1 204 No content\r\n" +
 				         "Connection: close\r\n" +
 				         "\r\n" ,
 				         
 						// NO_BODY_HTTP11_KA_CHUNKED_200 18
-						"HTTP/1.1 200 OK\r\n" +
+						"http/1.1 200 OK\r\n" +
 				         "Transfer-Encoding: chunked\r\n" +
 				         "\r\n" +
 				         "0\r\n" +
 				         "\r\n" ,
 				         
 						//  AMAZON_COM 20
-						"HTTP/1.1 301 MovedPermanently\r\n" +
+						"http/1.1 301 MovedPermanently\r\n" +
 				         "Date: Wed, 15 May 2013 17:06:33 GMT\r\n" +
 				         "AbstractServer: AbstractServer\r\n" +
 				         "x-amz-id-1: 0GPHKXSJQ826RK7GZEB2\r\n" +
-				         "p3p: policyref=\"HTTP://www.amazon.com/w3c/p3p.xml\",CP=\"CAO DSP LAW CUR ADM IVAo IVDo CONo OTPo OUR DELi PUBi OTRi BUS PHY ONL UNI PUR FIN COM NAV INT DEM CNT STA HEA PRE LOC GOV OTC \"\r\n" +
+				         "p3p: policyref=\"http://www.amazon.com/w3c/p3p.xml\",CP=\"CAO DSP LAW CUR ADM IVAo IVDo CONo OTPo OUR DELi PUBi OTRi BUS PHY ONL UNI PUR FIN COM NAV INT DEM CNT STA HEA PRE LOC GOV OTC \"\r\n" +
 				         "x-amz-id-2: STN69VZxIFSz9YJLbz1GDbxpbjG6Qjmmq5E3DxRhOUw+Et0p4hr7c/Q8qNcx4oAD\r\n" +
-				         "Location: HTTP://www.amazon.com/Dan-Brown/e/B000AP9DSU/ref=s9_pop_gw_al1?_encoding=UTF8&refinementId=618073011&pf_rd_m=ATVPDKIKX0DER&pf_rd_s=center-2&pf_rd_r=0SHYY5BZXN3KR20BNFAY&pf_rd_t=101&pf_rd_p=1263340922&pf_rd_i=507846\r\n" +
+				         "Location: http://www.amazon.com/Dan-Brown/e/B000AP9DSU/ref=s9_pop_gw_al1?_encoding=UTF8&refinementId=618073011&pf_rd_m=ATVPDKIKX0DER&pf_rd_s=center-2&pf_rd_r=0SHYY5BZXN3KR20BNFAY&pf_rd_t=101&pf_rd_p=1263340922&pf_rd_i=507846\r\n" +
 				         "Vary: Accept-Encoding,User-Agent\r\n" +
 				         "Content-Type: text/html; charset=ISO-8859-1\r\n" +
 				         "Transfer-Encoding: chunked\r\n" +
@@ -589,7 +589,7 @@ extends EventEmitter2 {
 				         "\r\n" ,
 				         
 						// EMPTY_REASON_PHRASE_AFTER_SPACE 20
-				         "HTTP/1.1 200 \r\n" +
+				         "http/1.1 200 \r\n" +
 				         "\r\n"
 						
 				};

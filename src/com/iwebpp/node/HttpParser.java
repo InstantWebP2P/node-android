@@ -235,16 +235,16 @@ public abstract class HttpParser {
 		///   "too many header bytes seen; overflow detected")               
 		///XX(CLOSED_CONNECTION,                                              
 		///   "data received after completed connection: close message")     
-		///XX(INVALID_VERSION, "invalid HTTP version")                        
-		///XX(INVALID_STATUS, "invalid HTTP status code")                     
-		///XX(INVALID_METHOD, "invalid HTTP method")                          
+		///XX(INVALID_VERSION, "invalid http version")                        
+		///XX(INVALID_STATUS, "invalid http status code")                     
+		///XX(INVALID_METHOD, "invalid http method")                          
 		///XX(INVALID_URL, "invalid URL")                                     
 		HPE_INVALID_EOF_STATE("stream ended at an unexpected time"),
 		HPE_HEADER_OVERFLOW("too many header bytes seen; overflow detected"),
 		HPE_CLOSED_CONNECTION("data received after completed connection: close message"),
-		HPE_INVALID_VERSION("invalid HTTP version"),
-		HPE_INVALID_STATUS("invalid HTTP status code"),
-		HPE_INVALID_METHOD("invalid HTTP method"),
+		HPE_INVALID_VERSION("invalid http version"),
+		HPE_INVALID_STATUS("invalid http status code"),
+		HPE_INVALID_METHOD("invalid http method"),
 		HPE_INVALID_URL("invalid URL"),	  
 
 		///XX(INVALID_HOST, "invalid host")                                   
@@ -967,7 +967,7 @@ struct http_parser_settings {
 				///++nread;
 				nread++;
 				
-				/* Don't allow the total size of the HTTP headers (including the status
+				/* Don't allow the total size of the http headers (including the status
 				 * line) to exceed HTTP_MAX_HEADER_SIZE.  This check is here to protect
 				 * embedders against denial-of-service attacks where the attacker feeds
 				 * us a never-ending header that the embedder keeps buffering.
@@ -1214,7 +1214,7 @@ struct http_parser_settings {
 					state = State.s_res_http_major;
 					break;
 
-					/* major HTTP version or dot */
+					/* major http version or dot */
 				case s_res_http_major:
 				{
 					if (ch == '.') {
@@ -1254,7 +1254,7 @@ struct http_parser_settings {
 					break;
 				}
 
-				/* first digit of minor HTTP version */
+				/* first digit of minor http version */
 				case s_res_first_http_minor:
 					if (!IS_NUM(ch)) {
 						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
@@ -1273,7 +1273,7 @@ struct http_parser_settings {
 					state = State.s_res_http_minor;
 					break;
 
-					/* minor HTTP version or end of request line */
+					/* minor http version or end of request line */
 				case s_res_http_minor:
 				{
 					if (ch == ' ') {
@@ -1975,7 +1975,7 @@ struct http_parser_settings {
 					state = State.s_req_first_http_major;
 					break;
 
-					/* first digit of major HTTP version */
+					/* first digit of major http version */
 				case s_req_first_http_major:
 					if (ch < '1' || ch > '9') {
 						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
@@ -1994,7 +1994,7 @@ struct http_parser_settings {
 					state = State.s_req_http_major;
 					break;
 
-					/* major HTTP version or dot */
+					/* major http version or dot */
 				case s_req_http_major:
 				{
 					if (ch == '.') {
@@ -2034,7 +2034,7 @@ struct http_parser_settings {
 					break;
 				}
 
-				/* first digit of minor HTTP version */
+				/* first digit of minor http version */
 				case s_req_first_http_minor:
 					if (!IS_NUM(ch)) {
 						SET_ERRNO(http_errno.HPE_INVALID_VERSION);
@@ -2053,7 +2053,7 @@ struct http_parser_settings {
 					state = State.s_req_http_minor;
 					break;
 
-					/* minor HTTP version or end of request line */
+					/* minor http version or end of request line */
 				case s_req_http_minor:
 				{
 					if (ch == '\r') {
@@ -3515,12 +3515,12 @@ struct http_parser_settings {
 	///int http_should_keep_alive(const http_parser *parser);
 	protected boolean http_should_keep_alive() {
 		if (http_major > 0 && http_minor > 0) {
-			/* HTTP/1.1 */
+			/* http/1.1 */
 			if ((flags & Flags.F_CONNECTION_CLOSE.flag)!=0) {
 				return false;
 			}
 		} else {
-			/* HTTP/1.0 or earlier */
+			/* http/1.0 or earlier */
 			if (0==(flags & Flags.F_CONNECTION_KEEP_ALIVE.flag)) {
 				return false;
 			}
@@ -3529,7 +3529,7 @@ struct http_parser_settings {
 		return !http_message_needs_eof();
 	}
 
-	/* Returns a string version of the HTTP method. */
+	/* Returns a string version of the http method. */
 	///const char *http_method_str(enum http_method m);
 	protected static String http_method_str(http_method m) {
 		return m.desc;
@@ -3624,7 +3624,7 @@ struct http_parser_settings {
 		}
 
 		/* host must be present if there is a schema */
-		/* parsing HTTP:///toto will fail */
+		/* parsing http:///toto will fail */
 		if ((u.field_set & 
 			((1 << http_parser_url_fields.UF_SCHEMA.field) |
 			 (1 << http_parser_url_fields.UF_HOST.field))) != 0) {

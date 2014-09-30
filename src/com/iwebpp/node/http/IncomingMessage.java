@@ -190,7 +190,7 @@ extends Readable2 {
 			///break;
 		} else if (
 				// list is taken from:
-				// https://mxr.mozilla.org/mozilla/source/netwerk/protocol/HTTP/src/nsHttpHeaderArray.cpp
+				// https://mxr.mozilla.org/mozilla/source/netwerk/protocol/http/src/nsHttpHeaderArray.cpp
 				///case "content-type":
 				field == "content-type" || 
 				///case "content-length":

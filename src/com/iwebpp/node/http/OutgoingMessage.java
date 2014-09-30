@@ -289,8 +289,8 @@ this.socket.setTimeout(msecs);
 	}
 
 	protected void _storeHeader(String firstLine, Map<String, List<String>> headers) throws Exception {
-		// firstLine in the case of request is: 'GET /index.html HTTP/1.1\r\n'
-		// in the case of response it is: 'HTTP/1.1 200 OK\r\n'
+		// firstLine in the case of request is: 'GET /index.html http/1.1\r\n'
+		// in the case of response it is: 'http/1.1 200 OK\r\n'
 		/*var state = {
 				sentConnectionHeader: false,
 				sentContentLengthHeader: false,
@@ -338,7 +338,7 @@ this.socket.setTimeout(msecs);
 
 		// Date header
 		if (this.sendDate == true && state.sentDateHeader == false) {
-			state.messageHeader += "Date: " + context.utcDate() + HTTP.CRLF;
+			state.messageHeader += "Date: " + context.utcDate() + http.CRLF;
 		}
 		
 		Log.d(TAG, "..... -6");
@@ -402,7 +402,7 @@ this.socket.setTimeout(msecs);
 			}
 		}
 
-		this._header = state.messageHeader + HTTP.CRLF;
+		this._header = state.messageHeader + http.CRLF;
 		this._headerSent = false;
 		
 		Log.d(TAG, "..... -8");
@@ -422,7 +422,7 @@ this.socket.setTimeout(msecs);
 		///if (value!=null && Pattern.matches("[\r\n]", value))
 		value = value.replaceAll("[\r\n]+[ \t]*", "");
 
-		state.messageHeader += field + ": " + value + HTTP.CRLF;
+		state.messageHeader += field + ": " + value + http.CRLF;
 
 		///if (connectionExpression == field) {
 		if (Pattern.matches(connectionExpression, field)) {
@@ -436,7 +436,7 @@ this.socket.setTimeout(msecs);
 		} else if (Pattern.matches(transferEncodingExpression, field)) {
 			state.sentTransferEncodingHeader = true;
 			
-			if (Pattern.matches(HTTP.chunkExpression, value)) 
+			if (Pattern.matches(http.chunkExpression, value)) 
 				self.chunkedEncoding = true;
 		} else if (Pattern.matches(contentLengthExpression, field)) {
 			state.sentContentLengthHeader = true;
@@ -560,7 +560,7 @@ this.socket.setTimeout(msecs);
 				len = Util.stringByteLength((String) chunk, encoding);
 
 				///chunk = len.toString(16) + CRLF + chunk + CRLF;
-				chunk = Integer.toString(len, 16) + HTTP.CRLF + chunk + HTTP.CRLF;
+				chunk = Integer.toString(len, 16) + http.CRLF + chunk + http.CRLF;
 
 				Log.d(TAG, "write _send: "+chunk.toString());
 				
@@ -610,7 +610,7 @@ this.socket.setTimeout(msecs);
 		this._trailer = "";
 
 		for (Entry<String, String> entry : headers.entrySet())
-			this._trailer += entry.getKey() + ": " + entry.getValue() + HTTP.CRLF;
+			this._trailer += entry.getKey() + ": " + entry.getValue() + http.CRLF;
 	}
 
 	public boolean end(Object data, String encoding, final WriteCB callback) throws Exception {
@@ -713,7 +713,7 @@ this.socket.setTimeout(msecs);
 
 	// This logic is probably a bit confusing. Let me explain a bit:
 	//
-	// In both HTTP servers and clients it is possible to queue up several
+	// In both http servers and clients it is possible to queue up several
 	// outgoing messages. This is easiest to imagine in the case of a client.
 	// Take the following situation:
 	//

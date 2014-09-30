@@ -24,7 +24,7 @@ import com.iwebpp.node.net.TCP.Socket;
 //concerned. The only code that really notices the difference is the
 //request object.
 
-//Another departure is that all code related to HTTP parsing is in
+//Another departure is that all code related to http parsing is in
 //ClientRequest.onSocket(). The Agent is now *strictly*
 //concerned with managing a connection pool.
 
@@ -79,7 +79,7 @@ extends EventEmitter2 {
 		self.context = ctx;
 		
 		self.defaultPort = 80;
-		self.protocol = "HTTP:";
+		self.protocol = "http:";
 
 		self.options = options;
 
@@ -320,7 +320,7 @@ extends EventEmitter2 {
 
 			@Override
 			public void onEvent(Object data) throws Exception {
-				// We need this function for cases like HTTP 'upgrade'
+				// We need this function for cases like http 'upgrade'
 				// (defined by WebSockets) where we need to remove a socket from the
 				// pool because it'll be locked up indefinitely
 				Log.d(TAG, "CLIENT socket onRemove");

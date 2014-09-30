@@ -13,7 +13,7 @@ import com.iwebpp.node.net.TCP;
 import com.iwebpp.node.NodeContext;
 
 
-public final class HTTP {
+public final class http {
 
 	public static final Map<Integer, String> STATUS_CODES;
 
@@ -76,7 +76,7 @@ public final class HTTP {
 		STATUS_CODES.put(502, "Bad Gateway");
 		STATUS_CODES.put(503, "Service Unavailable");
 		STATUS_CODES.put(504, "Gateway Time-out");
-		STATUS_CODES.put(505, "HTTP Version Not Supported");
+		STATUS_CODES.put(505, "http Version Not Supported");
 		STATUS_CODES.put(506, "Variant Also Negotiates");
 		STATUS_CODES.put(507, "Insufficient Storage");
 		STATUS_CODES.put(509, "Bandwidth Limit Exceeded");
@@ -223,12 +223,12 @@ public final class HTTP {
 		private response_socket_head_b(){}
 	}
 	
-	// HTTP.createServer([requestListener])
+	// http.createServer([requestListener])
 	public static Server createServer(NodeContext ctx, Server.requestListener onreq) throws Exception {
 		  return new Server(ctx, onreq);
 	}
 
-	// HTTP.request(options, [callback])
+	// http.request(options, [callback])
 	public static ClientRequest request(
 			NodeContext ctx, 
 			ReqOptions options, 
@@ -245,7 +245,7 @@ public final class HTTP {
 		return null;
 	}
 
-	// HTTP.get(options, [callback])
+	// http.get(options, [callback])
 	public static ClientRequest get(
 			NodeContext ctx, 
 			ReqOptions options, 

@@ -152,7 +152,7 @@ extends HttpParser {
 	// that the request headers were either fragmented
 	// across multiple TCP packets or too large to be
 	// processed in a single run. This method is also
-	// called to process trailing HTTP headers.
+	// called to process trailing http headers.
 	protected void parserOnHeaders(List<String> headers, String url) {
 		Log.d(TAG, "parserOnHeaders ");
 		
@@ -251,7 +251,7 @@ extends HttpParser {
 
 
 	// XXX This is a mess.
-	// TODO: HTTP.Parser should be a Writable emits request/response events.
+	// TODO: http.Parser should be a Writable emits request/response events.
 	///function parserOnBody(b, start, len) {
 	protected void parserOnBody(ByteBuffer b) throws Exception {
 		Log.d(TAG, "parserOnBody ");
@@ -415,7 +415,7 @@ extends HttpParser {
 	@Override
 	protected int on_message_complete() throws Exception {
 		if (num_fields_ > 0)
-			Flush();  // Flush trailing HTTP headers.
+			Flush();  // Flush trailing http headers.
 
 		parserOnMessageComplete();
 

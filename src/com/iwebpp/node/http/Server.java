@@ -13,9 +13,9 @@ import android.util.Log;
 import com.iwebpp.node.HttpParser.http_parser_type;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.http.HTTP.exception_socket_b;
-import com.iwebpp.node.http.HTTP.request_response_b;
-import com.iwebpp.node.http.HTTP.request_socket_head_b;
+import com.iwebpp.node.http.http.exception_socket_b;
+import com.iwebpp.node.http.http.request_response_b;
+import com.iwebpp.node.http.http.request_socket_head_b;
 import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.net.TCP;
 import com.iwebpp.node.others.TripleState;
@@ -46,9 +46,9 @@ extends TCP.Server {
 		@Override
 		public void onConnection(final AbstractSocket socket) throws Exception {
 			
-			Log.d(TAG, "SERVER new HTTP connection");
+			Log.d(TAG, "SERVER new http connection");
 
-			HTTP.httpSocketSetup(socket);
+			http.httpSocketSetup(socket);
 
 			// If the user has added a listener to the server,
 			// request, or response, then it's their responsibility.
@@ -231,8 +231,8 @@ extends TCP.Server {
 		this.context = ctx;
 
 		// Similar option to this. Too lazy to write my own docs.
-		// HTTP://www.squid-cache.org/Doc/config/half_closed_clients/
-		// HTTP://wiki.squid-cache.org/SquidFaq/InnerWorkings#What_is_a_half-closed_filedescriptor.3F
+		// http://www.squid-cache.org/Doc/config/half_closed_clients/
+		// http://wiki.squid-cache.org/SquidFaq/InnerWorkings#What_is_a_half-closed_filedescriptor.3F
 		this.httpAllowHalfOpen = false;
 
 		///this.addListener('connection', connectionListener);
@@ -259,8 +259,8 @@ extends TCP.Server {
 		this.context = ctx;
 
 		// Similar option to this. Too lazy to write my own docs.
-		// HTTP://www.squid-cache.org/Doc/config/half_closed_clients/
-		// HTTP://wiki.squid-cache.org/SquidFaq/InnerWorkings#What_is_a_half-closed_filedescriptor.3F
+		// http://www.squid-cache.org/Doc/config/half_closed_clients/
+		// http://wiki.squid-cache.org/SquidFaq/InnerWorkings#What_is_a_half-closed_filedescriptor.3F
 		this.httpAllowHalfOpen = false;
 
 		///this.addListener('connection', connectionListener);
@@ -542,8 +542,8 @@ extends TCP.Server {
 			if ( req.getHeaders().containsKey("expect") && 
 				!req.getHeaders().get("expect").isEmpty() &&
 				(req.getHttpVersionMajor() == 1 && req.getHttpVersionMinor() == 1) &&
-				///HTTP.continueExpression == req.headers.get("expect").get(0)) {
-				Pattern.matches(HTTP.continueExpression, req.getHeaders().get("expect").get(0))) {
+				///http.continueExpression == req.headers.get("expect").get(0)) {
+				Pattern.matches(http.continueExpression, req.getHeaders().get("expect").get(0))) {
 				res.set_expect_continue(true);
 
 				if (self.listenerCount("checkContinue") > 0) {
