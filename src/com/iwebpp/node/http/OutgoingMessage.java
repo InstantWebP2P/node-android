@@ -338,7 +338,7 @@ this.socket.setTimeout(msecs);
 
 		// Date header
 		if (this.sendDate == true && state.sentDateHeader == false) {
-			state.messageHeader += "Date: " + context.utcDate() + Http.CRLF;
+			state.messageHeader += "Date: " + context.utcDate() + HTTP.CRLF;
 		}
 		
 		Log.d(TAG, "..... -6");
@@ -402,7 +402,7 @@ this.socket.setTimeout(msecs);
 			}
 		}
 
-		this._header = state.messageHeader + Http.CRLF;
+		this._header = state.messageHeader + HTTP.CRLF;
 		this._headerSent = false;
 		
 		Log.d(TAG, "..... -8");
@@ -422,7 +422,7 @@ this.socket.setTimeout(msecs);
 		///if (value!=null && Pattern.matches("[\r\n]", value))
 		value = value.replaceAll("[\r\n]+[ \t]*", "");
 
-		state.messageHeader += field + ": " + value + Http.CRLF;
+		state.messageHeader += field + ": " + value + HTTP.CRLF;
 
 		///if (connectionExpression == field) {
 		if (Pattern.matches(connectionExpression, field)) {
@@ -436,7 +436,7 @@ this.socket.setTimeout(msecs);
 		} else if (Pattern.matches(transferEncodingExpression, field)) {
 			state.sentTransferEncodingHeader = true;
 			
-			if (Pattern.matches(Http.chunkExpression, value)) 
+			if (Pattern.matches(HTTP.chunkExpression, value)) 
 				self.chunkedEncoding = true;
 		} else if (Pattern.matches(contentLengthExpression, field)) {
 			state.sentContentLengthHeader = true;
@@ -560,7 +560,7 @@ this.socket.setTimeout(msecs);
 				len = Util.stringByteLength((String) chunk, encoding);
 
 				///chunk = len.toString(16) + CRLF + chunk + CRLF;
-				chunk = Integer.toString(len, 16) + Http.CRLF + chunk + Http.CRLF;
+				chunk = Integer.toString(len, 16) + HTTP.CRLF + chunk + HTTP.CRLF;
 
 				Log.d(TAG, "write _send: "+chunk.toString());
 				
@@ -610,7 +610,7 @@ this.socket.setTimeout(msecs);
 		this._trailer = "";
 
 		for (Entry<String, String> entry : headers.entrySet())
-			this._trailer += entry.getKey() + ": " + entry.getValue() + Http.CRLF;
+			this._trailer += entry.getKey() + ": " + entry.getValue() + HTTP.CRLF;
 	}
 
 	public boolean end(Object data, String encoding, final WriteCB callback) throws Exception {

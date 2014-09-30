@@ -38,8 +38,8 @@ extends OutgoingMessage {
 
 		if (req.getHttpVersionMajor() < 1 || req.getHttpVersionMinor() < 1) {
 			// TBD...
-			///this.useChunkedEncodingByDefault = Http.chunkExpression.test(req.headers.te);
-			this.useChunkedEncodingByDefault = (req.getHeaders().containsKey("te") && Pattern.matches(Http.chunkExpression, req.getHeaders().get("te").get(0)));
+			///this.useChunkedEncodingByDefault = HTTP.chunkExpression.test(req.headers.te);
+			this.useChunkedEncodingByDefault = (req.getHeaders().containsKey("te") && Pattern.matches(HTTP.chunkExpression, req.getHeaders().get("te").get(0)));
 			this.shouldKeepAlive = false;
 		}
 	}
@@ -128,7 +128,7 @@ extends OutgoingMessage {
 	}
 
 	public void writeContinue(WriteCB cb) throws Exception {
-		this._writeRaw("HTTP/1.1 100 Continue" + Http.CRLF + Http.CRLF, "utf-8", cb);
+		this._writeRaw("HTTP/1.1 100 Continue" + HTTP.CRLF + HTTP.CRLF, "utf-8", cb);
 		this._sent100 = true;
 	}
 
@@ -142,8 +142,8 @@ extends OutgoingMessage {
 		Log.d(TAG, "..... -1");
 
 		if (Util.zeroString(statusMessage)) {
-			this.statusMessage = Http.STATUS_CODES.containsKey(statusCode) ?
-					Http.STATUS_CODES.get(statusCode) : "unknown";
+			this.statusMessage = HTTP.STATUS_CODES.containsKey(statusCode) ?
+					HTTP.STATUS_CODES.get(statusCode) : "unknown";
 		} else {
 			this.statusMessage = statusMessage;
 		}
@@ -167,7 +167,7 @@ extends OutgoingMessage {
 		}
 
 		String statusLine = "HTTP/1.1 " + statusCode + " " +
-				this.statusMessage + Http.CRLF;
+				this.statusMessage + HTTP.CRLF;
 
 		if (statusCode == 204 || statusCode == 304 ||
 				(100 <= statusCode && statusCode <= 199)) {

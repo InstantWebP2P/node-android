@@ -13,7 +13,7 @@ import com.iwebpp.node.net.TCP;
 import com.iwebpp.node.NodeContext;
 
 
-public final class Http {
+public final class HTTP {
 
 	public static final Map<Integer, String> STATUS_CODES;
 
@@ -223,12 +223,12 @@ public final class Http {
 		private response_socket_head_b(){}
 	}
 	
-	// Http.createServer([requestListener])
+	// HTTP.createServer([requestListener])
 	public static Server createServer(NodeContext ctx, Server.requestListener onreq) throws Exception {
 		  return new Server(ctx, onreq);
 	}
 
-	// Http.request(options, [callback])
+	// HTTP.request(options, [callback])
 	public static ClientRequest request(
 			NodeContext ctx, 
 			ReqOptions options, 
@@ -245,7 +245,7 @@ public final class Http {
 		return null;
 	}
 
-	// Http.get(options, [callback])
+	// HTTP.get(options, [callback])
 	public static ClientRequest get(
 			NodeContext ctx, 
 			ReqOptions options, 

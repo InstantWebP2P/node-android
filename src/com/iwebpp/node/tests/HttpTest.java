@@ -14,7 +14,7 @@ import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.NodeContext.TimeoutListener;
 import com.iwebpp.node.http.ClientRequest;
-import com.iwebpp.node.http.Http;
+import com.iwebpp.node.http.HTTP;
 import com.iwebpp.node.http.IncomingMessage;
 import com.iwebpp.node.http.ReqOptions;
 import com.iwebpp.node.http.Server;
@@ -37,7 +37,7 @@ public final class HttpTest {
 				
 				@Override
 				public void onListening() throws Exception {
-                    Log.d(TAG, "Http server listening on "+port);					
+                    Log.d(TAG, "HTTP server listening on "+port);					
 				}
 			});
 		} catch (Exception e) {
@@ -71,7 +71,7 @@ public final class HttpTest {
 
 						@Override
 						public void writeDone(String error) throws Exception {
-							Log.d(TAG, "Http res.write done");							
+							Log.d(TAG, "HTTP res.write done");							
 						}
 
 					});
@@ -95,7 +95,7 @@ public final class HttpTest {
 
 				@Override
 				public void onListening() throws Exception {
-					Log.d(TAG, "Http server listening on "+port);					
+					Log.d(TAG, "HTTP server listening on "+port);					
 				}
 			});
 		} catch (Exception e) {
@@ -121,7 +121,7 @@ public final class HttpTest {
 			///ropt.keepAlive = true;
 			///ropt.keepAliveMsecs = 10000;
 
-			ClientRequest req = Http.request(ctx, ropt, new ClientRequest.responseListener() {
+			ClientRequest req = HTTP.request(ctx, ropt, new ClientRequest.responseListener() {
 
 				@Override
 				public void onResponse(IncomingMessage res) throws Exception {
@@ -169,7 +169,7 @@ public final class HttpTest {
 		final int port = 6688;
 
 		try {
-			Server srv = Http.createServer(ctx, new Server.requestListener(){
+			Server srv = HTTP.createServer(ctx, new Server.requestListener(){
 
 				@Override
 				public void onRequest(IncomingMessage req, ServerResponse res)
@@ -187,7 +187,7 @@ public final class HttpTest {
 
 						@Override
 						public void writeDone(String error) throws Exception {
-							Log.d(TAG, "Http res.write done");							
+							Log.d(TAG, "HTTP res.write done");							
 						}
 
 					});
@@ -201,7 +201,7 @@ public final class HttpTest {
 
 				@Override
 				public void onListening() throws Exception {
-					Log.d(TAG, "Http server listening on "+port);		
+					Log.d(TAG, "HTTP server listening on "+port);		
 				}
 				
 			});
@@ -219,7 +219,7 @@ public final class HttpTest {
 				@Override
 				public void onTimeout() throws Exception {
 					
-					ClientRequest req = Http.request(ctx, ropt, new ClientRequest.responseListener() {
+					ClientRequest req = HTTP.request(ctx, ropt, new ClientRequest.responseListener() {
 
 						@Override
 						public void onResponse(IncomingMessage res) throws Exception {

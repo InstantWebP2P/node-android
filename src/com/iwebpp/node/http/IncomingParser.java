@@ -251,7 +251,7 @@ extends HttpParser {
 
 
 	// XXX This is a mess.
-	// TODO: Http.Parser should be a Writable emits request/response events.
+	// TODO: HTTP.Parser should be a Writable emits request/response events.
 	///function parserOnBody(b, start, len) {
 	protected void parserOnBody(ByteBuffer b) throws Exception {
 		Log.d(TAG, "parserOnBody ");

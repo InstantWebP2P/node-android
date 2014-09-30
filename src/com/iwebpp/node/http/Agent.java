@@ -79,7 +79,7 @@ extends EventEmitter2 {
 		self.context = ctx;
 		
 		self.defaultPort = 80;
-		self.protocol = "Http:";
+		self.protocol = "HTTP:";
 
 		self.options = options;
 

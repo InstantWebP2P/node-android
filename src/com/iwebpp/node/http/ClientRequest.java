@@ -14,7 +14,7 @@ import com.iwebpp.node.NodeContext.nextTickListener;
 import com.iwebpp.node.NodeError;
 import com.iwebpp.node.HttpParser.http_parser_type;
 import com.iwebpp.node.Util;
-import com.iwebpp.node.http.Http.response_socket_head_b;
+import com.iwebpp.node.http.HTTP.response_socket_head_b;
 import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.net.TCP;
 import com.iwebpp.node.others.TripleState;
@@ -577,7 +577,7 @@ extends OutgoingMessage {
 		Log.d(TAG, "req.connection: "+req.connection);
 
 		// Setup "drain" propogation.
-		Http.httpSocketSetup(socket);
+		HTTP.httpSocketSetup(socket);
 
 		// Propagate headers limit from request object to parser
 		if (req.maxHeadersCount  > 0/*util.isNumber(req.maxHeadersCount)*/) {
@@ -837,7 +837,7 @@ extends OutgoingMessage {
 					// IE, not flowing, and not explicitly paused.
 					socket.get_readableState().setFlowing(TripleState.MAYBE);
 
-					req.emit(eventName, new Http.response_socket_head_b(res, socket, bodyHead));
+					req.emit(eventName, new HTTP.response_socket_head_b(res, socket, bodyHead));
 					req.emit("close");
 				} else {
 					// Got Upgrade header or CONNECT method, but have no handler.
