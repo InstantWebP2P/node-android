@@ -204,7 +204,7 @@ slave.getConnections(oncount);
 		return this.get_connections();
 	}
 
-	public AbstractServer close(final CloseListener cb) throws Exception {
+	public void close(final CloseListener cb) throws Exception {
 
 		if (cb!=null) {
 			if (null==this._handle) {
@@ -239,8 +239,6 @@ slave.getConnections(oncount);
 
 
 		this._emitCloseIfDrained();
-
-		return this;
 	}
 
 	protected void _setupSlave(List<AbstractSocket> socketList) {
@@ -329,24 +327,6 @@ slave.getConnections(oncount);
 	public void set_connections(int _connections) {
 		this._connections = _connections;
 	}
-    
-
-	// Abstract socket methods
-    protected abstract int _bind(final String address, final int port);
-    protected abstract int _bind6(final String address, final int port);
-    
-    protected abstract Address _getSocketName();
-
-    protected abstract int _listen(final int backlog);
-
-    protected abstract int _accept(final StreamHandle client);
-    
-	protected abstract StreamHandle _createHandle(final LoopHandle loop);
-	protected abstract StreamHandle _createServerHandle(String address, int port, 
-			int addressType, int fd);
-	
-	protected abstract void _listen2(String address, int port, int addressType, 
-			int backlog, int fd) throws Exception;
 
 	/**
 	 * @return the maxConnections
@@ -375,5 +355,23 @@ slave.getConnections(oncount);
 	public void setAllowHalfOpen(boolean allowHalfOpen) {
 		this.allowHalfOpen = allowHalfOpen;
 	}
+	
+	
+	// Abstract server methods
+    protected abstract int _bind(final String address, final int port);
+    protected abstract int _bind6(final String address, final int port);
+    
+    protected abstract Address _getSocketName();
+
+    protected abstract int _listen(final int backlog);
+
+    protected abstract int _accept(final StreamHandle client);
+    
+    protected abstract StreamHandle _createHandle(final LoopHandle loop);
+    protected abstract StreamHandle _createServerHandle(String address, int port, 
+			int addressType, int fd);
+	
+    protected abstract void _listen2(String address, int port, int addressType, 
+			int backlog, int fd) throws Exception;
 	
 }

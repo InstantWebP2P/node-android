@@ -7,8 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.net.TCP;
-import com.iwebpp.node.net.TCP.Socket;
+import com.iwebpp.node.net.AbstractSocket;
 
 public class ReqOptions {
 	
@@ -37,13 +36,16 @@ public class ReqOptions {
 	public boolean keepAlive;
 	public int keepAliveMsecs;
 	
+	// Protocol select: http or httpp
+	// - httpp: true, run http over udt; otherwise run http over tcp
+	public boolean httpp = false;
 	
 	public static interface createConnectionF {
-		public TCP.Socket createConnection(
+		public AbstractSocket createConnection(
 				NodeContext ctx, 
 				String address, int port,
 				String localAddress, int localPort,
-				final Socket.ConnectListener cb) throws Exception;
+				final AbstractSocket.ConnectListener cb) throws Exception;
 	}
 
 }

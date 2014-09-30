@@ -370,7 +370,7 @@ public final class TCP {
 			NodeContext ctx, 
 			String address, int port,
 			String localAddress, int localPort,
-			final Socket.ConnectListener cb) throws Exception {
+			final AbstractSocket.ConnectListener cb) throws Exception {
 		Log.d(TAG, "createConnection " + address + ":" + port + "@"+localAddress+":"+localPort);
 
 		Socket s = new Socket(ctx, new Socket.Options(null, false, false, true));

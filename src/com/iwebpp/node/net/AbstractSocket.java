@@ -1554,17 +1554,16 @@ this._writeGeneric(true, chunks, '', cb);
 	// Abstract socket methods
 	protected abstract StreamHandle _createHandle(final LoopHandle loop);
 
-    protected abstract int _bind(final String address, final int port);
-    protected abstract int _bind6(final String address, final int port);
+	protected abstract int _bind(final String address, final int port);
+	protected abstract int _bind6(final String address, final int port);
 
-    protected abstract int _connect(final String address, final int port);
-    protected abstract int _connect6(final String address, final int port);
+	protected abstract int _connect(final String address, final int port);
+	protected abstract int _connect6(final String address, final int port);
 
-    protected abstract Address _getSocketName();
-    protected abstract Address _getPeerName();
+	protected abstract Address _getSocketName();
+	protected abstract Address _getPeerName();
 
     public abstract int setNoDelay(final boolean enable);
     public abstract int setKeepAlive(final boolean enable, final int delay);
-    
-
+	
 }

@@ -31,9 +31,9 @@ public final class UDT {
 		@Override
 		protected int _bind(String address, int port) {
 			if (this._handle != null) {
-				UDTHandle tcp = (UDTHandle)this._handle;
+				UDTHandle udt = (UDTHandle)this._handle;
 				
-				return tcp.bind(address, port);
+				return udt.bind(address, port);
 			} else 
 				return -1;
 		}
@@ -41,9 +41,9 @@ public final class UDT {
 		@Override
 		protected int _bind6(String address, int port) {
 			if (this._handle != null) {
-				UDTHandle tcp = (UDTHandle)this._handle;
+				UDTHandle udt = (UDTHandle)this._handle;
 				
-				return tcp.bind6(address, port);
+				return udt.bind6(address, port);
 			} else 
 				return -1;
 		}
@@ -51,9 +51,9 @@ public final class UDT {
 		@Override
 		protected int _connect(String address, int port) {
 			if (this._handle != null) {
-				UDTHandle tcp = (UDTHandle)this._handle;
+				UDTHandle udt = (UDTHandle)this._handle;
 				
-				return tcp.connect(address, port);
+				return udt.connect(address, port);
 			} else 
 				return -1;
 		}
@@ -61,9 +61,9 @@ public final class UDT {
 		@Override
 		protected int _connect6(String address, int port) {
 			if (this._handle != null) {
-				UDTHandle tcp = (UDTHandle)this._handle;
+				UDTHandle udt = (UDTHandle)this._handle;
 				
-				return tcp.connect6(address, port);
+				return udt.connect6(address, port);
 			} else 
 				return -1;
 		}
@@ -71,9 +71,9 @@ public final class UDT {
 		@Override
 		protected Address _getSocketName() {
 			if (this._handle != null) {
-				UDTHandle tcp = (UDTHandle)this._handle;
+				UDTHandle udt = (UDTHandle)this._handle;
 				
-				return tcp.getSocketName();
+				return udt.getSocketName();
 			} else 
 				return null;
 		}
@@ -81,9 +81,9 @@ public final class UDT {
 		@Override
 		protected Address _getPeerName() {
 			if (this._handle != null) {
-				UDTHandle tcp = (UDTHandle)this._handle;
+				UDTHandle udt = (UDTHandle)this._handle;
 				
-				return tcp.getPeerName();
+				return udt.getPeerName();
 			} else 
 				return null;
 		}
@@ -92,9 +92,9 @@ public final class UDT {
 		public int setNoDelay(final boolean enable) {			
 			// backwards compatibility: assume true when `enable` is omitted
 			if (this._handle /*&& this._handle.setNoDelay*/ != null) {
-				UDTHandle tcp = (UDTHandle)this._handle;
+				UDTHandle udt = (UDTHandle)this._handle;
 				
-				return tcp.setNoDelay(enable);
+				return udt.setNoDelay(enable);
 			} else 
 				return -1;
 		}
@@ -103,9 +103,9 @@ public final class UDT {
 		public int setKeepAlive(final boolean enable, final int delay) {
 			// backwards compatibility: assume true when `enable` is omitted
 			if (this._handle /*&& this._handle.setNoDelay*/ != null) {
-				UDTHandle tcp = (UDTHandle)this._handle;
+				UDTHandle udt = (UDTHandle)this._handle;
 				
-				return tcp.setKeepAlive(enable, delay);
+				return udt.setKeepAlive(enable, delay);
 			} else 
 				return -1;
 		}
@@ -132,9 +132,9 @@ public final class UDT {
 		@Override
 		protected int _bind(String address, int port) {
 			if (this._handle != null) {
-				UDTHandle tcp = (UDTHandle)this._handle;
+				UDTHandle udt = (UDTHandle)this._handle;
 				
-				return tcp.bind(address, port);
+				return udt.bind(address, port);
 			} else 
 				return -1;
 		}
@@ -142,9 +142,9 @@ public final class UDT {
 		@Override
 		protected int _bind6(String address, int port) {
 			if (this._handle != null) {
-				UDTHandle tcp = (UDTHandle)this._handle;
+				UDTHandle udt = (UDTHandle)this._handle;
 				
-				return tcp.bind6(address, port);
+				return udt.bind6(address, port);
 			} else 
 				return -1;
 		}
@@ -152,9 +152,9 @@ public final class UDT {
 		@Override
 		protected int _listen(int backlog) {
 			if (this._handle != null) {
-				UDTHandle tcp = (UDTHandle)this._handle;
+				UDTHandle udt = (UDTHandle)this._handle;
 				
-				return tcp.listen(backlog);
+				return udt.listen(backlog);
 			} else 
 				return -1;
 		}
@@ -162,9 +162,9 @@ public final class UDT {
 		@Override
 		protected int _accept(StreamHandle client) {
 			if (this._handle != null) {
-				UDTHandle tcp = (UDTHandle)this._handle;
+				UDTHandle udt = (UDTHandle)this._handle;
 				
-				return tcp.accept(client);
+				return udt.accept(client);
 			} else 
 				return -1;
 		}
@@ -172,9 +172,9 @@ public final class UDT {
 		@Override
 		protected Address _getSocketName() {
 			if (this._handle != null) {
-				UDTHandle tcp = (UDTHandle)this._handle;
+				UDTHandle udt = (UDTHandle)this._handle;
 				
-				return tcp.getSocketName();
+				return udt.getSocketName();
 			} else 
 				return null;
 		}
@@ -370,7 +370,7 @@ public final class UDT {
 			NodeContext ctx, 
 			String address, int port,
 			String localAddress, int localPort,
-			final Socket.ConnectListener cb) throws Exception {
+			final AbstractSocket.ConnectListener cb) throws Exception {
 		Log.d(TAG, "createConnection " + address + ":" + port + "@"+localAddress+":"+localPort);
 
 		Socket s = new Socket(ctx, new Socket.Options(null, false, false, true));

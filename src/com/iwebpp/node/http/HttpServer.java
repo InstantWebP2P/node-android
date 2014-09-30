@@ -16,11 +16,12 @@ import com.iwebpp.node.Util;
 import com.iwebpp.node.http.http.exception_socket_b;
 import com.iwebpp.node.http.http.request_response_b;
 import com.iwebpp.node.http.http.request_socket_head_b;
+import com.iwebpp.node.net.AbstractServer;
 import com.iwebpp.node.net.AbstractSocket;
-import com.iwebpp.node.net.TCP;
 import com.iwebpp.node.others.TripleState;
+import com.iwebpp.node.net.TCP;
 
-public final class Server 
+public final class HttpServer 
 extends TCP.Server {
 
 	private boolean httpAllowHalfOpen;
@@ -30,13 +31,13 @@ extends TCP.Server {
 	implements connectionListener {
 		private final static String TAG = "connectionListenerImpl";
 
-		private Server self;
+		private HttpServer self;
 
 		private NodeContext context;
 
 		private int maxHeadersCount = 4000;
 
-		public connectionListenerImpl(NodeContext ctx, Server srv) {
+		public connectionListenerImpl(NodeContext ctx, HttpServer srv) {
 			this.context = ctx;
 			this.self = srv;
 		}
@@ -225,8 +226,8 @@ extends TCP.Server {
 
 	}
 	
-	public Server(NodeContext ctx) throws Exception {
-		super(ctx, new TCP.Server.Options(false), null);
+	public HttpServer(NodeContext ctx) throws Exception {
+		super(ctx, new AbstractServer.Options(false), null);
 		
 		this.context = ctx;
 
@@ -253,8 +254,8 @@ extends TCP.Server {
 		});
 	}
 	
-	public Server(NodeContext ctx, requestListener onreq) throws Exception {
-		super(ctx, new TCP.Server.Options(false), null);
+	public HttpServer(NodeContext ctx, requestListener onreq) throws Exception {
+		super(ctx, new AbstractServer.Options(false), null);
 
 		this.context = ctx;
 
@@ -296,11 +297,11 @@ extends TCP.Server {
 		super.listen(hostname, port, addressType, backlog, -1, null);
 	}
 	
-	public void close(final closeListener cb) throws Exception {
+	/*public void close(final closeListener cb) throws Exception {
 		if (cb != null) onClose(cb);
 
 		super.close(null);
-	}
+	}*/
 
 	public int maxHeadersCount(int max) {
 		return 2000;
@@ -345,7 +346,7 @@ extends TCP.Server {
 
 			@Override
 			public void onEvent(Object raw) throws Exception {
-				TCP.Socket data = (TCP.Socket)raw;
+				AbstractSocket data = (AbstractSocket)raw;
 
 				cb.onConnection(data);
 			}
@@ -444,10 +445,10 @@ extends TCP.Server {
 		private List<IncomingMessage> incomings;	
 		private List<ServerResponse> outgoings;
 
-		private Server self;
+		private HttpServer self;
 	
 	
-		public parserOnIncoming(NodeContext ctx, Server srv, AbstractSocket socket) {
+		public parserOnIncoming(NodeContext ctx, HttpServer srv, AbstractSocket socket) {
 			super(ctx, http_parser_type.HTTP_REQUEST, socket);
 			this.context = ctx;
 			this.self    = srv;

@@ -3515,12 +3515,12 @@ struct http_parser_settings {
 	///int http_should_keep_alive(const http_parser *parser);
 	protected boolean http_should_keep_alive() {
 		if (http_major > 0 && http_minor > 0) {
-			/* http/1.1 */
+			/* HTTP/1.1 */
 			if ((flags & Flags.F_CONNECTION_CLOSE.flag)!=0) {
 				return false;
 			}
 		} else {
-			/* http/1.0 or earlier */
+			/* HTTP/1.0 or earlier */
 			if (0==(flags & Flags.F_CONNECTION_KEEP_ALIVE.flag)) {
 				return false;
 			}

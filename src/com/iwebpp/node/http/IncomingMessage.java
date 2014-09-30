@@ -36,7 +36,7 @@ extends Readable2 {
 	private boolean _dumped;
 	private boolean upgrade;
 
-	private ClientRequest  req;
+	private ClientRequest req;
 	private int httpVersionMajor;
 
 	private int httpVersionMinor;

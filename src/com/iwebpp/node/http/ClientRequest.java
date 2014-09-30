@@ -17,7 +17,9 @@ import com.iwebpp.node.Util;
 import com.iwebpp.node.http.http.response_socket_head_b;
 import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.net.TCP;
+import com.iwebpp.node.net.UDT;
 import com.iwebpp.node.others.TripleState;
+
 
 public final class ClientRequest 
 extends OutgoingMessage {
@@ -60,7 +62,9 @@ extends OutgoingMessage {
 		    agent = new defaultAgent.constructor();
 		  } else */if (Util.isNullOrUndefined(agent) && null==options.createConnection) {
 			  // TBD...
-			  agent = new Agent(context, options);///defaultAgent;
+			  agent = options.httpp ? 
+					  new Agent.HttppAgent(context, options) : 
+					  new Agent.HttpAgent(context, options);///defaultAgent;
 		  }
 		  self.agent = agent;
 		  ///self.agent = null;
@@ -182,11 +186,11 @@ extends OutgoingMessage {
 			  // No agent, default to Connection:close.
 			  self._last = true;
 			  self.shouldKeepAlive = false;
-			  TCP.Socket conn;
+			  AbstractSocket conn;
 			  if (options.createConnection != null) {
 				  conn = options.
-						  createConnection.
-						  createConnection(
+						 createConnection.
+						 createConnection(
 								  context, 
 								  options.host, options.port,
 								  options.localAddress,
@@ -194,12 +198,19 @@ extends OutgoingMessage {
 								  null);
 			  } else {
 				  Log.d(TAG, "CLIENT use TCP.createConnection " + options);
-				  conn = TCP.createConnection(
-						  context, 
-						  options.host, options.port,
-						  options.localAddress,
-						  options.localPort,
-						  null);
+				  conn = options.httpp ?
+						  UDT.createConnection(
+									 context, 
+									 options.host, options.port,
+									 options.localAddress,
+									 options.localPort,
+									 null) :
+						  TCP.createConnection(
+						 context, 
+						 options.host, options.port,
+						 options.localAddress,
+						 options.localPort,
+						 null);
 			  }
 			  self.onSocket(conn);
 		  }
@@ -374,7 +385,7 @@ extends OutgoingMessage {
 
 			@Override
 			public void onEvent(Object raw) throws Exception {      
-				TCP.Socket data = (TCP.Socket)raw;
+				AbstractSocket data = (AbstractSocket)raw;
 
 				cb.onSocket(data);
 			}
@@ -382,7 +393,7 @@ extends OutgoingMessage {
 		});
 	}
 	public static interface socketListener {
-		public void onSocket(TCP.Socket socket) throws Exception;
+		public void onSocket(AbstractSocket socket) throws Exception;
 	}
 
 	public void onceConnect(final connectListener cb) throws Exception {
@@ -398,7 +409,7 @@ extends OutgoingMessage {
 		});
 	}
 	public static interface connectListener {
-		public void onConnect(IncomingMessage res, TCP.Socket socket, ByteBuffer head) throws Exception;
+		public void onConnect(IncomingMessage res, AbstractSocket socket, ByteBuffer head) throws Exception;
 	}
 
 	public void onceUpgrade(final upgradeListener cb) throws Exception {
@@ -414,7 +425,7 @@ extends OutgoingMessage {
 		});
 	}
 	public static interface upgradeListener {
-		public void onUpgrade(IncomingMessage res, TCP.Socket socket, ByteBuffer head) throws Exception;
+		public void onUpgrade(IncomingMessage res, AbstractSocket socket, ByteBuffer head) throws Exception;
 	}
 
 	public void onContinue(final continueListener cb) throws Exception {
@@ -438,7 +449,7 @@ extends OutgoingMessage {
 
 		private NodeContext context;
 
-		public parserOnIncomingClient(NodeContext ctx, TCP.Socket socket) {
+		public parserOnIncomingClient(NodeContext ctx, AbstractSocket socket) {
 			super(ctx, http_parser_type.HTTP_RESPONSE, socket);
 			this.context = ctx;
 		}
@@ -560,7 +571,7 @@ extends OutgoingMessage {
 
 	}
 
-	private void tickOnSocket(ClientRequest req, TCP.Socket socket) throws Exception {
+	private void tickOnSocket(ClientRequest req, AbstractSocket socket) throws Exception {
 		///var parser = parsers.alloc();
 		parserOnIncomingClient parser = new parserOnIncomingClient(context, socket);
 
@@ -607,7 +618,7 @@ extends OutgoingMessage {
 		Log.d(TAG, "emit socket: "+socket);
 	}
 
-	public void onSocket(final TCP.Socket socket) {
+	public void onSocket(final AbstractSocket socket) {
 		final ClientRequest req = this;
 		
 		Log.d(TAG, "onSocket");
@@ -658,9 +669,9 @@ extends OutgoingMessage {
 
 	private class socketCloseListener 
 	implements Listener {
-		private TCP.Socket  socket;
+		private AbstractSocket  socket;
 
-		public socketCloseListener(NodeContext ctx, TCP.Socket socket) {
+		public socketCloseListener(NodeContext ctx, AbstractSocket socket) {
 			this.socket  = socket;
 		}
 		@SuppressWarnings("unused")
@@ -723,9 +734,9 @@ extends OutgoingMessage {
 	}
 	private class socketErrorListener 
 	implements Listener {
-		private TCP.Socket  socket;
+		private AbstractSocket socket;
 
-		public socketErrorListener(NodeContext ctx, TCP.Socket socket) {
+		public socketErrorListener(NodeContext ctx, AbstractSocket socket) {
 			this.socket  = socket;
 		}
 		@SuppressWarnings("unused")
@@ -757,10 +768,10 @@ extends OutgoingMessage {
 
 	private class socketOnEnd
 	implements Listener {
-		private TCP.Socket  socket;
+		private AbstractSocket socket;
 
-		public socketOnEnd(NodeContext ctx, TCP.Socket socket) {
-			this.socket  = socket;
+		public socketOnEnd(NodeContext ctx, AbstractSocket socket) {
+			this.socket = socket;
 		}
 		@SuppressWarnings("unused")
 		private socketOnEnd(){}
@@ -788,9 +799,9 @@ extends OutgoingMessage {
 
 	private class socketOnData
 	implements Listener {
-		private TCP.Socket  socket;
+		private AbstractSocket socket;
 
-		public socketOnData(NodeContext ctx, TCP.Socket socket) {
+		public socketOnData(NodeContext ctx, AbstractSocket socket) {
 			this.socket  = socket;
 		}
 		@SuppressWarnings("unused")

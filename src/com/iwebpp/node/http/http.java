@@ -9,7 +9,6 @@ import java.util.Map;
 
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.net.AbstractSocket;
-import com.iwebpp.node.net.TCP;
 import com.iwebpp.node.NodeContext;
 
 
@@ -155,7 +154,7 @@ public final class http {
 			return head;
 		}
 		private IncomingMessage request;
-		private AbstractSocket      socket;
+		private AbstractSocket  socket;
 		private ByteBuffer      head;
 		
 		public request_socket_head_b(IncomingMessage request, AbstractSocket socket, ByteBuffer head) {
@@ -180,7 +179,7 @@ public final class http {
 		public AbstractSocket getSocket() {
 			return socket;
 		}
-		private String     exception;
+		private String         exception;
 		private AbstractSocket socket;
 		
 		public exception_socket_b(String exception, AbstractSocket socket) {
@@ -201,7 +200,7 @@ public final class http {
 		/**
 		 * @return the socket
 		 */
-		public TCP.Socket getSocket() {
+		public AbstractSocket getSocket() {
 			return socket;
 		}
 		/**
@@ -211,10 +210,10 @@ public final class http {
 			return head;
 		}
 		private IncomingMessage response;
-		private TCP.Socket      socket;
+		private AbstractSocket  socket;
 		private ByteBuffer      head;
 		
-		public response_socket_head_b(IncomingMessage response, TCP.Socket socket, ByteBuffer head) {
+		public response_socket_head_b(IncomingMessage response, AbstractSocket socket, ByteBuffer head) {
 			this.response = response;
 			this.socket   = socket;
 			this.head     = head;
@@ -224,8 +223,10 @@ public final class http {
 	}
 	
 	// http.createServer([requestListener])
-	public static Server createServer(NodeContext ctx, Server.requestListener onreq) throws Exception {
-		  return new Server(ctx, onreq);
+	public static HttpServer createServer(
+			NodeContext ctx, 
+			HttpServer.requestListener onreq) throws Exception {
+		  return new HttpServer(ctx, onreq);
 	}
 
 	// http.request(options, [callback])
@@ -233,8 +234,9 @@ public final class http {
 			NodeContext ctx, 
 			ReqOptions options, 
 			ClientRequest.responseListener onres) throws Exception {
+		options.httpp = false;
 
-		  return new ClientRequest(ctx, options, onres);
+		return new ClientRequest(ctx, options, onres);
 	}
 	// TBD... parser ReqOptions from URL
 	public static ClientRequest request(
@@ -253,6 +255,7 @@ public final class http {
 		
 		// GET method
 		options.method = "GET";
+		options.httpp  = false;
 		
 		ClientRequest req = request(ctx, options, onres);
 		req.end(null, null, null);
