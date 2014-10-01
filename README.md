@@ -16,6 +16,7 @@ Usage:
 ### Features, Supported Node.js API
 
 * Node.js compatible API
+* Timer, set/clear Timeout/Interval
 * EventEmitter
 * Stream
 * HttpParser
