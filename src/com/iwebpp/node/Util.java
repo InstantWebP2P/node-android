@@ -55,6 +55,19 @@ public final class Util {
 		return 0;
     } 
     
+    public static int chunkByteLength(Object chunk, String encoding) throws UnsupportedEncodingException {
+    	if (isBuffer(chunk)) {
+    		ByteBuffer bb = (ByteBuffer)chunk;
+    		return bb.capacity();
+    	}
+    	
+    	if (isString(chunk)) {
+    		return stringByteLength((String) chunk, encoding);
+    	}
+    	
+		return 0;
+    } 
+    
     public static Object chunkSlice(Object chunk, int start, int end) {
     	if (isBuffer(chunk)) {
     		ByteBuffer bb = (ByteBuffer)chunk;
@@ -102,7 +115,7 @@ public final class Util {
     	else 
     		return s == "";
     }
-
+    
     public static ByteBuffer concatByteBuffer(List<Object> list, int length) {
     	if (length <= 0) {
     		length = 0;
@@ -125,20 +138,46 @@ public final class Util {
     		return null;
     }
     
-    public static String chunkToString(Object chunk, String encoding) {
+    public static ByteBuffer concatByteBuffer(List<ByteBuffer> list) {
+    	int length = 0;
+
+    	for (ByteBuffer b : list) length += b.capacity();
+
+    	if (length > 0) {
+    		ByteBuffer bb = ByteBuffer.allocate(length);
+
+    		for (ByteBuffer b : list) {
+    			bb.put(b);
+
+    			b.flip();
+    		}
+    		bb.flip();
+
+    		return bb;
+    	} else 
+    		return null;
+    }
+
+    public static String chunkToString(Object chunk, String encoding) throws CharacterCodingException {
     	if (isString(chunk)) {			
     		return (String) chunk;			
     	} else if (isBuffer(chunk)) {
     		// decode chunk to string
-    		try {
-				return Charset.forName(encoding).newDecoder().decode((ByteBuffer)chunk).toString();
-			} catch (CharacterCodingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+    		return Charset.forName(encoding).newDecoder().decode((ByteBuffer)chunk).toString();
     	}
-    	
-		return "invalid chunk";
+
+    	return "invalid chunk";
+    }
+
+    public static ByteBuffer chunkToBuffer(Object chunk, String encoding) throws UnsupportedEncodingException {
+    	if (isString(chunk)) {			
+    		String s = (String)chunk;
+    		return ByteBuffer.wrap(s.getBytes(encoding));			
+    	} else if (isBuffer(chunk)) {
+    		return (ByteBuffer) chunk;
+    	}
+
+    	return null;
     }
         
 }
