@@ -1,5 +1,3 @@
-// Copyright (c) 2014 Tom Zhou<iwebpp@gmail.com>
-
 package com.iwebpp.wspp;
 
 import java.nio.ByteBuffer;
@@ -60,7 +58,7 @@ public final class BufferPool {
 		this._used = 0;
 	}
 	
-	public static interface Strategy {
+	public interface Strategy {
 		public abstract int _growStrategy(BufferPool db, int length);
 		public abstract int _shrinkStrategy(BufferPool db);
 	}

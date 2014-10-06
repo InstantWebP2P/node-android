@@ -40,7 +40,7 @@ public class ReqOptions {
 	// - httpp: true, run http over udt; otherwise run http over tcp
 	public boolean httpp = false;
 	
-	public static interface createConnectionF {
+	public interface createConnectionF {
 		public AbstractSocket createConnection(
 				NodeContext ctx, 
 				String address, int port,

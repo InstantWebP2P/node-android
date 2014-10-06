@@ -1457,7 +1457,7 @@ this._writeGeneric(true, chunks, '', cb);
 
 		});
 	}
-	public static interface ConnectListener {
+	public interface ConnectListener {
 		public void onConnect() throws Exception;
 	}
 	
@@ -1472,7 +1472,7 @@ this._writeGeneric(true, chunks, '', cb);
 
 		});
 	}
-	public static interface DataListener {
+	public interface DataListener {
 		public void onData(Object data) throws Exception;
 	}
 	
@@ -1487,7 +1487,7 @@ this._writeGeneric(true, chunks, '', cb);
 
 		});
 	}
-	public static interface EndListener {
+	public interface EndListener {
 		public void onEnd() throws Exception;
 	}
 	
@@ -1502,7 +1502,7 @@ this._writeGeneric(true, chunks, '', cb);
 
 		});
 	}
-	public static interface TimeoutListener {
+	public interface TimeoutListener {
 		public void onTimeout() throws Exception;
 	}*/
 	
@@ -1516,7 +1516,7 @@ this._writeGeneric(true, chunks, '', cb);
 
 		});
 	}
-	public static interface DrainListener {
+	public interface DrainListener {
 		public void onDrain() throws Exception;
 	}
 	
@@ -1530,7 +1530,7 @@ this._writeGeneric(true, chunks, '', cb);
 
 		});
 	}
-	public static interface ErrorListener {
+	public interface ErrorListener {
 		public void onError(String error) throws Exception;
 	}
 	
@@ -1546,7 +1546,7 @@ this._writeGeneric(true, chunks, '', cb);
 
 		});
 	}
-	public static interface CloseListener {
+	public interface CloseListener {
 		public void onClose(boolean had_error) throws Exception;
 	}
 	

@@ -321,7 +321,7 @@ extends TCP.Server {
 
 		});
 	}
-	public static interface ListeningCallback {
+	public interface ListeningCallback {
 		public void onListening() throws Exception;
 	}
 
@@ -337,7 +337,7 @@ extends TCP.Server {
 
 		});
 	}
-	public static interface requestListener {
+	public interface requestListener {
 		public void onRequest(IncomingMessage req, ServerResponse res) throws Exception;
 	}
 
@@ -353,7 +353,7 @@ extends TCP.Server {
 
 		});
 	}
-	public static interface connectionListener {
+	public interface connectionListener {
 		public void onConnection(AbstractSocket socket) throws Exception;
 	}
 
@@ -367,7 +367,7 @@ extends TCP.Server {
 
 		});
 	}
-	public static interface closeListener {
+	public interface closeListener {
 		public void onClose() throws Exception;
 	}
 
@@ -383,7 +383,7 @@ extends TCP.Server {
 
 		});
 	}
-	public static interface checkContinueListener {
+	public interface checkContinueListener {
 		public void onCheckContinue(IncomingMessage req, ServerResponse res) throws Exception;
 	}
 
@@ -399,7 +399,7 @@ extends TCP.Server {
 
 		});
 	}
-	public static interface connectListener {
+	public interface connectListener {
 		public void onConnect(IncomingMessage request, AbstractSocket socket, ByteBuffer head) throws Exception;
 	}
 
@@ -415,7 +415,7 @@ extends TCP.Server {
 
 		});
 	}
-	public static interface upgradeListener {
+	public interface upgradeListener {
 		public void onUpgrade(IncomingMessage request, AbstractSocket socket, ByteBuffer head) throws Exception;
 	}
 
@@ -431,7 +431,7 @@ extends TCP.Server {
 
 		});
 	}
-	public static interface clientErrorListener {
+	public interface clientErrorListener {
 		public void onClientError(String exception, AbstractSocket socket) throws Exception;
 	}
 	

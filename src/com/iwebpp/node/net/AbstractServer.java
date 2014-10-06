@@ -268,7 +268,7 @@ slave.getConnections(oncount);
 
 		});
 	}
-	public static interface ConnectionListener {
+	public interface ConnectionListener {
 		public void onConnection(AbstractSocket socket);
 	}
 
@@ -282,7 +282,7 @@ slave.getConnections(oncount);
 
 		});
 	}
-	public static interface CloseListener {
+	public interface CloseListener {
 		public void onClose(String error);
 	}
 	
@@ -296,7 +296,7 @@ slave.getConnections(oncount);
 
 		});
 	}
-	public static interface ListeningCallback {
+	public interface ListeningCallback {
 		public void onListening();
 	}
 
@@ -310,7 +310,7 @@ slave.getConnections(oncount);
 
 		});
 	}
-	public static interface ErrorListener {
+	public interface ErrorListener {
 		public void onError(String error);
 	}
 

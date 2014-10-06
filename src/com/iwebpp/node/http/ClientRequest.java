@@ -376,7 +376,7 @@ extends OutgoingMessage {
 
 		});
 	}
-	public static interface responseListener {
+	public interface responseListener {
 		public void onResponse(IncomingMessage res) throws Exception;
 	}
 
@@ -392,7 +392,7 @@ extends OutgoingMessage {
 
 		});
 	}
-	public static interface socketListener {
+	public interface socketListener {
 		public void onSocket(AbstractSocket socket) throws Exception;
 	}
 
@@ -408,7 +408,7 @@ extends OutgoingMessage {
 
 		});
 	}
-	public static interface connectListener {
+	public interface connectListener {
 		public void onConnect(IncomingMessage res, AbstractSocket socket, ByteBuffer head) throws Exception;
 	}
 
@@ -424,7 +424,7 @@ extends OutgoingMessage {
 
 		});
 	}
-	public static interface upgradeListener {
+	public interface upgradeListener {
 		public void onUpgrade(IncomingMessage res, AbstractSocket socket, ByteBuffer head) throws Exception;
 	}
 
@@ -438,7 +438,7 @@ extends OutgoingMessage {
 
 		});
 	}
-	public static interface continueListener {
+	public interface continueListener {
 		public void onContinue() throws Exception;
 	}
 

@@ -42,7 +42,7 @@ public final class NodeContext {
 	 * DOM-style timers
 	 */
 	// setTimeout/clearTimeout
-	public static interface TimeoutListener{
+	public interface TimeoutListener{
 		public void onTimeout() throws Exception;
 	}
 	// after: ms
@@ -76,7 +76,7 @@ public final class NodeContext {
     }
     
     // setInterval/clearInterval
-	public static interface IntervalListener{
+	public interface IntervalListener{
 		public void onInterval() throws Exception;
 	}
 	// repeat: ms
@@ -131,7 +131,7 @@ public final class NodeContext {
 
         timer.start(0, 0);
     }
-    public static interface nextTickListener {
+    public interface nextTickListener {
     	void onNextTick() throws Exception;
     }
 

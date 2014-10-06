@@ -466,7 +466,7 @@ extends Readable2 {
 	public void setHeaders(Map<String, List<String>> headers) {
 		this.headers = headers;
 	}
-	public static interface closeListener {
+	public interface closeListener {
 		public void onClose() throws Exception;
 	}
 

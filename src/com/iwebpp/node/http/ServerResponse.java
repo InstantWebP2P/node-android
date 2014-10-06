@@ -64,7 +64,7 @@ extends OutgoingMessage {
 
 		});
 	}
-	public static interface closeListener {
+	public interface closeListener {
 		public void onClose() throws Exception;
 	}
 
@@ -78,7 +78,7 @@ extends OutgoingMessage {
 
 		});
 	}
-	public static interface finishListener {
+	public interface finishListener {
 		public void onFinish() throws Exception;
 	}
 

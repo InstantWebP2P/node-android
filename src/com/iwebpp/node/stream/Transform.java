@@ -185,13 +185,13 @@ extends Duplex {
 	// Call `cb(err)` when you are done with this chunk.  If you pass
 	// an error, then that'll put the hurt on the whole operation.  If you
 	// never call cb(), then you'll never get another chunk.
-	protected static interface afterTransformCallback {
+	protected interface afterTransformCallback {
 		void afterTransform(String error, Object data) throws Exception;
 	}
 	protected abstract void _transform(final Object chunk, String encoding, 
 			afterTransformCallback cb) throws Exception;
 
-	protected static interface flushCallback {
+	protected interface flushCallback {
 		void onFlush(String error) throws Exception;
 	}
 	protected abstract void _flush(flushCallback cb) throws Exception;
