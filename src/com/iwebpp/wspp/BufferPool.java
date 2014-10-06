@@ -59,8 +59,8 @@ public final class BufferPool {
 	}
 	
 	public interface Strategy {
-		public abstract int _growStrategy(BufferPool db, int length);
-		public abstract int _shrinkStrategy(BufferPool db);
+		public int _growStrategy(BufferPool db, int length);
+		public int _shrinkStrategy(BufferPool db);
 	}
 
 }
