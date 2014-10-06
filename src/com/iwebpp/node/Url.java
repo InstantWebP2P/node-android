@@ -31,6 +31,16 @@ extends EventEmitter2 {
 		UrlObj() {
 			this.queryParams = new Hashtable<String, String>();
 		}
+		
+		public String toString() {
+			try {
+				return Url.format(this);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return null;
+		}
 	}
 	
 	public static UrlObj parse(

@@ -1,3 +1,5 @@
+// Copyright (c) 2014 Tom Zhou<iwebpp@gmail.com>
+
 package com.iwebpp.wspp;
 
 import java.util.Hashtable;

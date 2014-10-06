@@ -9,6 +9,7 @@ import com.iwebpp.node.tests.HttppTest;
 import com.iwebpp.node.tests.StreamTest;
 import com.iwebpp.node.tests.TcpTest;
 import com.iwebpp.node.tests.UdtTest;
+import com.iwebpp.node.tests.UrlTest;
 
 import android.os.Bundle;
 import android.app.Activity;
@@ -46,7 +47,8 @@ public class MainActivity extends Activity {
 		new HttpParserTest().start();
 		new HttpTest().start();
 		new HttppTest().start();
-
+		new UrlTest().start();
+		
 	}
 
 	@Override
