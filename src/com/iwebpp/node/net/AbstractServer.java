@@ -297,7 +297,7 @@ slave.getConnections(oncount);
 		});
 	}
 	public interface ListeningCallback {
-		public void onListening();
+		public void onListening() throws Exception;
 	}
 
 	public void onError(final ErrorListener cb) throws Exception {
@@ -311,7 +311,7 @@ slave.getConnections(oncount);
 		});
 	}
 	public interface ErrorListener {
-		public void onError(String error);
+		public void onError(String error) throws Exception;
 	}
 
 	/**

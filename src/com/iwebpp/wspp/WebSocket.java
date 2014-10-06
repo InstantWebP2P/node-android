@@ -220,7 +220,108 @@ public static final int     CLOSED = 3;
 		};
 
 	}
+	
+	public WebSocket(NodeContext ctx, http.request_socket_head_b rsh, Options options) throws Exception {
+		this.context = ctx;
+		final WebSocket self = this;
 
+		/*
+    	  if (protocols && !Array.isArray(protocols) && 'object' == typeof protocols) {
+    	    // accept the "options" Object as the 2nd argument
+    	    options = protocols;
+    	    protocols = null;
+    	  }
+    	  if ('string' == typeof protocols) {
+    	    protocols = [ protocols ];
+    	  }
+    	  if (!Array.isArray(protocols)) {
+    	    protocols = [];
+    	  }
+    	  // TODO: actually handle the `Sub-Protocols` part of the WebSocket client
+
+    	  this._socket = null;
+    	  this.bytesReceived = 0;
+    	  this.readyState = null;
+    	  this.supports = {};
+
+    	  if (Array.isArray(address)) {
+    	    initAsServerClient.apply(this, address.concat(options));
+    	  } else {
+    	    initAsClient.apply(this, [address, protocols, options]);
+    	  }
+		 */
+		this._socket = null;
+		this.bytesReceived = 0;
+		this.readyState = -1;/// null;
+		this.supports = new Hashtable<String, Boolean>();///{};
+
+		initAsServerClient(rsh.getRequest(), rsh.getSocket(), rsh.getHead(), options);
+
+		this.cleanupWebsocketResources = new Listener(){
+
+			@Override
+			public void onEvent(Object error) throws Exception {
+				if (self.readyState == WebSocket.CLOSED) return;
+				boolean emitClose = self.readyState != WebSocket.CONNECTING;
+				self.readyState = WebSocket.CLOSED;
+
+				// TBD...
+				///clearTimeout(this._closeTimer);
+				///self._closeTimer = null;
+
+				if (emitClose) self.emit("close", new close_code_b(
+						self._closeMessage!=null ?  self._closeMessage : "",
+							   self._closeCode>0 ?     self._closeCode : 1000)); ///self.emit("close", self._closeCode || 1000, self._closeMessage || "");
+
+				if (self._socket!=null) {
+					self._socket.removeAllListeners();
+					// catch all socket error after removing all standard handlers
+					final AbstractSocket socket = self._socket;
+
+					/*self._socket.on("error", function() {
+	    		      try { socket.destroy(); } catch (e) {}
+	    		    });*/
+					self._socket.on("error", new Listener(){
+						public void onEvent(final Object data) throws Exception {
+							try { socket.destroy(null); } catch (Exception e) {}
+						}
+					});
+
+					try {
+						if (null==error) self._socket.end(null, null, null);
+						else self._socket.destroy(null);
+					}
+					catch (Exception e) { /* Ignore termination errors */ }
+					self._socket = null;
+				}
+
+				if (self._sender!=null) {
+					self._sender.removeAllListeners();
+					self._sender = null;
+				}
+
+				if (self._receiver!=null) {
+					self._receiver.cleanup();
+					self._receiver = null;
+				}
+
+				self.removeAllListeners();
+				self.on("error", new Listener(){
+					public void onEvent(final Object data) throws Exception {
+						
+					}
+				});///function() {}); // catch all errors after this
+				/// TBD...
+				///delete this._queue;
+			}
+
+		};
+
+	}
+
+	@SuppressWarnings("unused")
+	private WebSocket(){}
+	
 /**
  * Gracefully closes the connection, after sending a description message to the server
  *
@@ -1076,7 +1177,9 @@ class ReceiverClass extends Receiver {
 	
 }
 
-private void establishConnection(/*Receiver ReceiverClass, Sender SenderClass, */final AbstractSocket socket, final ByteBuffer upgradeHead) throws Exception {
+private void establishConnection(
+		/*Receiver ReceiverClass, Sender SenderClass, */
+		final AbstractSocket socket, final ByteBuffer upgradeHead) throws Exception {
   this._socket = socket;
   ///socket.setTimeout(0);
   socket.setNoDelay(true);
@@ -1151,8 +1254,10 @@ private void establishConnection(/*Receiver ReceiverClass, Sender SenderClass, *
 	  @Override
 	  public void onEvent(Object raw) throws Exception {
 		  ByteBuffer data = (ByteBuffer)raw;
-		  if (data!=null) self.bytesReceived += data.capacity();
-		  self._receiver.add(data);	
+		  if (data!=null) {
+			  self.bytesReceived += data.capacity();
+			  self._receiver.add(data);	
+		  }
 	  }
 
   };
@@ -1174,7 +1279,7 @@ private void establishConnection(/*Receiver ReceiverClass, Sender SenderClass, *
 		}
 		// TBD...
 		///dataHandler = realHandler;
-		socket.removeListener("data"); 
+		socket.removeListener("data", this); 
 		socket.on("data", realHandler);
 		
 		if (data != null) {

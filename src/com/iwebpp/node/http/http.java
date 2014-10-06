@@ -8,6 +8,8 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import com.iwebpp.node.EventEmitter.Listener;
+import com.iwebpp.node.Url;
+import com.iwebpp.node.Url.UrlObj;
 import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.NodeContext;
 
@@ -243,8 +245,21 @@ public final class http {
 			NodeContext ctx, 
 			String url,
 			ClientRequest.responseListener onres) throws Exception {
-
-		return null;
+		UrlObj obj = Url.parse(url);
+		
+		ReqOptions options = new ReqOptions();
+		
+		options.protocol = obj.protocol;
+		
+	        options.auth = obj.auth;
+		
+		options.hostname = obj.hostname;
+		    options.port = obj.port;
+		    options.host = obj.host;
+		
+		    options.path = obj.path;
+		    
+		return request(ctx, options, onres);
 	}
 
 	// http.get(options, [callback])
@@ -266,7 +281,21 @@ public final class http {
 			String url,
 			ClientRequest.responseListener onres) throws Exception {
 
-		return null;
+		UrlObj obj = Url.parse(url);
+		
+		ReqOptions options = new ReqOptions();
+		
+		options.protocol = obj.protocol;
+		
+	        options.auth = obj.auth;
+		
+		options.hostname = obj.hostname;
+		    options.port = obj.port;
+		    options.host = obj.host;
+		
+		    options.path = obj.path;
+		    
+		return get(ctx, options, onres);
 	}
 
 }

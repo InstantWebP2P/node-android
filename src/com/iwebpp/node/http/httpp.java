@@ -1,6 +1,8 @@
 package com.iwebpp.node.http;
 
 import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.Url;
+import com.iwebpp.node.Url.UrlObj;
 
 public final class httpp {
 
@@ -25,8 +27,21 @@ public final class httpp {
 			NodeContext ctx, 
 			String url,
 			ClientRequest.responseListener onres) throws Exception {
-
-		return null;
+		UrlObj obj = Url.parse(url);
+		
+		ReqOptions options = new ReqOptions();
+		
+		options.protocol = obj.protocol;
+		
+	        options.auth = obj.auth;
+		
+		options.hostname = obj.hostname;
+		    options.port = obj.port;
+		    options.host = obj.host;
+		
+		    options.path = obj.path;
+		    
+		return request(ctx, options, onres);
 	}
 
 	// httpp.get(options, [callback])
@@ -47,8 +62,21 @@ public final class httpp {
 			NodeContext ctx, 
 			String url,
 			ClientRequest.responseListener onres) throws Exception {
-
-		return null;
+		UrlObj obj = Url.parse(url);
+		
+		ReqOptions options = new ReqOptions();
+		
+		options.protocol = obj.protocol;
+		
+	        options.auth = obj.auth;
+		
+		options.hostname = obj.hostname;
+		    options.port = obj.port;
+		    options.host = obj.host;
+		
+		    options.path = obj.path;
+		    
+		return get(ctx, options, onres);
 	}
 
 }

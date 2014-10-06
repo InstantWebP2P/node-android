@@ -13,9 +13,9 @@ public class ReqOptions {
 	
 	public String path;
 	public String host;
-	public int port;
+	public int port = -1;
 	public String localAddress;
-	public int localPort;
+	public int localPort = -1;
 	public String servername;
 	public String encoding;
 	
@@ -23,7 +23,7 @@ public class ReqOptions {
 	public createConnectionF createConnection;
 	public String protocol;
 	public String auth;
-	public int defaultPort;
+	public int defaultPort = 80;
 	public String hostname;
 	public boolean setHost;
 	public String socketPath;

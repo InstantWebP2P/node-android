@@ -285,7 +285,7 @@ extends TCP.Server {
 	}
 	
 	///server.listen(port, [hostname], [backlog], [callback])
-	public void listen(
+	public HttpServer listen(
 			int port, 
 			String hostname, 
 			int addressType, // 4 or 6
@@ -295,6 +295,23 @@ extends TCP.Server {
           
 		// TBD... address type parser
 		super.listen(hostname, port, addressType, backlog, -1, null);
+		
+		return this;
+	}
+
+	public HttpServer listen(
+			int port, 
+			String hostname,
+			ListeningCallback cb) throws Exception {
+		// TBD... determine address type by hostname
+		return listen(port, hostname, 4, 256, cb);
+	}
+	
+	public HttpServer listen(
+			int port, 
+			String hostname) throws Exception {
+		// TBD... determine address type by hostname
+		return listen(port, hostname, 4, 256, null);
 	}
 	
 	/*public void close(final closeListener cb) throws Exception {
