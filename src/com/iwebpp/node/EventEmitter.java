@@ -22,6 +22,7 @@ public interface EventEmitter {
 	public EventEmitter removeListener(final String event, final Listener cb);
 	public EventEmitter removeListener(final String event);
 	public EventEmitter removeListener();
+	public EventEmitter removeAllListeners();
 	public EventEmitter setMaxListeners(final String event, final int n);
 	public List<Listener> listeners(final String event);  
 	public int listenerCount(final String event);

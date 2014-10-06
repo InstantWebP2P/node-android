@@ -144,6 +144,13 @@ implements EventEmitter {
 	}
 
 	@Override
+	public EventEmitter removeAllListeners() {
+		// TODO Auto-generated method stub
+		events.clear();
+		return this;
+	}
+	
+	@Override
 	public EventEmitter setMaxListeners(final String event, final int n) {
 		// TODO Auto-generated method stub
 		this.maxEvents.put(event, n);

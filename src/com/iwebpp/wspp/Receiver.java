@@ -751,11 +751,12 @@ private ByteBuffer concatBuffers(List<Object> buffers) {
 
 /**
  * Handles an error
+ * @throws Exception 
  *
  * @api private
  */
 
-private Receiver error(String reason, int protocolErrorCode) {
+private Receiver error(String reason, int protocolErrorCode) throws Exception {
   this.reset();
   this.onerror(reason, protocolErrorCode);
   return this;
@@ -951,16 +952,16 @@ public void cleanup() {
 }
 
 // Abstract methods
-protected abstract void onerror(String reason, int protocolErrorCode);
+protected abstract void onerror(String reason, int protocolErrorCode) throws Exception;
 
-protected abstract void ontext(String text, opcOptions options);
+protected abstract void ontext(String text, opcOptions options) throws Exception;
 
-protected abstract void onbinary(ByteBuffer buf, opcOptions options);
+protected abstract void onbinary(ByteBuffer buf, opcOptions options) throws Exception;
 
-protected abstract void onclose(int code, String message, opcOptions options);
+protected abstract void onclose(int code, String message, opcOptions options) throws Exception;
 
-protected abstract void onping(ByteBuffer buf, opcOptions options);
+protected abstract void onping(ByteBuffer buf, opcOptions options) throws Exception;
 
-protected abstract void onpong(ByteBuffer buf, opcOptions options);
+protected abstract void onpong(ByteBuffer buf, opcOptions options) throws Exception;
 
 }
