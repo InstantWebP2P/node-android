@@ -3,6 +3,7 @@
 
 package com.iwebpp.node.http;
 
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ public class ReqOptions {
 	public String auth;
 	public int defaultPort = 80;
 	public String hostname;
-	public boolean setHost;
+	public boolean setHost = false;
 	public String socketPath;
 	public String method;
 	public Map<String, List<String>> headers;
@@ -48,4 +49,8 @@ public class ReqOptions {
 				final AbstractSocket.ConnectListener cb) throws Exception;
 	}
 
+	public ReqOptions(){
+		this.headers = new Hashtable<String, List<String>>();
+	}
+	
 }

@@ -66,7 +66,7 @@ extends EventEmitter2 {
 		}
 	}
 	
-	public Receiver() throws Exception {
+	protected Receiver() throws Exception {
         final Receiver self = this;
         
         this._utf8_decoder = Charset.forName("utf8").newDecoder();

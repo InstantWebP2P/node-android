@@ -3,6 +3,7 @@
 
 package com.iwebpp.node.tests;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -14,6 +15,7 @@ import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.NodeContext.TimeoutListener;
 import com.iwebpp.node.http.ClientRequest;
+import com.iwebpp.node.http.ClientRequest.upgradeListener;
 import com.iwebpp.node.http.HttpServer;
 import com.iwebpp.node.http.HttpServer.clientErrorListener;
 import com.iwebpp.node.http.http;
@@ -106,6 +108,88 @@ public final class HttpTest {
 		return true;   
 	}
 
+	private boolean testUpgrade() {
+		final String host = "192.188.1.100";
+		final int port = 6668;
+
+		try {
+
+			// client
+			ReqOptions ropt = new ReqOptions();
+			ropt.hostname = host;
+			ropt.port = port;
+			ropt.method = "GET";
+			ropt.path = "/";
+			
+			ropt.headers.put("Connection", new ArrayList<String>()); 
+			ropt.headers.get("Connection").add("Upgrade");
+
+			ropt.headers.put("Upgrade", new ArrayList<String>()); 
+			ropt.headers.get("Upgrade").add("websocket");
+
+			ropt.headers.put("Host", new ArrayList<String>()); 
+			ropt.headers.get("Host").add("192.188.1.100:6668");
+
+			ropt.headers.put("Origin", new ArrayList<String>()); 
+			ropt.headers.get("Origin").add("http://192.188.1.100:6668");
+
+			ropt.headers.put("Sec-WebSocket-Version", new ArrayList<String>()); 
+			ropt.headers.get("Sec-WebSocket-Version").add("13");
+
+			ropt.headers.put("Sec-WebSocket-Key", new ArrayList<String>()); 
+			ropt.headers.get("Sec-WebSocket-Key").add("MTMtVHVlIE9jdCAwNyAxMzozNzoyMiBHTVQrMDg6MDAgMjAxNA==");
+
+			ClientRequest req = http.request(ctx, ropt, new ClientRequest.responseListener() {
+
+				@Override
+				public void onResponse(IncomingMessage res) throws Exception {
+					Log.d(TAG, "STATUS: " + res.statusCode());
+					Log.d(TAG, "HEADERS: " + res.getHeaders());
+
+					res.setEncoding("utf-8");
+					res.on("data", new Listener(){
+
+						@Override
+						public void onEvent(Object chunk) throws Exception {
+							Log.d(TAG, "BODY: " + chunk);
+
+						}
+
+					});
+				}
+
+			});
+			
+			req.onceUpgrade(new upgradeListener(){
+
+				@Override
+				public void onUpgrade(IncomingMessage res,
+						AbstractSocket socket, ByteBuffer head)
+						throws Exception {
+                    Log.d(TAG, "got upgrade: "+res.toString());					
+				}
+				
+			});
+			
+			req.on("error", new Listener(){
+
+				@Override
+				public void onEvent(Object e) throws Exception {
+					Log.d(TAG, "problem with request: " + e);					
+				}
+
+			});
+			
+			req.end(null, null, null);
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return true;   
+	}
+	
 	private boolean testConnect() {
 		final String host = "192.188.1.100";
 		final int port = 51680;
@@ -276,10 +360,11 @@ public final class HttpTest {
 			public void run() {
 				Log.d(TAG, "start test");
 
-				testListening();
-				testConnection();
+				///testListening();
+				///testConnection();
 				///testConnect();
-				testConnectPair();
+				///testConnectPair();
+				testUpgrade();
 				
 				// run loop
 				try {

@@ -405,7 +405,7 @@ this.socket.setTimeout(msecs);
 		this._header = state.messageHeader + http.CRLF;
 		this._headerSent = false;
 		
-		Log.d(TAG, "..... -8");
+		Log.d(TAG, "..... -8, "+this._header);
 
 		// wait until the first body chunk, or close(), is sent to flush,
 		// UNLESS we're sending Expect: 100-continue.

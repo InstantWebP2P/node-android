@@ -824,6 +824,8 @@ extends OutgoingMessage {
 				req.emit("error", "parse error");
 				req.socket.set_hadError(true);
 			} else if (parser.incoming!=null && parser.incoming.isUpgrade()) {
+				Log.d(TAG, "Upgrade or CONNECT");
+				
 				// Upgrade or CONNECT
 				int bytesParsed = ret;
 				IncomingMessage res = parser.incoming;
@@ -835,7 +837,7 @@ extends OutgoingMessage {
 
 				ByteBuffer bodyHead = (ByteBuffer)Util.chunkSlice(d, bytesParsed);// d.slice(bytesParsed, d.length);
 
-				String eventName = req.method == "CONNECT" ? "connect" : "upgrade";
+				String eventName = req.method.equalsIgnoreCase("CONNECT") ? "connect" : "upgrade";
 				if (req.listenerCount(eventName) > 0) {
 					req.upgradeOrConnect = true;
 
@@ -851,6 +853,8 @@ extends OutgoingMessage {
 					req.emit(eventName, new http.response_socket_head_b(res, socket, bodyHead));
 					req.emit("close");
 				} else {
+					Log.d(TAG, "Got Upgrade header or CONNECT method, but have no handler");
+
 					// Got Upgrade header or CONNECT method, but have no handler.
 					socket.destroy(null);
 				}

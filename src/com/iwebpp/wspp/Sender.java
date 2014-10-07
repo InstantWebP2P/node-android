@@ -6,7 +6,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import com.iwebpp.node.EventEmitter2;
-import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.stream.Writable.WriteCB;
@@ -19,19 +18,15 @@ public class Sender
 extends EventEmitter2 {
 	private AbstractSocket _socket;
 	private boolean firstFragment;
-	private NodeContext context;
 	private byte[] _randomMask;
 
-	public Sender(NodeContext ctx, AbstractSocket socket) {
-		this.context = ctx;
-
+	protected Sender(AbstractSocket socket) {
 		this._socket = socket;
 		this.firstFragment = true;
 		this._randomMask = null;
 	}
 	@SuppressWarnings("unused")
 	private Sender(){}
-
 
 	/**
 	 * Sends a close instruction to the remote party.
@@ -59,14 +54,14 @@ extends EventEmitter2 {
 	}
 
 	public static final class SendOptions {
-		public boolean binary;
-		public boolean mask;
-		public boolean fin;
+		public boolean binary = false;
+		public boolean   mask = false;
+		public boolean    fin = false;
 
-		SendOptions(boolean binary, boolean mask, boolean fin) {
+		public SendOptions(boolean binary, boolean mask, boolean fin) {
 			this.binary = binary;
-			this.mask   = mask;
-			this.fin    = fin;
+			  this.mask   = mask;
+		   	   this.fin    = fin;
 		}
 	}
 

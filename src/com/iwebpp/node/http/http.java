@@ -7,6 +7,8 @@ import java.nio.ByteBuffer;
 import java.util.Hashtable;
 import java.util.Map;
 
+import android.util.Log;
+
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.Url;
 import com.iwebpp.node.Url.UrlObj;
@@ -16,6 +18,8 @@ import com.iwebpp.node.NodeContext;
 
 public final class http {
 
+	private static final String TAG = "http";
+	
 	public static final Map<Integer, String> STATUS_CODES;
 
 	static {
@@ -236,6 +240,8 @@ public final class http {
 			NodeContext ctx, 
 			ReqOptions options, 
 			ClientRequest.responseListener onres) throws Exception {
+		Log.d(TAG, "http request");
+		
 		options.httpp = false;
 
 		return new ClientRequest(ctx, options, onres);

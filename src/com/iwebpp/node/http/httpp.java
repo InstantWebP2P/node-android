@@ -1,10 +1,13 @@
 package com.iwebpp.node.http;
 
+import android.util.Log;
+
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Url;
 import com.iwebpp.node.Url.UrlObj;
 
 public final class httpp {
+	private static final String TAG = "httpp";
 
 	// httpp.createServer([requestListener])
 	public static HttppServer createServer(
@@ -18,6 +21,8 @@ public final class httpp {
 			NodeContext ctx, 
 			ReqOptions options, 
 			ClientRequest.responseListener onres) throws Exception {
+		Log.d(TAG, "httpp request");
+
 		options.httpp = true;
 
 		return new ClientRequest(ctx, options, onres);

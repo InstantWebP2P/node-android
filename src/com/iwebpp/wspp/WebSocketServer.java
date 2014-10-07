@@ -1,6 +1,7 @@
 package com.iwebpp.wspp;
 
 import java.nio.ByteBuffer;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import android.util.Base64;
+import android.util.Log;
 
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
@@ -191,8 +193,8 @@ extends EventEmitter2 {
 					  throw new Error('two instances of WebSocketServer cannot listen on the same http server path');
 				  }*/
 				if (_webSocketPaths!=null &&
-						_webSocketPaths.containsKey(this._server.toString()) &&
-						_webSocketPaths.get(this._server.toString()).contains(options.path)) {
+					_webSocketPaths.containsKey(this._server.toString()) &&
+					_webSocketPaths.get(this._server.toString()).contains(options.path)) {
 					throw new Exception("two instances of WebSocketServer cannot listen on the same http server path");
 				}
 
@@ -238,7 +240,7 @@ extends EventEmitter2 {
 		  }
 		 */
 		if (this._server != null) {
-			
+
 			if (options.httpp) {
 				HttppServer srv = (HttppServer)this._server;
 
@@ -274,9 +276,9 @@ extends EventEmitter2 {
 								self.emit("connection"+req.url(), client);
 								self.emit("connection", client);								
 							}
-							
+
 						});
-						
+
 					}
 
 				});
@@ -308,7 +310,7 @@ extends EventEmitter2 {
 							self.emit("connection"+req.url, client);
 							self.emit("connection", client);
 						});*/
-						
+
 						self.handleUpgrade(req, socket, head, new UpgradeCallback(){
 
 							@Override
@@ -317,9 +319,9 @@ extends EventEmitter2 {
 								self.emit("connection"+req.url(), client);
 								self.emit("connection", client);								
 							}
-							
+
 						});
-						
+
 					}
 
 				});
@@ -368,7 +370,8 @@ extends EventEmitter2 {
     }
   }*/
 		if (this.path!=null && _webSocketPaths.containsKey(this._server.toString())) {
-			_webSocketPaths.get(this._server.toString()).remove(this.path);
+			if (_webSocketPaths.get(this._server.toString()).contains(this.path)) 
+				_webSocketPaths.get(this._server.toString()).remove(this.path);
 
 			if (_webSocketPaths.get(this._server.toString()).isEmpty()) {
 				_webSocketPaths.remove(this._server.toString());
@@ -423,62 +426,64 @@ extends EventEmitter2 {
 		handleHybiUpgrade(req, socket, upgradeHead, cb);
 	}
 
-/**
- * Entirely private apis,
- * which may or may not be bound to a specific WebSocket instance.
- * @throws Exception 
- */
+	/**
+	 * Entirely private apis,
+	 * which may or may not be bound to a specific WebSocket instance.
+	 * @throws Exception 
+	 */
 
-private void handleHybiUpgrade(final IncomingMessage req, final AbstractSocket socket, final ByteBuffer upgradeHead, final UpgradeCallback cb) throws Exception {
-  // handle premature socket errors
-  /*var errorHandler = function() {
+	private void handleHybiUpgrade(final IncomingMessage req, final AbstractSocket socket, final ByteBuffer upgradeHead, final UpgradeCallback cb) throws Exception {
+		// handle premature socket errors
+		/*var errorHandler = function() {
     try { socket.destroy(); } catch (e) {}
   }*/
-  Listener errorHandler = new Listener(){
+		Listener errorHandler = new Listener(){
 
-	@Override
-	public void onEvent(Object data) throws Exception {
-	    try { socket.destroy(null); } catch (Exception e) {}
-	}
-	  
-  };
-  socket.on("error", errorHandler);
+			@Override
+			public void onEvent(Object data) throws Exception {
+				try { socket.destroy(null); } catch (Exception e) {}
+			}
 
-  // verify key presence
-  ///if (!req.headers['sec-websocket-key']) {
-  if (!req.headers().containsKey("sec-websocket-key") ||
-	   req.headers().get("sec-websocket-key").isEmpty()) {
-    abortConnection(socket, 400, "Bad Request");
-    return;
-  }
+		};
+		socket.on("error", errorHandler);
 
-  // verify version
-  ///var version = parseInt(req.headers['sec-websocket-version']);
-  int version = req.headers().containsKey("sec-websocket-version") ? Integer.parseInt(req.headers().get("sec-websocket-version").get(0), 10) : -1;
+		// verify key presence
+		///if (!req.headers['sec-websocket-key']) {
+		if (!req.headers().containsKey("sec-websocket-key") ||
+			 req.headers().get("sec-websocket-key").isEmpty()) {
+			abortConnection(socket, 400, "Bad Request");
+			return;
+		}
 
-  ///if ([8, 13].indexOf(version) === -1) {
-  if (version!=13 && version!=8) {
-	  abortConnection(socket, 400, "Bad Request");
-	  return;
-  }
+		// verify version
+		///var version = parseInt(req.headers['sec-websocket-version']);
+		int version = req.headers().containsKey("sec-websocket-version") ? 
+				Integer.parseInt(req.headers().get("sec-websocket-version").get(0), 10) : -1;
 
-  // verify protocol
-  ///var protocols = req.headers['sec-websocket-protocol'];
-  String protocols = req.headers().containsKey("sec-websocket-protocol") ? req.headers().get("sec-websocket-protocol").get(0) : null;
- 
-  // verify client
-  /*var origin = version < 13 ?
+		///if ([8, 13].indexOf(version) === -1) {
+		if (version!=13 && version!=8) {
+			abortConnection(socket, 400, "Bad Request");
+			return;
+		}
+
+		// verify protocol
+		///var protocols = req.headers['sec-websocket-protocol'];
+		String protocols = req.headers().containsKey("sec-websocket-protocol") ? 
+				req.headers().get("sec-websocket-protocol").get(0) : null;
+
+		// verify client
+		/*var origin = version < 13 ?
     req.headers['sec-websocket-origin'] :
     req.headers['origin'];
-*/
-  String origin = version < 13 ?
-		  (req.headers().containsKey("sec-websocket-origin") ? req.headers().get("sec-websocket-origin").get(0) : null) :
-		  (req.headers().containsKey("origin") ? req.headers().get("origin").get(0) : null);
-		  
-  
-  // optionally call external client verification handler
-  // TBD...
-  /*
+		 */
+		String origin = version < 13 ?
+				(req.headers().containsKey("sec-websocket-origin") ? req.headers().get("sec-websocket-origin").get(0) : null) :
+				(req.headers().containsKey("origin") ? req.headers().get("origin").get(0) : null);
+
+
+				// optionally call external client verification handler
+				// TBD...
+				/*
   if (typeof this.options.verifyClient == 'function') {
     var info = {
       origin: origin,
@@ -500,50 +505,57 @@ private void handleHybiUpgrade(final IncomingMessage req, final AbstractSocket s
       return;
     }
   }*/
-  if (this.options.verifyClient != null) {
-	  VerifyInfo info = new VerifyInfo();
-	  info.origin = origin;
-	  info.secure = false; // TBD...
-	  info.req = req;
+				if (this.options.verifyClient != null) {
+					VerifyInfo info = new VerifyInfo();
+					info.origin = origin;
+					info.secure = false; // TBD...
+					info.req = req;
 
-	  if (!this.options.verifyClient.onClient(info)) {
-		  abortConnection(socket, 401, "Unauthorized");
-		  return;
-	  }
-  }
+					if (!this.options.verifyClient.onClient(info)) {
+						abortConnection(socket, 401, "Unauthorized");
+						return;
+					}
+				}
 
-  completeHybiUpgrade1(
-		  protocols, version, errorHandler,
-		  req, socket, upgradeHead, cb);
-}
+				completeHybiUpgrade1(
+						protocols, version, errorHandler,
+						req, socket, upgradeHead, cb);
+	}
 
-public static class VerifyInfo {
-	 public String origin = null;
-     public boolean secure = false;
-     public IncomingMessage req = null;
-}
+	public static class VerifyInfo {
+		public String origin = null;
+		public boolean secure = false;
+		public IncomingMessage req = null;
+	}
 
-public interface VerifyClient {
-	public boolean onClient(VerifyInfo info) throws Exception;
-}
+	public interface VerifyClient {
+		public boolean onClient(VerifyInfo info) throws Exception;
+	}
 
-private void completeHybiUpgrade2(
-		String protocol, 
-		int version,
-		Listener errorHandler,
-		final IncomingMessage req, final AbstractSocket socket, final ByteBuffer upgradeHead, final UpgradeCallback cb) throws Exception {
-	final WebSocketServer self = this;
-	
-	// calc key
-	///var key = req.headers['sec-websocket-key'];
-	String key = req.headers().containsKey("sec-websocket-key") ? req.headers().get("sec-websocket-key").get(0) : null;
-	/*var shasum = crypto.createHash('sha1');
+	private void completeHybiUpgrade2(
+			String protocol, 
+			int version,
+			Listener errorHandler,
+			final IncomingMessage req, final AbstractSocket socket, final ByteBuffer upgradeHead, final UpgradeCallback cb) throws Exception {
+		final WebSocketServer self = this;
+
+		// calc key
+		///var key = req.headers['sec-websocket-key'];
+		String keystr = req.headers().containsKey("sec-websocket-key") ?
+				req.headers().get("sec-websocket-key").get(0) : "";
+		/*var shasum = crypto.createHash('sha1');
 	shasum.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
 	key = shasum.digest('base64');
-*/
-	key = Base64.encodeToString((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("utf-8"), Base64.DEFAULT);
-	
-	/*var headers = [
+		 */
+		MessageDigest shasum = MessageDigest.getInstance("SHA1");
+		shasum.update((keystr + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("utf-8"));
+		byte[] sharet = shasum.digest();
+
+		String key = Base64.encodeToString(sharet, Base64.DEFAULT);
+
+		Log.d(TAG, "keystr:"+keystr+",key:"+key);
+
+		/*var headers = [
 	               'HTTP/1.1 101 Switching Protocols'
 	               , 'Upgrade: websocket'
 	               , 'Connection: Upgrade'
@@ -553,143 +565,147 @@ private void completeHybiUpgrade2(
 	if (typeof protocol != 'undefined') {
 		headers.push('Sec-WebSocket-Protocol: ' + protocol);
 	}*/
-    Map<String, String> headers = new Hashtable<String, String>();
-    
-    ///headers.put("HTTP/1.1 101 Switching Protocols", new ArrayList<String>());
-    headers.put("FirstLine", "HTTP/1.1 101 Switching Protocols");
-    headers.put("Upgrade", "websocket");
-    headers.put("Connection", "Upgrade");
-    headers.put("Sec-WebSocket-Accept", key);
+		List<String> headers = new ArrayList<String>();
 
-	// allows external modification/inspection of handshake headers
-	self.emit("headers", headers);
-	    
-	///socket.setTimeout(0);
-	socket.setNoDelay(true);
-	try {
-	    String headersStr = "";
-	    headersStr += "HTTP/1.1 101 Switching Protocols\r\n";
-	    headersStr += "Upgrade: websocket\r\n";
-	    headersStr += "Connection: Upgrade\r\n";
-	    headersStr += "Sec-WebSocket-Accept: " + key + "\r\n";
-	    headersStr += "\r\n\r\n";
-	    		
-		///socket.write(headers.concat('', '').join('\r\n'));
-	    socket.write(headersStr, "utf-8", null);
-	}
-	catch (Exception e) {
-		// if the upgrade write fails, shut the connection down hard
-		try { socket.destroy(null); } catch (Exception ee) {}
-		return;
-	}
+		///headers.put("HTTP/1.1 101 Switching Protocols", new ArrayList<String>());
+		headers.add("HTTP/1.1 101 Switching Protocols");
+		headers.add("Upgrade: websocket");
+		headers.add("Connection: Upgrade");
+		headers.add("Sec-WebSocket-Accept: " + key);
 
-	WebSocket.Options wsopt = new WebSocket.Options();
-	wsopt.protocolVersion = version;
-	wsopt.protocol = protocol;
-	final WebSocket client = new WebSocket(context, new http.request_socket_head_b(req, socket, upgradeHead), wsopt);
-
-	if (self.options.clientTracking) {
-		///self.clients.push(client);
-		self.clients.add(client);
+		if (protocol != null) {
+			headers.add("Sec-WebSocket-Protocol: " + protocol);
+		}
 		
-		/*
+		// allows external modification/inspection of handshake headers
+		self.emit("headers", headers);
+
+		///socket.setTimeout(0);
+		socket.setNoDelay(true);
+		try {
+			String headersStr = "";
+			headersStr += "HTTP/1.1 101 Switching Protocols\r\n";
+			headersStr += "Upgrade: websocket\r\n";
+			headersStr += "Connection: Upgrade\r\n";
+			headersStr += "Sec-WebSocket-Accept: " + key + "\r\n";
+			headersStr += "\r\n\r\n";
+
+			///socket.write(headers.concat('', '').join('\r\n'));
+			socket.write(headersStr, "utf-8", null);
+		}
+		catch (Exception e) {
+			// if the upgrade write fails, shut the connection down hard
+			try { socket.destroy(null); } catch (Exception ee) {}
+			return;
+		}
+
+		WebSocket.Options wsopt = new WebSocket.Options();
+		wsopt.protocolVersion = version;
+		wsopt.protocol = protocol;
+		final WebSocket client = new WebSocket(context, new http.request_socket_head_b(req, socket, upgradeHead), wsopt);
+
+		if (self.options.clientTracking) {
+			///self.clients.push(client);
+			self.clients.add(client);
+
+			/*
 		client.on("close", function() {
 			var index = self.clients.indexOf(client);
 			if (index != -1) {
 				self.clients.splice(index, 1);
 			}
 		});*/
-		client.on("close", new Listener(){
+			client.on("close", new Listener(){
 
-			@Override
-			public void onEvent(Object data) throws Exception {
-                if (self.clients.contains(client)) 
-                	self.clients.remove(client);
-			}
-			
-		});
+				@Override
+				public void onEvent(Object data) throws Exception {
+					if (self.clients.contains(client)) 
+						self.clients.remove(client);
+				}
+
+			});
+		}
+
+		// signal upgrade complete
+		socket.removeListener("error", errorHandler);
+		cb.onUpgrade(client);
 	}
 
-	// signal upgrade complete
-	socket.removeListener("error", errorHandler);
-	cb.onUpgrade(client);
-}
+	// optionally call external protocol selection handler before
+	// calling completeHybiUpgrade2
+	private void completeHybiUpgrade1(
+			String protocols, 
+			final int version,
+			final Listener errorHandler,
+			final IncomingMessage req, final AbstractSocket socket, final ByteBuffer upgradeHead, final UpgradeCallback cb) throws Exception {
+		final WebSocketServer self = this;
 
-// optionally call external protocol selection handler before
-// calling completeHybiUpgrade2
-private void completeHybiUpgrade1(
-		String protocols, 
-		final int version,
-		final Listener errorHandler,
-		final IncomingMessage req, final AbstractSocket socket, final ByteBuffer upgradeHead, final UpgradeCallback cb) throws Exception {
-	final WebSocketServer self = this;
+		// choose from the sub-protocols
+		///if (typeof self.options.handleProtocols == 'function') {
+		if (self.options.handleProtocols != null) {
+			///var protList = (protocols || "").split(/, */);
+			// TBD...
+			String[] protList = (protocols!=null ? protocols : "").split(", *");
 
-	// choose from the sub-protocols
-	///if (typeof self.options.handleProtocols == 'function') {
-	if (self.options.handleProtocols != null) {
-		///var protList = (protocols || "").split(/, */);
-		// TBD...
-		String[] protList = (protocols!=null ? protocols : "").split(", *");
-		
-		///boolean callbackCalled = false;
-		final BasicBean<Boolean> callbackCalled = new BasicBean<Boolean>(false);
-		
-		/*var res = self.options.handleProtocols(protList, function(result, protocol) {
+			///boolean callbackCalled = false;
+			final BasicBean<Boolean> callbackCalled = new BasicBean<Boolean>(false);
+
+			/*var res = self.options.handleProtocols(protList, function(result, protocol) {
 			callbackCalled = true;
 			if (!result) abortConnection(socket, 404, "Unauthorized");
 			else completeHybiUpgrade2(
 					protocol, version, errorHandler, 
 					req, socket, upgradeHead, cb);
 		});*/
-		self.options.handleProtocols.onProtocol(protList, new HandleProtocol.HandleProtocolCallback(){
+			self.options.handleProtocols.onProtocol(protList, new HandleProtocol.HandleProtocolCallback(){
 
-			@Override
-			public void onHandle(boolean result, String protocol) throws Exception {
-				///callbackCalled = true;
-				callbackCalled.set(true);
-				
-				if (!result) abortConnection(socket, 404, "Unauthorized");
-				else completeHybiUpgrade2(
-						protocol, version, errorHandler, 
-						req, socket, upgradeHead, cb);				
+				@Override
+				public void onHandle(boolean result, String protocol) throws Exception {
+					///callbackCalled = true;
+					callbackCalled.set(true);
+
+					if (!result) abortConnection(socket, 404, "Unauthorized");
+					else completeHybiUpgrade2(
+							protocol, version, errorHandler, 
+							req, socket, upgradeHead, cb);				
+				}
+
+			});
+
+			if (!callbackCalled.get()) {
+				// the handleProtocols handler never called our callback
+				abortConnection(socket, 501, "Could not process protocols");
 			}
-			
-		});
-		
-		if (!callbackCalled.get()) {
-			// the handleProtocols handler never called our callback
-			abortConnection(socket, 501, "Could not process protocols");
-		}
-		
-		return;
-	} else {
-		///if (typeof protocols !== 'undefined') {
-		if (protocols != null) {
-			///completeHybiUpgrade2(protocols.split(/, */)[0]);
-			completeHybiUpgrade2(
-					protocols.split(", *")[0], version, errorHandler,
-					req, socket, upgradeHead, cb);
-		}
-		else {
-			completeHybiUpgrade2(
-					null, version, errorHandler,
-					req, socket, upgradeHead, cb);
+
+			return;
+		} else {
+			///if (typeof protocols !== 'undefined') {
+			if (protocols != null) {
+				///completeHybiUpgrade2(protocols.split(/, */)[0]);
+				completeHybiUpgrade2(
+						protocols.split(", *")[0], version, errorHandler,
+						req, socket, upgradeHead, cb);
+			}
+			else {
+				completeHybiUpgrade2(
+						null, version, errorHandler,
+						req, socket, upgradeHead, cb);
+			}
 		}
 	}
-}
 
-public interface HandleProtocol {
-	public interface HandleProtocolCallback {
-		public void onHandle(boolean result, String protocol) throws Exception;
+	public interface HandleProtocol {
+		public interface HandleProtocolCallback {
+			public void onHandle(boolean result, String protocol) throws Exception;
+		}
+
+		public void onProtocol(String[] protList, HandleProtocolCallback cb) throws Exception;
 	}
-
-	public void onProtocol(String[] protList, HandleProtocolCallback cb) throws Exception;
-}
 
 	interface UpgradeCallback {
-	      void onUpgrade(WebSocket client) throws Exception;	
+		void onUpgrade(WebSocket client) throws Exception;	
 	}
-	
+
 	private static void abortConnection(AbstractSocket socket, int code, String name) {
 		try {
 			/*
@@ -712,5 +728,5 @@ public interface HandleProtocol {
 		}
 	}
 
-	
+
 }
