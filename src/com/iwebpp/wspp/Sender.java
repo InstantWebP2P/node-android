@@ -39,7 +39,7 @@ extends EventEmitter2 {
 	 *
 	 * @api public
 	 */
-	public boolean close(int code, Object data, boolean mask) throws Exception {
+	protected boolean close(int code, Object data, boolean mask) throws Exception {
 		if (code > 0) {
 			if (!ErrorCodes.isValidErrorCode(code)) 
 				throw new Exception("first argument must be a valid error code number");
@@ -61,12 +61,11 @@ extends EventEmitter2 {
 	public static final class SendOptions {
 		public boolean binary = false;
 		public boolean   mask = false;
-		public boolean    fin = false;
+		protected boolean fin = false;
 
-		public SendOptions(boolean binary, boolean mask, boolean fin) {
+		public SendOptions(boolean binary, boolean mask) {
 			this.binary = binary;
-			  this.mask   = mask;
-		   	   this.fin    = fin;
+			this.mask = mask;
 		}
 	}
 
@@ -76,7 +75,7 @@ extends EventEmitter2 {
 	 *
 	 * @api public
 	 */
-	public boolean ping(Object data, SendOptions options) throws Exception {
+	protected boolean ping(Object data, SendOptions options) throws Exception {
 		boolean mask = options!=null && options.mask;
 		return this.frameAndSend(0x9, data!=null ? data : "", true, mask, null);
 	}
@@ -87,7 +86,7 @@ extends EventEmitter2 {
 	 *
 	 * @api public
 	 */
-	public boolean pong(Object data, SendOptions options) throws Exception {
+	protected boolean pong(Object data, SendOptions options) throws Exception {
 		boolean mask = options!=null && options.mask;
 		return this.frameAndSend(0xa, data!=null ? data : "", true, mask, null);
 	}
@@ -98,7 +97,7 @@ extends EventEmitter2 {
 	 *
 	 * @api public
 	 */
-	public boolean send(Object data, SendOptions options, WriteCB cb) throws Exception {
+	protected boolean send(Object data, SendOptions options, WriteCB cb) throws Exception {
 		Log.d(TAG, "send");
 		
 		boolean finalFragment = options!=null && options.fin == false ? false : true;

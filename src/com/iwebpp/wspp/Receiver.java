@@ -918,7 +918,7 @@ private ByteBuffer allocateFromPool(int length, boolean isFragmented) {
  * @api public
  */
 
-public void add(ByteBuffer data) throws Exception {
+protected void add(ByteBuffer data) throws Exception {
 	Log.d(TAG, "add data: "+data);
 
 	int dataLength = data!=null ? data.capacity() : 0; ///Util.chunkLength(data); ///data.length;
@@ -959,7 +959,7 @@ public void add(ByteBuffer data) throws Exception {
  *
  * @api public
  */
-public void cleanup() {
+protected void cleanup() {
   this.dead = true;
   this.overflow = null;
   this.headerBuffer = null;

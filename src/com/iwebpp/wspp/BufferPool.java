@@ -11,9 +11,9 @@ public final class BufferPool {
 	private int _used;
 	private int _changeFactor;
 	private Strategy _strategy;
-	public int PoolPrevUsed;
+	protected int PoolPrevUsed;
 
-	BufferPool(int initialSize, Strategy _strategy) {
+	protected BufferPool(int initialSize, Strategy _strategy) {
 		this._buffer = initialSize>0 ? ByteBuffer.allocate(initialSize) : null;
 		this._offset = 0;
 		this._used = 0;
@@ -23,18 +23,19 @@ public final class BufferPool {
 		
 		this.PoolPrevUsed = -1;
 	}
-	BufferPool(){}
+	@SuppressWarnings("unused")
+	private BufferPool(){}
 
-	public int size() {
+	protected int size() {
 		return this._buffer == null ? 0 : this._buffer.capacity();
 	}
 
-	public int used() {
+	protected int used() {
 		return this._used;
 	}
 
 
-	public ByteBuffer get(int length) {
+	protected ByteBuffer get(int length) {
 		if (this._buffer == null || this._offset + length > this._buffer.capacity()) {
 			ByteBuffer newBuf = ByteBuffer.allocate(this._strategy._growStrategy(this, length));
 			this._buffer = newBuf;
@@ -47,7 +48,7 @@ public final class BufferPool {
 		return buf;
 	}
 
-	public void reset(boolean forceNewBuffer) {
+	protected void reset(boolean forceNewBuffer) {
 		int len = this._strategy._shrinkStrategy(this);
 		if (len < this.size()) this._changeFactor -= 1;
 		if (forceNewBuffer || this._changeFactor < -2) {
@@ -58,7 +59,7 @@ public final class BufferPool {
 		this._used = 0;
 	}
 	
-	public interface Strategy {
+	protected interface Strategy {
 		public int _growStrategy(BufferPool db, int length);
 		public int _shrinkStrategy(BufferPool db);
 	}

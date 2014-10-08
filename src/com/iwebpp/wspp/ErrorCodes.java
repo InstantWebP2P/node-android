@@ -26,12 +26,12 @@ public final class ErrorCodes {
 		_descs.put(1011, "an unexpected condition prevented the request from being fulfilled");
 	}
 
-	public static boolean isValidErrorCode(int code) {
+	protected static boolean isValidErrorCode(int code) {
 		return (code >= 1000 && code <= 1011 && code != 1004 && code != 1005 && code != 1006) ||
 			   (code >= 3000 && code <= 4999);
 	}
 
-	public static String desc(int code) {
+	protected static String desc(int code) {
 		if (isValidErrorCode(code))
 			return _descs.get(code);
 		else 

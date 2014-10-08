@@ -185,7 +185,7 @@ extends EventEmitter2 {
 
 				if (emitClose) self.emit("close", new close_code_b(
 						self._closeMessage!=null ?  self._closeMessage : "",
-								self._closeCode>0 ?     self._closeCode : 1000)); ///self.emit("close", self._closeCode || 1000, self._closeMessage || "");
+						self._closeCode>0 ?     self._closeCode : 1000)); ///self.emit("close", self._closeCode || 1000, self._closeMessage || "");
 
 				if (self._socket!=null) {
 					self._socket.removeAllListeners();
@@ -643,7 +643,8 @@ extends EventEmitter2 {
 
 	}
 
-	public void stream(final SendOptions options, final StreamCallback cb) throws Exception {
+	// TBD...
+	private void stream(final SendOptions options, final StreamCallback cb) throws Exception {
 		/*if (typeof options == 'function') {
     cb = options;
     options = {};
@@ -1494,7 +1495,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 		protected void onping(ByteBuffer buf, opcOptions options) throws Exception {
 			///flags = flags || {};
 			///pong(data, {mask: !self._isServer, binary: flags.binary === true}, true);
-			pong(buf, new SendOptions(options.binary, !_isServer, false), true);
+			pong(buf, new SendOptions(options.binary, !_isServer), true);
 			emit("ping", new message_data_b(buf, options));
 		}
 

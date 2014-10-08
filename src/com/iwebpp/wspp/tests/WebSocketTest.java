@@ -46,7 +46,7 @@ public final class WebSocketTest {
 					}
 					
 				}, 2000);*/
-				ws.send("Hello, node-andord", new Sender.SendOptions(false, false, false), new WriteCB(){
+				ws.send("Hello, node-andord", new Sender.SendOptions(false, true), new WriteCB(){
 
 					@Override
 					public void writeDone(String error) throws Exception {

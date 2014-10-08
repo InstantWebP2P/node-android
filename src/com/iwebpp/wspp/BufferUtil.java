@@ -14,14 +14,14 @@ public final class BufferUtil {
 	
   private static final String TAG = "BufferUtil";
   
-  public static ByteBuffer merge(/*ByteBuffer mergedBuffer,*/ List<Object> buffers) {
+  protected static ByteBuffer merge(/*ByteBuffer mergedBuffer,*/ List<Object> buffers) {
 	  ///buffers.add(0, mergedBuffer);
 	  ByteBuffer mergedBuffer = Util.concatByteBuffer(buffers, 0);
 	  
 	  return mergedBuffer;
   }
   
-  public static ByteBuffer mask(ByteBuffer source, byte[] mask, ByteBuffer output,
+  protected static ByteBuffer mask(ByteBuffer source, byte[] mask, ByteBuffer output,
 		  int offset, int length) {
 	  int maskNum = 
 			  ((mask[0] <<  0) &       0xff) |
@@ -49,7 +49,7 @@ public final class BufferUtil {
 	  return output;
   }
   
-  public static ByteBuffer unmask(ByteBuffer data, byte[] mask) {
+  protected static ByteBuffer unmask(ByteBuffer data, byte[] mask) {
 	  int maskNum = 
 			  ((mask[0] <<  0) &       0xff) |
 			  ((mask[1] <<  8) &     0xff00) |
@@ -77,7 +77,7 @@ public final class BufferUtil {
 	  return data;
   }
 
-  public static void fastCopy(int length, ByteBuffer srcBuffer, ByteBuffer dstBuffer, int dstOffset) {
+  protected static void fastCopy(int length, ByteBuffer srcBuffer, ByteBuffer dstBuffer, int dstOffset) {
 	  /*switch (length) {
     default: srcBuffer.copy(dstBuffer, dstOffset, 0, length); break;
     case 16: dstBuffer[dstOffset+15] = srcBuffer[15];
@@ -117,7 +117,7 @@ public final class BufferUtil {
 	  Log.d(TAG, "fastCopy, srcBuffer:"+srcBuffer+",dstBuffer:"+dstBuffer);
   }
 
-  public static ByteBuffer renewBuffer(ByteBuffer buf) {
+  protected static ByteBuffer renewBuffer(ByteBuffer buf) {
 	  buf.position(0); buf.limit(buf.capacity());
 	  
 	  return buf;
