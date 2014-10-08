@@ -262,7 +262,7 @@ extends EventEmitter2 {
 						///var head = new Buffer(upgradeHead.length);
 						///upgradeHead.copy(head);
 						ByteBuffer head = ByteBuffer.allocate(upgradeHead.capacity());
-						upgradeHead.put(head); head.flip(); upgradeHead.flip();
+						head.put(upgradeHead); head.flip(); upgradeHead.flip();
 
 						/*self.handleUpgrade(req, socket, head, function(client) {
 							self.emit("connection"+req.url, client);
@@ -304,7 +304,7 @@ extends EventEmitter2 {
 						///var head = new Buffer(upgradeHead.length);
 						///upgradeHead.copy(head);
 						ByteBuffer head = ByteBuffer.allocate(upgradeHead.capacity());
-						upgradeHead.put(head); head.flip(); upgradeHead.flip();
+						head.put(upgradeHead); head.flip(); upgradeHead.flip();
 
 						/*self.handleUpgrade(req, socket, head, function(client) {
 							self.emit("connection"+req.url, client);
