@@ -5,6 +5,8 @@ package com.iwebpp.wspp;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import android.util.Log;
+
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.net.AbstractSocket;
@@ -16,6 +18,9 @@ import com.iwebpp.node.stream.Writable.WriteCB;
  */
 public class Sender 
 extends EventEmitter2 {
+	
+	private static final String TAG = "Sender";
+	
 	private AbstractSocket _socket;
 	private boolean firstFragment;
 	private byte[] _randomMask;
@@ -94,6 +99,8 @@ extends EventEmitter2 {
 	 * @api public
 	 */
 	public boolean send(Object data, SendOptions options, WriteCB cb) throws Exception {
+		Log.d(TAG, "send");
+		
 		boolean finalFragment = options!=null && options.fin == false ? false : true;
 		boolean mask = options!=null && options.mask;
 		int opcode = options!=null && options.binary == false ? 1 : 2;
@@ -117,6 +124,8 @@ extends EventEmitter2 {
 	 */
 	private boolean frameAndSend(int opcode, Object data, boolean finalFragment,
 			boolean maskData, WriteCB cb) throws Exception {
+		Log.d(TAG, "frameAndSend");
+		
 		boolean canModifyData = false;
 		boolean out = false;
 
@@ -165,15 +174,21 @@ extends EventEmitter2 {
 				data = new Buffer(data);
 			}
 		}*/
-		if (!Util.isBuffer(data) && Util.isString(data)) {
-			data = Util.chunkToBuffer(data, "utf8");
-		} else {
-			if (cb != null) cb.writeDone("Invalid data");
-			else this.emit("error", "Invalid data");
-			
-			return out;
+		if (!Util.isBuffer(data)) {
+			if (Util.isString(data)) {
+				canModifyData = true;
+
+				data = Util.chunkToBuffer(data, "utf8");
+			} else {
+				if (cb != null) cb.writeDone("Invalid data");
+				else this.emit("error", "Invalid data");
+
+				return out;
+			}
 		}
 		
+		Log.d(TAG, "frameAndSend ... 1");
+
 
 		int dataLength = Util.chunkByteLength(data, null);
 		int dataOffset = maskData ? 6 : 2;
@@ -225,6 +240,8 @@ extends EventEmitter2 {
 			if (mergeBuffers) {
 				BufferUtil.mask((ByteBuffer) data, mask, outputBuffer, dataOffset, dataLength);
 				try {
+					BufferUtil.renewBuffer(outputBuffer); Log.d(TAG, "outputBuffer 3:"+outputBuffer);
+
 					out = this._socket.write(outputBuffer, null, cb);
 				}
 				catch (Exception e) {
@@ -237,7 +254,12 @@ extends EventEmitter2 {
 				try {
 					///this._socket.write(outputBuffer, 'binary');
 					///out = this._socket.write(data, 'binary', cb);
+					BufferUtil.renewBuffer(outputBuffer); Log.d(TAG, "outputBuffer 1:"+outputBuffer);
+
 					this._socket.write(outputBuffer, null, null);
+					
+					BufferUtil.renewBuffer((ByteBuffer)data); Log.d(TAG, "data 1:"+(ByteBuffer)data);
+					
 					out = this._socket.write(data, null, cb);
 				}
 				catch (Exception e) {
@@ -251,9 +273,12 @@ extends EventEmitter2 {
 			outputBuffer.put(1, (byte) secondByte);
 			if (mergeBuffers) {
 				///data.copy(outputBuffer, dataOffset);
-				outputBuffer.put((ByteBuffer) data);
+				ByteBuffer tfc = (ByteBuffer)data;
+				BufferUtil.fastCopy(tfc.capacity(), tfc, outputBuffer, dataOffset);
 				
 				try {
+					BufferUtil.renewBuffer(outputBuffer); Log.d(TAG, "outputBuffer 2:"+outputBuffer);
+
 					out = this._socket.write(outputBuffer, null, cb);
 				}
 				catch (Exception e) {
@@ -265,7 +290,13 @@ extends EventEmitter2 {
 				try {
 					///this._socket.write(outputBuffer, 'binary');
 					///out = this._socket.write(data, 'binary', cb);
+					
+					BufferUtil.renewBuffer(outputBuffer); Log.d(TAG, "outputBuffer 0:"+outputBuffer);
+					
 					this._socket.write(outputBuffer, null, null);
+					
+					BufferUtil.renewBuffer((ByteBuffer)data); Log.d(TAG, "data 0:"+(ByteBuffer)data);
+
 					out = this._socket.write(data, null, cb);
 				}
 				catch (Exception e) {
@@ -275,6 +306,8 @@ extends EventEmitter2 {
 			}
 		}
 		
+		Log.d(TAG, "frameAndSend ... 2");
+
 		return out;
 	}
 

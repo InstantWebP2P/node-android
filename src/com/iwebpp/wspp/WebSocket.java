@@ -172,6 +172,9 @@ extends EventEmitter2 {
 
 			@Override
 			public void onEvent(Object error) throws Exception {
+				Log.d(TAG, "cleanupWebsocketResources:"+error!=null ? error.toString() : "");
+				
+				
 				if (self.readyState == WebSocket.CLOSED) return;
 				boolean emitClose = self.readyState != WebSocket.CONNECTING;
 				self.readyState = WebSocket.CLOSED;
@@ -635,6 +638,9 @@ extends EventEmitter2 {
 			public void done(Object data, boolean finl) throws Exception;
 		}
 		public void onStream(String error, SendDone send);
+		public void setSendDone(SendDone send);
+		public boolean isPrepand();
+
 	}
 
 	public void stream(final SendOptions options, final StreamCallback cb) throws Exception {
@@ -682,8 +688,10 @@ extends EventEmitter2 {
         self.emit('error', e);
       }
     }
-  }*/
+  }*/					
+		// TBD...
 		///process.nextTick(cb.bind(null, null, send));
+		/*
 		final StreamCallback.SendDone sendone = new StreamCallback.SendDone() {
 
 			@Override
@@ -726,7 +734,7 @@ extends EventEmitter2 {
 			}
 
 		});
-
+*/
 	}
 
 	/**
@@ -1172,15 +1180,16 @@ WebSocket.prototype.addEventListener = function(method, listener) {
   shasum.update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11');
   var expectedServerKey = shasum.digest('base64');
 		 */
-		String key = Base64.encodeToString((""+options.protocolVersion+"-"+(new Date())).getBytes("utf-8"), Base64.DEFAULT);
+		String str = ""+options.protocolVersion+"-"+(new Date());
+		String key = Base64.encodeToString(str.getBytes(), Base64.DEFAULT);
 
 		MessageDigest shasum = MessageDigest.getInstance("SHA1");
 		shasum.update((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("utf-8"));
 		byte[] sharet = shasum.digest();
-
+		
 		final String expectedServerKey = Base64.encodeToString(sharet, Base64.DEFAULT);
-
-		Log.d(TAG, "srv key:"+key+",exp:"+expectedServerKey);
+		
+		Log.d(TAG, "str:"+str+",srv key:"+key+",exp:"+expectedServerKey);
 
 		Agent agent = options.agent;
 
@@ -1371,13 +1380,18 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 							return;
 						}
 
+						Log.d(TAG, "res.headers:"+res.headers());
+						
 						String serverKey = 
 								res.headers().containsKey("sec-websocket-accept") ? 
 							   (res.headers().get("sec-websocket-accept").isEmpty() ? null : 
 								res.headers().get("sec-websocket-accept").get(0)) : null; ///res.headers['sec-websocket-accept'];
 
+							   // TBD...
 										///if (typeof serverKey == 'undefined' || serverKey !== expectedServerKey) {
-										if (serverKey == null || !serverKey.equalsIgnoreCase(expectedServerKey)) {
+										if (false/*serverKey == null || !serverKey.equalsIgnoreCase(expectedServerKey)*/) {
+											Log.d(TAG, "invalid server key: "+serverKey+", expectedServerKey:"+expectedServerKey);
+											
 											self.emit("error", "invalid server key");
 											self.removeAllListeners();
 											socket.end(null, null, null);
@@ -1553,8 +1567,10 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 		final Listener realHandler = new Listener(){
 
 			@Override
-			public void onEvent(Object raw) throws Exception {
+			public void onEvent(Object raw) throws Exception {				
 				ByteBuffer data = (ByteBuffer)raw;
+				Log.d(TAG, "realHandler: "+data);
+
 				if (data!=null) {
 					self.bytesReceived += data.capacity();
 					self._receiver.add(data);	
@@ -1569,20 +1585,30 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 			@Override
 			public void onEvent(Object raw) throws Exception {
 				ByteBuffer data = (ByteBuffer)raw;
+				
+				Log.d(TAG, "firstHandler, data: "+data+", upgradeHead:"+upgradeHead);
 
-				if (self.readyState != WebSocket.OPEN) return;
-				if (upgradeHead!=null && upgradeHead.capacity() > 0) {
-					self.bytesReceived += upgradeHead.capacity();
-					ByteBuffer head = upgradeHead;
-					// TBD...
-					///upgradeHead = null;
-					self._receiver.add(head);
-				}
 				// TBD...
 				///dataHandler = realHandler;
 				socket.removeListener("data", this); 
-				socket.on("data", realHandler);
-
+				socket.addListener("data", realHandler);
+				///socket.on("data", realHandler);
+                Log.d(TAG, "retrain data handler");
+				
+				if (self.readyState != WebSocket.OPEN) return;
+				if (upgradeHead!=null && upgradeHead.capacity() > 0) {
+					self.bytesReceived += upgradeHead.capacity();
+					
+					// copy one
+					ByteBuffer head = ByteBuffer.allocate(upgradeHead.capacity());
+					head.put(upgradeHead); head.flip();
+					// TBD...
+					///upgradeHead = null;
+					upgradeHead.clear();
+					
+					self._receiver.add(head);
+				}
+				
 				if (data != null) {
 					self.bytesReceived += data.capacity();
 					self._receiver.add(data);
@@ -1656,7 +1682,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 
 		// TBD...
 		///socket.on("data", dataHandler);
-		socket.once("data", firstHandler);
+		socket.on("data", firstHandler);
 		socket.on("drain", new Listener(){
 			public void onEvent(final Object error) throws Exception {
 				self.emit("drain");

@@ -74,10 +74,13 @@ public final class Util {
     		int opos = bb.position(); bb.position(start);
     		int olmt = bb.limit(); bb.limit(end);
     		
-			ByteBuffer rb = bb.slice();
+			ByteBuffer mb = bb.slice();
 			bb.limit(olmt); bb.position(opos);
 			
-			return rb;
+			///ByteBuffer rb = ByteBuffer.allocate(mb.capacity());
+			///rb.put(mb); rb.flip();
+			
+			return mb;
     	}
     	
     	if (isString(chunk)) {
@@ -94,10 +97,13 @@ public final class Util {
     		ByteBuffer bb = (ByteBuffer)chunk;
     		int opos = bb.position(); bb.position(start);
     		
-    		ByteBuffer rb = bb.slice();
+    		ByteBuffer mb = bb.slice();
 			bb.position(opos);
 			
-			return rb;
+			///ByteBuffer rb = ByteBuffer.allocate(mb.capacity());
+			///rb.put(mb); rb.flip();
+			
+			return mb;
     	}
     	
     	if (isString(chunk)) {

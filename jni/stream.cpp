@@ -135,7 +135,11 @@ void StreamCallbacks::on_read(uv_buf_t* buf, jsize nread) {
         arg);
     _env->DeleteLocalRef(arg);
   }
-  delete[] buf->base;
+  if (buf->base != NULL && buf->len > 0) {
+    delete[] buf->base;
+    buf->base = NULL;
+    buf->len = 0;
+  }
 }
 
 void StreamCallbacks::on_read2(uv_buf_t* buf, jsize nread, jlong ptr, uv_handle_type pending) {
@@ -160,7 +164,11 @@ void StreamCallbacks::on_read2(uv_buf_t* buf, jsize nread, jlong ptr, uv_handle_
         pending);
     _env->DeleteLocalRef(array);
   }
-  delete[] buf->base;
+  if (buf->base != NULL && buf->len > 0) {
+    delete[] buf->base;
+    buf->base = NULL;
+    buf->len = 0;
+  }
 }
 
 void StreamCallbacks::on_write(int status, int error_code, jobject buffer, jobject context) {

@@ -1,6 +1,7 @@
 package com.iwebpp.wspp.tests;
 
 import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.NodeContext.IntervalListener;
 import com.iwebpp.node.stream.Writable.WriteCB;
 import com.iwebpp.wspp.Sender;
 import com.iwebpp.wspp.WebSocket;
@@ -28,6 +29,23 @@ public final class WebSocketTest {
 				Log.d(TAG, "ws opened");	
 
 				// send message
+				/*ctx.setInterval(new IntervalListener(){
+
+					@Override
+					public void onInterval() throws Exception {
+
+						ws.send("Hello, node-andord", new Sender.SendOptions(false, false, false), new WriteCB(){
+
+							@Override
+							public void writeDone(String error) throws Exception {
+								Log.d(TAG, "send done");						
+							}
+
+						});
+						
+					}
+					
+				}, 2000);*/
 				ws.send("Hello, node-andord", new Sender.SendOptions(false, false, false), new WriteCB(){
 
 					@Override
@@ -44,7 +62,13 @@ public final class WebSocketTest {
 
 			@Override
 			public void onMessage(MessageEvent event) throws Exception {
-				Log.d(TAG, "message: "+event.toString());				
+				Log.d(TAG, "message: "+event.toString());		
+				
+				if (event.isBinary()) {
+					Log.d(TAG, "binary message: "+event.getData().toString());
+				} else {
+					Log.d(TAG, "text message: "+(String)(event.getData()));
+				}
 			}
 
 		});
@@ -60,13 +84,18 @@ public final class WebSocketTest {
 		(new Thread(new Runnable() {
 			public void run() {
 				Log.d(TAG, "start test");
-
+				
 				try {
 					testConnect();
-				} catch (Exception e) {
+					
+					// run loop
+					ctx.getLoop().run();
+					
+					Log.d(TAG, "exit test");
+				} catch (Throwable e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}			    
+				}    
 			}
 		})).start();
 

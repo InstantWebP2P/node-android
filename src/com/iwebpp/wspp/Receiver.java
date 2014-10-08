@@ -10,11 +10,14 @@ import java.nio.charset.CharsetDecoder;
 import java.util.LinkedList;
 import java.util.List;
 
+import android.util.Log;
+
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.Util;
 
-public abstract class Receiver 
-extends EventEmitter2 {
+public abstract class Receiver {
+	
+	private static final String TAG = "Receiver";
 	
 	private class State {
 
@@ -155,6 +158,11 @@ extends EventEmitter2 {
 
 			  @Override
 			  public void start(ByteBuffer data) throws Exception {
+				  String dstr = "";
+					for (int i = 0; i < data.capacity(); i ++)
+						dstr += " "+data.get(i);
+					Log.d(TAG, dstr);
+				  
 				  ///var self = this;
 				  // decode length
 				  int firstLength = data.get(1) & 0x7f;
@@ -222,8 +230,8 @@ extends EventEmitter2 {
                             self.expectData(length, new PacketHandler(){
 
 								@Override
-								public void onPacket(ByteBuffer data) throws Exception {
-                                    finish(mask, data);									
+								public void onPacket(ByteBuffer data2) throws Exception {
+                                    finish(mask, data2);									
 								}
                             	
                             });
@@ -274,6 +282,11 @@ extends EventEmitter2 {
 
 			  @Override
 			  public void start(ByteBuffer data) throws Exception {
+				  String dstr = "";
+					for (int i = 0; i < data.capacity(); i ++)
+						dstr += " "+data.get(i);
+					Log.d(TAG, dstr);
+					
 			      ///var self = this;
 			      // decode length
 			      int firstLength = data.get(1) & 0x7f;
@@ -343,9 +356,9 @@ extends EventEmitter2 {
 							  self.expectData(length, new PacketHandler(){
 
 								  @Override
-								  public void onPacket(ByteBuffer data)
+								  public void onPacket(ByteBuffer data2)
 										  throws Exception {
-									  finish(mask, data);									
+									  finish(mask, data2);									
 								  }
 
 							  });
@@ -387,6 +400,11 @@ extends EventEmitter2 {
 
 			  @Override
 			  public void start(ByteBuffer data) throws Exception {
+				  String dstr = "";
+					for (int i = 0; i < data.capacity(); i ++)
+						dstr += " "+data.get(i);
+					Log.d(TAG, dstr);
+					
 				  ///var self = this;
 				  if (self.state.lastFragment == false) {
 					  self.error("fragmented close is not supported", 1002);
@@ -428,9 +446,9 @@ extends EventEmitter2 {
 							  self.expectData(length, new PacketHandler(){
 
 								  @Override
-								  public void onPacket(ByteBuffer data)
+								  public void onPacket(ByteBuffer data2)
 										  throws Exception {
-									  finish(mask, data);									
+									  finish(mask, data2);									
 								  }
 
 							  });
@@ -468,7 +486,7 @@ extends EventEmitter2 {
 			      }
 			      String message = "";
 			      if (data!=null && data.capacity() > 2) {
-			        ByteBuffer messageBuffer = (ByteBuffer) Util.chunkSlice(data, 2);///data.slice(2);
+			        ByteBuffer messageBuffer = (ByteBuffer) Util.chunkSlice(data, 2, data.capacity());///data.slice(2);
 			        if (!Validation.isValidUTF8(messageBuffer)) {
 			          self.error("invalid utf8 sequence", 1007);
 			          return;
@@ -486,6 +504,11 @@ extends EventEmitter2 {
 
 			  @Override
 			  public void start(ByteBuffer data) throws Exception {
+				  String dstr = "";
+					for (int i = 0; i < data.capacity(); i ++)
+						dstr += " "+data.get(i);
+					Log.d(TAG, dstr);
+					
 				  ///var self = this;
 				  if (self.state.lastFragment == false) {
 					  self.error("fragmented ping is not supported", 1002);
@@ -527,9 +550,9 @@ extends EventEmitter2 {
 			    			  self.expectData(length, new PacketHandler(){
 
 			    				  @Override
-			    				  public void onPacket(ByteBuffer data)
+			    				  public void onPacket(ByteBuffer data2)
 			    						  throws Exception {
-			    					  finish(mask, data);									
+			    					  finish(mask, data2);									
 			    				  }
 
 			    			  });
@@ -605,8 +628,8 @@ extends EventEmitter2 {
 			    			
 			    			  self.expectData(length, new PacketHandler(){
 			    				  @Override
-					    		  public void onPacket(ByteBuffer data) throws Exception {
-			    					  finish(mask, data);
+					    		  public void onPacket(ByteBuffer data2) throws Exception {
+			    					  finish(mask, data2);
 			    				  }
 			    			  });
 			    		  }
@@ -653,6 +676,13 @@ extends EventEmitter2 {
 
 		@Override
 		public void onPacket(ByteBuffer data) throws Exception {
+			Log.d(TAG, "processPacket.onPacket: "+data);
+
+			String dstr = "";
+			for (int i = 0; i < data.capacity(); i ++)
+				dstr += " "+data.get(i);
+			Log.d(TAG, dstr);
+			
 			///if ((data[0] & 0x70) != 0) {
 			if ((data.get(0) & 0x70) != 0) {
 				error("reserved fields must be empty", 1002);
@@ -661,6 +691,9 @@ extends EventEmitter2 {
 			state.lastFragment = (data.get(0) & 0x80) == 0x80;
 			state.masked = (data.get(1) & 0x80) == 0x80;
 			int opcode = data.get(0) & 0xf;
+		
+			Log.d(TAG, "opcode: "+opcode+", masked:"+state.masked+",lastFragment:"+state.fragmentedOperation);
+			
 			if (opcode == 0) {
 				// continuation frame
 				state.fragmentedOperation = true;
@@ -821,6 +854,8 @@ private void reset() {
  * @api private
  */
 	private void expectHeader(int length, PacketHandler handler) throws Exception {
+		Log.d(TAG, "expectHeader, length:"+length+",handler:"+handler);
+		
 		if (length == 0) {
 			handler.onPacket(null);
 			return;
@@ -830,10 +865,10 @@ private void reset() {
 		int toRead = length;
 		while (toRead > 0 && this.overflow.size() > 0) {
 			ByteBuffer fromOverflow = this.overflow.remove(this.overflow.size() - 1); ///this.overflow.pop();
-			if (toRead < fromOverflow.capacity()) this.overflow.add((ByteBuffer) Util.chunkSlice(fromOverflow, toRead)/*fromOverflow.slice(toRead)*/);
+			if (toRead < fromOverflow.capacity()) this.overflow.add((ByteBuffer) Util.chunkSlice(fromOverflow, toRead, fromOverflow.capacity())/*fromOverflow.slice(toRead)*/);
 			int read = Math.min(fromOverflow.capacity(), toRead);
 
-			fastCopy(read, (ByteBuffer) fromOverflow, this.expectBuffer, this.expectOffset);
+			BufferUtil.fastCopy(read, (ByteBuffer) fromOverflow, this.expectBuffer, this.expectOffset);
 
 			this.expectOffset += read;
 			toRead -= read;
@@ -846,6 +881,8 @@ private void reset() {
  * @api private
  */
 	private void  expectData(int length, PacketHandler handler) throws Exception {
+		Log.d(TAG, "expectData, length:"+length+",handler:"+handler);
+
 		if (length == 0) {
 			handler.onPacket(null);
 			return;
@@ -855,10 +892,10 @@ private void reset() {
 		int toRead = length;
 		while (toRead > 0 && this.overflow.size() > 0) {
 			ByteBuffer fromOverflow = this.overflow.remove(this.overflow.size() - 1); ///this.overflow.pop();
-			if (toRead < fromOverflow.capacity()) this.overflow.add((ByteBuffer) Util.chunkSlice(fromOverflow, toRead)/*fromOverflow.slice(toRead)*/);
+			if (toRead < fromOverflow.capacity()) this.overflow.add((ByteBuffer) Util.chunkSlice(fromOverflow, toRead, fromOverflow.capacity())/*fromOverflow.slice(toRead)*/);
 			int read = Math.min(fromOverflow.capacity(), toRead);
 			
-			fastCopy(read, fromOverflow, this.expectBuffer, this.expectOffset);
+			BufferUtil.fastCopy(read, fromOverflow, this.expectBuffer, this.expectOffset);
 			
 			this.expectOffset += read;
 			toRead -= read;
@@ -873,31 +910,6 @@ private void reset() {
 private ByteBuffer allocateFromPool(int length, boolean isFragmented) {
   return (isFragmented ? this.fragmentedBufferPool : this.unfragmentedBufferPool).get(length);
 }
-
-
-private static void fastCopy(int length, ByteBuffer srcBuffer, ByteBuffer dstBuffer, int dstOffset) {
-  /*switch (length) {
-    default: srcBuffer.copy(dstBuffer, dstOffset, 0, length); break;
-    case 16: dstBuffer[dstOffset+15] = srcBuffer[15];
-    case 15: dstBuffer[dstOffset+14] = srcBuffer[14];
-    case 14: dstBuffer[dstOffset+13] = srcBuffer[13];
-    case 13: dstBuffer[dstOffset+12] = srcBuffer[12];
-    case 12: dstBuffer[dstOffset+11] = srcBuffer[11];
-    case 11: dstBuffer[dstOffset+10] = srcBuffer[10];
-    case 10: dstBuffer[dstOffset+9] = srcBuffer[9];
-    case 9: dstBuffer[dstOffset+8] = srcBuffer[8];
-    case 8: dstBuffer[dstOffset+7] = srcBuffer[7];
-    case 7: dstBuffer[dstOffset+6] = srcBuffer[6];
-    case 6: dstBuffer[dstOffset+5] = srcBuffer[5];
-    case 5: dstBuffer[dstOffset+4] = srcBuffer[4];
-    case 4: dstBuffer[dstOffset+3] = srcBuffer[3];
-    case 3: dstBuffer[dstOffset+2] = srcBuffer[2];
-    case 2: dstBuffer[dstOffset+1] = srcBuffer[1];
-    case 1: dstBuffer[dstOffset] = srcBuffer[0];
-  }*/
-	dstBuffer.position(dstOffset);
-	dstBuffer.put(srcBuffer.array(), 0, length);
-}
 	
 /**
  * Add new data to the parser.
@@ -907,18 +919,29 @@ private static void fastCopy(int length, ByteBuffer srcBuffer, ByteBuffer dstBuf
  */
 
 public void add(ByteBuffer data) throws Exception {
+	Log.d(TAG, "add data: "+data);
+
 	int dataLength = data!=null ? data.capacity() : 0; ///Util.chunkLength(data); ///data.length;
 	if (dataLength == 0) return;
 	if (this.expectBuffer == null) {
 		this.overflow.add(data);
 		return;
 	}
+	
+	Log.d(TAG, "add data: ... 2");
+	
 	int toRead = Math.min(dataLength, this.expectBuffer.capacity() - this.expectOffset);
-	fastCopy(toRead, data, this.expectBuffer, this.expectOffset);
+	BufferUtil.fastCopy(toRead, data, this.expectBuffer, this.expectOffset);
+	
+	Log.d(TAG, "add data: ... 3");
+
 	this.expectOffset += toRead;
 	if (toRead < dataLength) {
-		this.overflow.add((ByteBuffer) Util.chunkSlice(data, toRead)/*data.slice(toRead)*/);
+		this.overflow.add((ByteBuffer) Util.chunkSlice(data, toRead, data.capacity())/*data.slice(toRead)*/);
 	}
+	
+	Log.d(TAG, "add data: ... 5");
+
 	while (this.expectBuffer!=null && this.expectOffset == this.expectBuffer.capacity()) {
 		ByteBuffer bufferForHandler = this.expectBuffer;
 		this.expectBuffer = null;
@@ -926,6 +949,9 @@ public void add(ByteBuffer data) throws Exception {
 		///this.expectHandler.call(this, bufferForHandler);
 		this.expectHandler.onPacket(bufferForHandler);
 	}
+	
+	Log.d(TAG, "add data: ... 6");
+
 }
 
 /**
