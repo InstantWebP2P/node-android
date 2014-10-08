@@ -172,7 +172,7 @@ extends TCP.Server {
 						if (self.listenerCount(eventName) > 0) {
 							Log.d(TAG, "SERVER have listener for " + eventName);
 							///var bodyHead = d.slice(bytesParsed, d.length);
-							ByteBuffer bodyHead = (ByteBuffer) Util.chunkSlice(d, bytesParsed);
+							ByteBuffer bodyHead = (ByteBuffer) Util.chunkSlice(d, bytesParsed, d.capacity());
 
 							// TODO(isaacs): Need a way to reset a stream to fresh state
 							// IE, not flowing, and not explicitly paused.

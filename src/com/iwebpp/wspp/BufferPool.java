@@ -36,7 +36,7 @@ public final class BufferPool {
 
 
 	protected ByteBuffer get(int length) {
-		if (this._buffer == null || this._offset + length > this._buffer.capacity()) {
+		if (this._buffer == null || this._offset + length > this._buffer.capacity()) {			
 			ByteBuffer newBuf = ByteBuffer.allocate(this._strategy._growStrategy(this, length));
 			this._buffer = newBuf;
 			this._offset = 0;

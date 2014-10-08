@@ -22,7 +22,7 @@ public class ReqOptions {
 	
 	public Agent agent;
 	public createConnectionF createConnection;
-	public String protocol;
+	public String protocol = "http:";
 	public String auth;
 	public int defaultPort = 80;
 	public String hostname;
@@ -40,6 +40,7 @@ public class ReqOptions {
 	// Protocol select: http or httpp
 	// - httpp: true, run http over udt; otherwise run http over tcp
 	public boolean httpp = false;
+	public boolean https = false;
 	
 	public interface createConnectionF {
 		public AbstractSocket createConnection(

@@ -835,7 +835,7 @@ extends OutgoingMessage {
 				socket.removeListener("end", socketOnEnd);
 				parser.Finish();
 
-				ByteBuffer bodyHead = (ByteBuffer)Util.chunkSlice(d, bytesParsed);// d.slice(bytesParsed, d.length);
+				ByteBuffer bodyHead = (ByteBuffer)Util.chunkSlice(d, bytesParsed, d.capacity());// d.slice(bytesParsed, d.length);
 
 				String eventName = req.method.equalsIgnoreCase("CONNECT") ? "connect" : "upgrade";
 				if (req.listenerCount(eventName) > 0) {

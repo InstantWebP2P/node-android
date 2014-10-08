@@ -11,6 +11,7 @@ import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.stream.Writable.WriteCB;
+import com.iwebpp.wspp.WebSocket.SendOptions;
 
 
 /**
@@ -56,17 +57,6 @@ extends EventEmitter2 {
 		if (dataBuffer.capacity() > 2) dataBuffer.put(Util.chunkToBuffer(data, "utf8"));
 
 		return this.frameAndSend(0x8, dataBuffer, true, mask, null);
-	}
-
-	public static final class SendOptions {
-		public boolean binary = false;
-		public boolean   mask = false;
-		protected boolean fin = false;
-
-		public SendOptions(boolean binary, boolean mask) {
-			this.binary = binary;
-			this.mask = mask;
-		}
 	}
 
 	/**

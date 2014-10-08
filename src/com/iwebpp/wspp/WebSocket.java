@@ -31,7 +31,6 @@ import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.stream.Readable2;
 import com.iwebpp.node.stream.Writable.WriteCB;
 import com.iwebpp.wspp.Receiver.opcOptions;
-import com.iwebpp.wspp.Sender.SendOptions;
 
 /**
  * WebSocket implementation
@@ -523,6 +522,17 @@ extends EventEmitter2 {
 		else return this._sender.send(data, options, cb);
 	}
 
+	public static final class SendOptions {
+		public boolean binary = false;
+		public boolean   mask = false;
+		protected boolean fin = false;
+
+		public SendOptions(boolean binary, boolean mask) {
+			this.binary = binary;
+			this.mask = mask;
+		}
+	}
+	
 	private interface Sendor {
 		void execute() throws Exception;
 	}
@@ -1474,7 +1484,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 	// receiver event handlers
 	private class ReceiverClass extends Receiver {
 
-		public ReceiverClass() throws Exception {
+		protected ReceiverClass() throws Exception {
 			super();
 			// TODO Auto-generated constructor stub
 		}
@@ -1572,10 +1582,8 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 				ByteBuffer data = (ByteBuffer)raw;
 				Log.d(TAG, "realHandler: "+data);
 
-				if (data!=null) {
-					self.bytesReceived += data.capacity();
-					self._receiver.add(data);	
-				}
+				if (data!=null) self.bytesReceived += data.capacity();
+				self._receiver.add(data);	
 			}
 
 		};

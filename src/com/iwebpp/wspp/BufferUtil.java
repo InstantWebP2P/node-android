@@ -23,6 +23,8 @@ public final class BufferUtil {
   
   protected static ByteBuffer mask(ByteBuffer source, byte[] mask, ByteBuffer output,
 		  int offset, int length) {
+	  Log.d(TAG, "unmask, source:"+source+",mask:"+mask);
+
 	  int maskNum = 
 			  ((mask[0] <<  0) &       0xff) |
 			  ((mask[1] <<  8) &     0xff00) |
@@ -30,6 +32,7 @@ public final class BufferUtil {
 			  ((mask[3] << 24) & 0xff000000);
 
 	  int i = 0;
+	  
 	  source.order(ByteOrder.LITTLE_ENDIAN); output.order(ByteOrder.LITTLE_ENDIAN);
 	  for (; i < length - 3; i += 4) {
 		  int num = maskNum ^ source.getInt(i);
@@ -44,12 +47,14 @@ public final class BufferUtil {
 	  case 0:;
 	  }
 	  
-	  output.flip();
+	  renewBuffer(output);
 	  
 	  return output;
   }
   
   protected static ByteBuffer unmask(ByteBuffer data, byte[] mask) {
+	  Log.d(TAG, "unmask, data:"+data+",mask:"+mask);
+	  
 	  int maskNum = 
 			  ((mask[0] <<  0) &       0xff) |
 			  ((mask[1] <<  8) &     0xff00) |
@@ -58,7 +63,7 @@ public final class BufferUtil {
 
 	  int length = data.capacity();
 	  int i = 0;
-
+	  
 	  data.order(ByteOrder.LITTLE_ENDIAN);
 	  for (; i < length - 3; i += 4) {
 		  int num = maskNum ^ data.getInt(i);
@@ -66,14 +71,14 @@ public final class BufferUtil {
 		  data.putInt(i, num);
 	  }
 	  switch (length % 4) {
-	  case 3: data.putInt(i + 2, data.getInt(i + 2) ^ mask[2]);
-	  case 2: data.putInt(i + 1, data.getInt(i + 1) ^ mask[1]);
-	  case 1: data.putInt(i + 0, data.getInt(i + 0) ^ mask[0]);
+	  case 3: data.put(i + 2, (byte) (data.get(i + 2) ^ mask[2]));
+	  case 2: data.put(i + 1, (byte) (data.get(i + 1) ^ mask[1]));
+	  case 1: data.put(i + 0, (byte) (data.get(i + 0) ^ mask[0]));
 	  case 0:;
 	  }
 
-	  data.flip();
-
+	  renewBuffer(data);
+	  
 	  return data;
   }
 

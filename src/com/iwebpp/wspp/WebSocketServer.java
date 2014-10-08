@@ -24,6 +24,7 @@ import com.iwebpp.node.http.httpp;
 import com.iwebpp.node.net.AbstractServer;
 import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.others.BasicBean;
+import com.iwebpp.wspp.WebSocketServer.ListeningCallback;
 
 /**
  * WebSocket Server implementation
@@ -72,6 +73,40 @@ extends EventEmitter2 {
 		public void onListening() throws Exception;
 	}
 
+	public void onconnection(final onconnectionListener cb) throws Exception {
+		if (cb != null)
+			this.on("connection", new Listener(){
+
+				@Override
+				public void onEvent(Object raw) throws Exception {
+					WebSocket data = (WebSocket)raw;		
+					
+					cb.onConnection(data);
+				}
+
+			});
+	}
+	public interface onconnectionListener {
+		public void onConnection(WebSocket socket) throws Exception;
+	}
+	
+	public void onerror(final onerrorListener cb) throws Exception {
+		if (cb != null)
+			this.on("error", new Listener(){
+
+				@Override
+				public void onEvent(Object raw) throws Exception {
+					String data = raw!=null ? raw.toString() : null;		
+					
+					cb.onError(data);
+				}
+
+			});
+	}
+	public interface onerrorListener {
+		public void onError(String error) throws Exception;
+	}
+	
 	public WebSocketServer(NodeContext ctx, Options options, final ListeningCallback callback) throws Exception {
 		this.context = ctx;
 
@@ -263,6 +298,8 @@ extends EventEmitter2 {
 						///upgradeHead.copy(head);
 						ByteBuffer head = ByteBuffer.allocate(upgradeHead.capacity());
 						head.put(upgradeHead); head.flip(); upgradeHead.flip();
+						
+						Log.d(TAG, "onUpgrade, upgradeHead:"+upgradeHead+",head:"+head);
 
 						/*self.handleUpgrade(req, socket, head, function(client) {
 							self.emit("connection"+req.url, client);
@@ -306,6 +343,8 @@ extends EventEmitter2 {
 						ByteBuffer head = ByteBuffer.allocate(upgradeHead.capacity());
 						head.put(upgradeHead); head.flip(); upgradeHead.flip();
 
+						Log.d(TAG, "onUpgrade, upgradeHead:"+upgradeHead+",head:"+head);
+						
 						/*self.handleUpgrade(req, socket, head, function(client) {
 							self.emit("connection"+req.url, client);
 							self.emit("connection", client);
@@ -410,6 +449,9 @@ extends EventEmitter2 {
 		// check for wrong path
 		if (this.options.path != null) {
 			UrlObj u = Url.parse(req.url());
+			
+			Log.d(TAG, "req.url:"+req.url()+",options.path:"+this.options.path+",u.pathname:"+u.pathname);
+			
 			if (u!=null && !this.options.path.equalsIgnoreCase(u.pathname)) return;
 		}
 
@@ -640,6 +682,7 @@ extends EventEmitter2 {
 			final IncomingMessage req, final AbstractSocket socket, final ByteBuffer upgradeHead, final UpgradeCallback cb) throws Exception {
 		final WebSocketServer self = this;
 
+		
 		// choose from the sub-protocols
 		///if (typeof self.options.handleProtocols == 'function') {
 		if (self.options.handleProtocols != null) {
@@ -726,6 +769,10 @@ extends EventEmitter2 {
 			// ensure that an early aborted connection is shut down completely
 			try { socket.destroy(null); } catch (Exception e) {}
 		}
+	}
+	public static ListeningCallback ListeningCallback() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

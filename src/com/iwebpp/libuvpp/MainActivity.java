@@ -10,6 +10,7 @@ import com.iwebpp.node.tests.StreamTest;
 import com.iwebpp.node.tests.TcpTest;
 import com.iwebpp.node.tests.UdtTest;
 import com.iwebpp.node.tests.UrlTest;
+import com.iwebpp.wspp.tests.WebSocketServerTest;
 import com.iwebpp.wspp.tests.WebSocketTest;
 
 import android.os.Bundle;
@@ -50,7 +51,9 @@ public class MainActivity extends Activity {
 		///new HttpTest().start();
 		///new HttppTest().start();
 		///new UrlTest().start();
-		new WebSocketTest().start();
+		///new WebSocketTest().start();
+		new WebSocketServerTest().start();
+
 	}
 
 	@Override

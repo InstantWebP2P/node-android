@@ -13,6 +13,8 @@ import java.util.List;
 import android.util.Log;
 
 import com.iwebpp.node.EventEmitter2;
+import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.NodeContext.nextTickListener;
 import com.iwebpp.node.Util;
 
 public abstract class Receiver {
@@ -55,6 +57,7 @@ public abstract class Receiver {
 	private final OpcHandler _handler_ping;
 	private final OpcHandler _handler_pong;
 	private CharsetDecoder _utf8_decoder;
+	private NodeContext context;
 
 
 	public static class opcOptions {
@@ -69,7 +72,7 @@ public abstract class Receiver {
 		}
 	}
 	
-	protected Receiver() throws Exception {
+	protected Receiver() throws Exception {		
         final Receiver self = this;
         
         this._utf8_decoder = Charset.forName("utf8").newDecoder();
@@ -158,10 +161,12 @@ public abstract class Receiver {
 
 			  @Override
 			  public void start(ByteBuffer data) throws Exception {
-				  String dstr = "";
-					for (int i = 0; i < data.capacity(); i ++)
-						dstr += " "+data.get(i);
-					Log.d(TAG, dstr);
+				  if (data != null) {
+					  String dstr = "";
+					  for (int i = 0; i < data.capacity(); i ++)
+						  dstr += " "+data.get(i);
+					  Log.d(TAG, dstr);
+				  }
 				  
 				  ///var self = this;
 				  // decode length
@@ -226,6 +231,8 @@ public abstract class Receiver {
                             mask[1] = data.get(1);
                             mask[2] = data.get(2);
                             mask[3] = data.get(3);
+                                                        
+                            Log.d(TAG, "mask: "+mask[0]+" "+mask[1]+" "+mask[2]+" "+mask[3]);
 
                             self.expectData(length, new PacketHandler(){
 
@@ -256,7 +263,12 @@ public abstract class Receiver {
 
 			  @Override
 			  public void finish(byte[] mask, ByteBuffer data) throws Exception {
+			      Log.d(TAG, "ontext, mask:"+mask+",data:"+data);
+
 			      Object packet = self.unmask(mask, data, true);
+			      
+			      Log.d(TAG, "ontext, mask:"+mask+",packet:"+packet);
+			      
 			      if (packet != null) self.currentMessage.add(packet);
 			      if (self.state.lastFragment) {
 			        ByteBuffer messageBuffer = self.concatBuffers(self.currentMessage);
@@ -282,10 +294,12 @@ public abstract class Receiver {
 
 			  @Override
 			  public void start(ByteBuffer data) throws Exception {
-				  String dstr = "";
-					for (int i = 0; i < data.capacity(); i ++)
-						dstr += " "+data.get(i);
-					Log.d(TAG, dstr);
+				  if (data != null) {
+					  String dstr = "";
+					  for (int i = 0; i < data.capacity(); i ++)
+						  dstr += " "+data.get(i);
+					  Log.d(TAG, dstr);
+				  }
 					
 			      ///var self = this;
 			      // decode length
@@ -385,6 +399,8 @@ public abstract class Receiver {
 			  @Override
 			  public void finish(byte[] mask, ByteBuffer data) throws Exception {
 			      Object packet = self.unmask(mask, data, true);
+			      Log.d(TAG, "onbinary, mask:"+mask+",packet:"+packet);
+
 			      if (packet != null) self.currentMessage.add(packet);
 			      if (self.state.lastFragment) {
 			        ByteBuffer messageBuffer = self.concatBuffers(self.currentMessage);
@@ -400,10 +416,12 @@ public abstract class Receiver {
 
 			  @Override
 			  public void start(ByteBuffer data) throws Exception {
-				  String dstr = "";
-					for (int i = 0; i < data.capacity(); i ++)
-						dstr += " "+data.get(i);
-					Log.d(TAG, dstr);
+				  if (data != null) {
+					  String dstr = "";
+					  for (int i = 0; i < data.capacity(); i ++)
+						  dstr += " "+data.get(i);
+					  Log.d(TAG, dstr);
+				  }
 					
 				  ///var self = this;
 				  if (self.state.lastFragment == false) {
@@ -475,6 +493,8 @@ public abstract class Receiver {
 			  public void finish(byte[] mask, ByteBuffer data) throws Exception {
 			      ///var self = this;
 			      data = (ByteBuffer) self.unmask(mask, data, true);
+			      Log.d(TAG, "onclose, mask:"+mask+",data:"+data);
+
 			      if (data!=null && data.capacity() == 1) {
 			        self.error("close packets with data must be at least two bytes long", 1002);
 			        return;
@@ -504,10 +524,12 @@ public abstract class Receiver {
 
 			  @Override
 			  public void start(ByteBuffer data) throws Exception {
-				  String dstr = "";
-					for (int i = 0; i < data.capacity(); i ++)
-						dstr += " "+data.get(i);
-					Log.d(TAG, dstr);
+				  if (data != null) {
+					  String dstr = "";
+					  for (int i = 0; i < data.capacity(); i ++)
+						  dstr += " "+data.get(i);
+					  Log.d(TAG, dstr);
+				  }
 					
 				  ///var self = this;
 				  if (self.state.lastFragment == false) {
@@ -678,10 +700,12 @@ public abstract class Receiver {
 		public void onPacket(ByteBuffer data) throws Exception {
 			Log.d(TAG, "processPacket.onPacket: "+data);
 
-			String dstr = "";
-			for (int i = 0; i < data.capacity(); i ++)
-				dstr += " "+data.get(i);
-			Log.d(TAG, dstr);
+			if (data != null) {
+				String dstr = "";
+				for (int i = 0; i < data.capacity(); i ++)
+					dstr += " "+data.get(i);
+				Log.d(TAG, dstr);
+			}
 			
 			///if ((data[0] & 0x70) != 0) {
 			if ((data.get(0) & 0x70) != 0) {
@@ -760,7 +784,7 @@ public abstract class Receiver {
  */
 
 private Object unmask(byte[] mask, ByteBuffer buf, boolean binary) throws CharacterCodingException {
-  if (mask != null && buf != null) BufferUtil.unmask(buf, mask);
+  if (mask != null && buf != null) return BufferUtil.unmask(buf, mask);
   if (binary) return buf;
   
   // TBD...
@@ -854,6 +878,8 @@ private void reset() {
  * @api private
  */
 	private void expectHeader(int length, PacketHandler handler) throws Exception {
+		final Receiver self = this;
+		
 		Log.d(TAG, "expectHeader, length:"+length+",handler:"+handler);
 		
 		if (length == 0) {
@@ -873,7 +899,9 @@ private void reset() {
 			this.expectOffset += read;
 			toRead -= read;
 		}
-}
+		Log.d(TAG, "expectHeader, expectBuffer:"+expectBuffer+",expectOffset:"+expectOffset);
+		
+	}
 
 /**
  * Waits for a certain amount of data bytes to be available, then fires a callback.
@@ -881,6 +909,8 @@ private void reset() {
  * @api private
  */
 	private void  expectData(int length, PacketHandler handler) throws Exception {
+		final Receiver self = this;
+
 		Log.d(TAG, "expectData, length:"+length+",handler:"+handler);
 
 		if (length == 0) {
@@ -894,13 +924,15 @@ private void reset() {
 			ByteBuffer fromOverflow = this.overflow.remove(this.overflow.size() - 1); ///this.overflow.pop();
 			if (toRead < fromOverflow.capacity()) this.overflow.add((ByteBuffer) Util.chunkSlice(fromOverflow, toRead, fromOverflow.capacity())/*fromOverflow.slice(toRead)*/);
 			int read = Math.min(fromOverflow.capacity(), toRead);
-			
+
 			BufferUtil.fastCopy(read, fromOverflow, this.expectBuffer, this.expectOffset);
-			
+
 			this.expectOffset += read;
 			toRead -= read;
 		}
-}
+		Log.d(TAG, "expectData, expectBuffer:"+expectBuffer+",expectOffset:"+expectOffset);
+		
+	}
 
 /**
  * Allocates memory from the buffer pool.

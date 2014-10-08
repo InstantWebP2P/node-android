@@ -81,12 +81,12 @@ extends EventEmitter2 {
 		self.context = ctx;
 
 		self.defaultPort = 80;
-		self.protocol = "http:";
+		self.protocol = options.protocol!=null ? options.protocol : "http:";
 
 		self.options = options;
 
 		// don't confuse net and make it think that we're connecting to a pipe
-		self.options.path = null;
+		///self.options.path = null;
 		self.requests = new Hashtable<String, List<ClientRequest>>();
 		self.sockets = new Hashtable<String, List<AbstractSocket>>();
 		self.freeSockets = new Hashtable<String, List<AbstractSocket>>();

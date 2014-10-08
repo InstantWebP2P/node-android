@@ -1,9 +1,7 @@
 package com.iwebpp.wspp.tests;
 
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.NodeContext.IntervalListener;
 import com.iwebpp.node.stream.Writable.WriteCB;
-import com.iwebpp.wspp.Sender;
 import com.iwebpp.wspp.WebSocket;
 import com.iwebpp.wspp.WebSocket.MessageEvent;
 import com.iwebpp.wspp.WebSocket.OpenEvent;
@@ -46,7 +44,7 @@ public final class WebSocketTest {
 					}
 					
 				}, 2000);*/
-				ws.send("Hello, node-andord", new Sender.SendOptions(false, true), new WriteCB(){
+				ws.send("Hello, node-andord", new WebSocket.SendOptions(false, true), new WriteCB(){
 
 					@Override
 					public void writeDone(String error) throws Exception {
