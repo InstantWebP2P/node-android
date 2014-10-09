@@ -592,8 +592,9 @@ extends EventEmitter2 {
 		MessageDigest shasum = MessageDigest.getInstance("SHA1");
 		shasum.update((keystr + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("utf-8"));
 		byte[] sharet = shasum.digest();
+		byte[] retstr = Base64.encode(sharet, Base64.DEFAULT);
 
-		String key = Base64.encodeToString(sharet, Base64.DEFAULT);
+		String key = new String(retstr, "utf-8");
 
 		Log.d(TAG, "keystr:"+keystr+",key:"+key);
 
