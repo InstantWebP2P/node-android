@@ -1259,7 +1259,8 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 		// If we have basic auth.
 		if (auth!=null) {
 			///requestOptions.headers['Authorization'] = 'Basic ' + new Buffer(auth).toString('base64');
-			String authstr = Base64.encodeToString(auth.getBytes("utf-8"), Base64.DEFAULT);
+			byte[] authbuf = Base64.encode(auth.getBytes("utf-8"), Base64.DEFAULT);
+			String authstr = new String(authbuf, "utf-8");
 
 			requestOptions.headers.put("Authorization", new ArrayList<String>()); 
 			requestOptions.headers.get("Authorization").add("Basic " + authstr);
