@@ -1192,13 +1192,15 @@ WebSocket.prototype.addEventListener = function(method, listener) {
   var expectedServerKey = shasum.digest('base64');
 		 */
 		String str = ""+options.protocolVersion+"-"+(new Date());
-		String key = Base64.encodeToString(str.getBytes(), Base64.DEFAULT);
+		byte[] kbf = Base64.encode(str.getBytes("utf-8"), Base64.DEFAULT);
+                String key = new String(kbf, "utf-8");
 
 		MessageDigest shasum = MessageDigest.getInstance("SHA1");
 		shasum.update((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("utf-8"));
 		byte[] sharet = shasum.digest();
+		byte[] retstr = Base64.encode(sharet, Base64.DEFAULT);
 		
-		final String expectedServerKey = Base64.encodeToString(sharet, Base64.DEFAULT);
+		final String expectedServerKey = new String(retstr, "utf-8");
 		
 		Log.d(TAG, "str:"+str+",srv key:"+key+",exp:"+expectedServerKey);
 
