@@ -590,11 +590,10 @@ extends EventEmitter2 {
 	key = shasum.digest('base64');
 		 */
 		MessageDigest shasum = MessageDigest.getInstance("SHA1");
-		shasum.update((keystr + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("utf-8"));
-		byte[] sharet = shasum.digest();
-		byte[] retstr = Base64.encode(sharet, Base64.DEFAULT);
+		byte[] sharet = shasum.digest((keystr.trim() + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("utf-8"));
+		byte[] retbuf = Base64.encode(sharet, Base64.DEFAULT);
 
-		String key = new String(retstr, "utf-8");
+		String key = new String(retbuf, "utf-8").trim();
 
 		Log.d(TAG, "keystr:"+keystr+",key:"+key);
 
@@ -631,7 +630,8 @@ extends EventEmitter2 {
 			headersStr += "Upgrade: websocket\r\n";
 			headersStr += "Connection: Upgrade\r\n";
 			headersStr += "Sec-WebSocket-Accept: " + key + "\r\n";
-			headersStr += "\r\n\r\n";
+			///headersStr += "\r\n\r\n";
+			headersStr += "\r\n";
 
 			///socket.write(headers.concat('', '').join('\r\n'));
 			socket.write(headersStr, "utf-8", null);
@@ -761,7 +761,8 @@ extends EventEmitter2 {
 			String response = "";
 			response += "HTTP/1.1 " + code + " " + name + "\r\n";
 			response += "Content-type: text/html\r\n";
-			response += "\r\n\r\n";
+			///response += "\r\n\r\n";
+			response += "\r\n";
 
 			socket.write(response, "utf-8", null);
 		}

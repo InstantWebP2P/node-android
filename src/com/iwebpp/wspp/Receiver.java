@@ -878,8 +878,6 @@ private void reset() {
  * @api private
  */
 	private void expectHeader(int length, PacketHandler handler) throws Exception {
-		final Receiver self = this;
-		
 		Log.d(TAG, "expectHeader, length:"+length+",handler:"+handler);
 		
 		if (length == 0) {
@@ -899,6 +897,7 @@ private void reset() {
 			this.expectOffset += read;
 			toRead -= read;
 		}
+		
 		Log.d(TAG, "expectHeader, expectBuffer:"+expectBuffer+",expectOffset:"+expectOffset);
 		
 	}
@@ -909,8 +908,6 @@ private void reset() {
  * @api private
  */
 	private void  expectData(int length, PacketHandler handler) throws Exception {
-		final Receiver self = this;
-
 		Log.d(TAG, "expectData, length:"+length+",handler:"+handler);
 
 		if (length == 0) {
@@ -930,6 +927,7 @@ private void reset() {
 			this.expectOffset += read;
 			toRead -= read;
 		}
+		
 		Log.d(TAG, "expectData, expectBuffer:"+expectBuffer+",expectOffset:"+expectOffset);
 		
 	}

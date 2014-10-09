@@ -65,9 +65,9 @@ extends EventEmitter2 {
 		obj.query    = url.getQuery();
 		obj.hash     = url.getFragment()!=null ? "#"+url.getFragment() : null;
 		
-	    obj.search =     obj.query!=null ? "?"+obj.query    : null;
-        obj.host   = (obj.hostname!=null ? obj.hostname : "") + (      obj.port>0 ? ":"+obj.port : "");
-		obj.path   = (obj.pathname!=null ? obj.pathname : "") + (obj.search!=null ?   obj.search : "");
+	    obj.search =    obj.query!=null ? "?"+obj.query : null;
+        obj.host   = obj.hostname!=null ? obj.hostname + (obj.port>0 ? ":"+obj.port : "") : null;
+		obj.path   = obj.pathname!=null ? obj.pathname + (obj.search!=null ? obj.search : "") : null;
 		
 		// only find first matched key
 		if (obj.parseQueryString && obj.query!=null)

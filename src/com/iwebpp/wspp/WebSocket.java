@@ -5,12 +5,12 @@ package com.iwebpp.wspp;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 
 import android.util.Base64;
 import android.util.Log;
@@ -1196,17 +1196,16 @@ WebSocket.prototype.addEventListener = function(method, listener) {
   shasum.update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11');
   var expectedServerKey = shasum.digest('base64');
 		 */
-		String str = ""+options.protocolVersion+"-"+(new Date());
-		byte[] kbf = Base64.encode(str.getBytes("utf-8"), Base64.DEFAULT);
-                String key = new String(kbf, "utf-8");
+		String str = ""+options.protocolVersion+new Random(); ///""+options.protocolVersion+"-"+(new Date());
+		byte[] kbf = Base64.encode(str.getBytes(), Base64.DEFAULT);
+		String key = new String(kbf, "utf-8").trim();
 
 		MessageDigest shasum = MessageDigest.getInstance("SHA1");
-		shasum.update((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("utf-8"));
-		byte[] sharet = shasum.digest();
-		byte[] retstr = Base64.encode(sharet, Base64.DEFAULT);
-		
-		final String expectedServerKey = new String(retstr, "utf-8");
-		
+		byte[] sharet = shasum.digest((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("utf-8"));
+		byte[] retbuf = Base64.encode(sharet, Base64.DEFAULT);
+
+		final String expectedServerKey = new String(retbuf, "utf-8").trim();
+
 		Log.d(TAG, "str:"+str+",srv key:"+key+",exp:"+expectedServerKey);
 
 		Agent agent = options.agent;
@@ -1264,8 +1263,8 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 		// If we have basic auth.
 		if (auth!=null) {
 			///requestOptions.headers['Authorization'] = 'Basic ' + new Buffer(auth).toString('base64');
-			byte[] authbuf = Base64.encode(auth.getBytes("utf-8"), Base64.DEFAULT);
-			String authstr = new String(authbuf, "utf-8");
+			byte[] authbuf = Base64.encode(auth.trim().getBytes(), Base64.DEFAULT);
+			String authstr = new String(authbuf, "utf-8").trim();
 
 			requestOptions.headers.put("Authorization", new ArrayList<String>()); 
 			requestOptions.headers.get("Authorization").add("Basic " + authstr);
@@ -1319,7 +1318,8 @@ WebSocket.prototype.addEventListener = function(method, listener) {
   }
 		 */
 
-		requestOptions.path = serverUrl.path!=null ? serverUrl.path : "/";
+		Log.d(TAG, "serverUrl.path:"+serverUrl.path);
+		requestOptions.path = serverUrl.path!=null && serverUrl.path!="" ? serverUrl.path : "/";
 
 		if (agent!=null) {
 			requestOptions.agent = agent;
@@ -1407,48 +1407,48 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 								res.headers().get("sec-websocket-accept").get(0)) : null; ///res.headers['sec-websocket-accept'];
 
 							   // TBD...
-										///if (typeof serverKey == 'undefined' || serverKey !== expectedServerKey) {
-										if (false/*serverKey == null || !serverKey.equalsIgnoreCase(expectedServerKey)*/) {
-											Log.d(TAG, "invalid server key: "+serverKey+", expectedServerKey:"+expectedServerKey);
-											
-											self.emit("error", "invalid server key");
-											self.removeAllListeners();
-											socket.end(null, null, null);
-											return;
-										}
+							   ///if (typeof serverKey == 'undefined' || serverKey !== expectedServerKey) {
+							   if (serverKey == null || !serverKey.trim().equals(expectedServerKey)) {
+								   Log.d(TAG, "invalid server key:"+serverKey+", expectedServerKey:"+expectedServerKey);
 
-										String serverProt = 
-												res.headers().containsKey("sec-websocket-protocol") ?
-														(res.headers().get("sec-websocket-protocol").isEmpty() ? null : 
-															res.headers().get("sec-websocket-protocol").get(0)) : null;
+								   self.emit("error", "invalid server key");
+								   self.removeAllListeners();
+								   socket.end(null, null, null);
+								   return;
+							   }
 
-														///String[] protList = (options.protocol!=null ? options.protocol : "").split(", *"); ///(options.value.protocol || "").split(/, */);
-														String protList = (options.protocol!=null ? options.protocol : "");
+							   String serverProt = 
+									   res.headers().containsKey("sec-websocket-protocol") ?
+									  (res.headers().get("sec-websocket-protocol").isEmpty() ? null : 
+									   res.headers().get("sec-websocket-protocol").get(0)) : null;
 
-														String protError = null;
-														if (null==options.protocol && serverProt!=null) {
-															protError = "server sent a subprotocol even though none requested";
-														} else if (null!=options.protocol && null==serverProt) {
-															protError = "server sent no subprotocol even though requested";
-														} else if (serverProt!=null && (protList.indexOf(serverProt) == -1)) {
-															protError = "server responded with an invalid protocol";
-														}
-														if (protError!=null) {
-															self.emit("error", protError);
-															self.removeAllListeners();
-															socket.end(null, null, null);
-															return;
-														} else if (serverProt != null) {
-															self.protocol = serverProt;
-														}
+											   ///String[] protList = (options.protocol!=null ? options.protocol : "").split(", *"); ///(options.value.protocol || "").split(/, */);
+											   String protList = (options.protocol!=null ? options.protocol : "");
 
-														establishConnection(/*self, Receiver, Sender,*/ socket, upgradeHead);
+											   String protError = null;
+											   if (null==options.protocol && serverProt!=null) {
+												   protError = "server sent a subprotocol even though none requested";
+											   } else if (null!=options.protocol && null==serverProt) {
+												   protError = "server sent no subprotocol even though requested";
+											   } else if (serverProt!=null && (protList.indexOf(serverProt) == -1)) {
+												   protError = "server responded with an invalid protocol";
+											   }
+											   if (protError!=null) {
+												   self.emit("error", protError);
+												   self.removeAllListeners();
+												   socket.end(null, null, null);
+												   return;
+											   } else if (serverProt != null) {
+												   self.protocol = serverProt;
+											   }
 
-														// perform cleanup on http resources
-														req.removeAllListeners();
-														// TBD...
-														///req = null;
-														///agent = null;
+											   establishConnection(/*self, Receiver, Sender,*/ socket, upgradeHead);
+
+											   // perform cleanup on http resources
+											   req.removeAllListeners();
+											   // TBD...
+											   ///req = null;
+											   ///agent = null;
 
 					}
 
