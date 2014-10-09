@@ -41,6 +41,8 @@ extends EventEmitter2 {
 	 * @api public
 	 */
 	protected boolean close(int code, Object data, boolean mask) throws Exception {
+		Log.d(TAG, "close, code:"+code+",data:"+data+",mask:"+mask);
+		
 		if (code > 0) {
 			if (!ErrorCodes.isValidErrorCode(code)) 
 				throw new Exception("first argument must be a valid error code number");
@@ -54,7 +56,8 @@ extends EventEmitter2 {
 
 		///if (dataBuffer.length > 2) dataBuffer.write(data, 2);
 		// TBD...
-		if (dataBuffer.capacity() > 2) dataBuffer.put(Util.chunkToBuffer(data, "utf8"));
+		if (dataBuffer.capacity() > 2)
+			BufferUtil.fastCopy(dataBuffer.capacity()-2, Util.chunkToBuffer(data, "utf8"), dataBuffer, 2);
 
 		return this.frameAndSend(0x8, dataBuffer, true, mask, null);
 	}
@@ -113,8 +116,16 @@ extends EventEmitter2 {
 	 */
 	private boolean frameAndSend(int opcode, Object data, boolean finalFragment,
 			boolean maskData, WriteCB cb) throws Exception {
-		Log.d(TAG, "frameAndSend");
-		
+		Log.d(TAG, "frameAndSend,opcode:"+opcode+",data:"+data+",mask:"+maskData);
+
+		if (data != null && data instanceof ByteBuffer) {
+			ByteBuffer bd = (ByteBuffer)data;
+			String dstr = "";
+			for (int i = 0; i < bd.capacity(); i ++)
+				dstr += " "+bd.get(i);
+			Log.d(TAG, dstr);
+		}
+
 		boolean canModifyData = false;
 		boolean out = false;
 
@@ -176,7 +187,7 @@ extends EventEmitter2 {
 			}
 		}
 		
-		Log.d(TAG, "frameAndSend ... 1");
+		Log.d(TAG, "frameAndSend ... 1, data:"+data.toString());
 
 
 		int dataLength = Util.chunkByteLength(data, null);

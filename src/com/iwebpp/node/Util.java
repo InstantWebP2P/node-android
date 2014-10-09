@@ -21,7 +21,7 @@ public final class Util {
     public static boolean isString(Object chunk) {
     	return chunk instanceof String;
     } 
-    
+
     public static boolean isNullOrUndefined(Object obj) {
     	return obj == null;
     }
@@ -29,7 +29,7 @@ public final class Util {
     public static boolean isUndefined(Object obj) {
     	return obj == null;
     }
-    
+
     public static boolean isNull(Object obj) {
     	return obj == null;
     }

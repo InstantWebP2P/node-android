@@ -8,6 +8,7 @@ import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.NodeContext.IntervalListener;
 import com.iwebpp.node.stream.Writable.WriteCB;
 import com.iwebpp.wspp.WebSocket;
+import com.iwebpp.wspp.WebSocket.ErrorEvent;
 import com.iwebpp.wspp.WebSocket.MessageEvent;
 import com.iwebpp.wspp.WebSocket.OpenEvent;
 import com.iwebpp.wspp.WebSocket.onmessageListener;
@@ -47,12 +48,21 @@ public final class WebSocketServerTest {
 					}
 
 				});
+				
+				ws.onerror(new WebSocket.onerrorListener() {
+					
+					@Override
+					public void onError(ErrorEvent event) throws Exception {
+                        Log.d(TAG, "ws error:"+event.getCode()+",message:"+event.getError());						
+					}
+					
+				});
 
 				ws.onopen(new onopenListener(){
 
 					@Override
 					public void onOpen(OpenEvent event) throws Exception {
-                        ws.send("Hello, tom zhou", new WebSocket.SendOptions(false, true), null);	
+                        ws.send("Hello, tom zhou", new WebSocket.SendOptions(false, false), null);	
                         
                         ctx.setInterval(new IntervalListener(){
 
@@ -87,13 +97,13 @@ public final class WebSocketServerTest {
 						} else {
 							Log.d(TAG, "text message: "+(String)(event.getData()));
 							
-							socket.send(event.getData().toString()+"@srv", new WebSocket.SendOptions(false, true), null);
+							socket.send(event.getData().toString()+"@srv", new WebSocket.SendOptions(false, false), null);
 						}
 					}
 					
 				});
 				
-				socket.send("Hello@srv", new WebSocket.SendOptions(false, true), null);
+				socket.send("Hello@srv", new WebSocket.SendOptions(false, false), null);
 			}
 
 		});

@@ -119,7 +119,7 @@ extends EventEmitter2 {
 
 	private Listener cleanupWebsocketResources;
 
-	private List<Sendor> _queue;
+	private List<Sendor> _queue = null;
 
 	private IncomingMessage upgradeReq;
 
@@ -164,6 +164,7 @@ extends EventEmitter2 {
 		this.bytesReceived = 0;
 		this.readyState = -1;/// null;
 		this.supports = new Hashtable<String, Boolean>();///{};
+		this._queue = null;
 
 		initAsClient(address, protocols, options);
 
@@ -265,6 +266,7 @@ extends EventEmitter2 {
 		this.bytesReceived = 0;
 		this.readyState = -1;/// null;
 		this.supports = new Hashtable<String, Boolean>();///{};
+		this._queue = null;
 
 		initAsServerClient(rsh.getRequest(), rsh.getSocket(), rsh.getHead(), options);
 
@@ -451,10 +453,10 @@ extends EventEmitter2 {
 		}
 
 		final Object data;
-		if (raw==null) data = "";
+		if (raw==null) {data = ""; options.binary = false;}
 		else data = raw;
 
-		if (this._queue != null && !this._queue.isEmpty()) {
+		if (this._queue != null) {
 			final WebSocket self = this;
 			///this._queue.push(function() { self.send(data, options, cb); });
 			this._queue.add(new Sendor(){
@@ -548,14 +550,15 @@ extends EventEmitter2 {
 
 		List<Sendor> queue = instance._queue;
 		///if (typeof queue == 'undefined') return;
-		if (queue==null || queue.size()==0) return;
+		if (queue==null) return;
 		/*delete instance._queue;
   for (var i = 0, l = queue.length; i < l; ++i) {
     queue[i]();
+
   }*/
+		instance._queue = null;
 		for (Sendor l : queue)
 			l.execute();
-		instance._queue.clear();
 	}
 
 	private void sendStream(Object data, final SendOptions options, final WriteCB cb) throws Exception {
@@ -598,7 +601,7 @@ extends EventEmitter2 {
 					if (cb != null) cb.writeDone("not opened");
 					else {
 						///delete instance._queue;
-						instance._queue.clear();
+						instance._queue = null;
 						instance.emit("error", "not opened"/*new Error('not opened')*/);
 					}
 					return;
@@ -618,8 +621,7 @@ extends EventEmitter2 {
 					if (cb != null) cb.writeDone("not opened");
 					else {
 						///delete instance._queue;
-						// TBD...
-						instance._queue.clear();
+						instance._queue = null;
 						instance.emit("error", "not opened"/*new Error('not opened')*/);
 					}
 					return;
@@ -668,7 +670,7 @@ extends EventEmitter2 {
 			else throw new Exception("not opened");
 			return;
 		}
-		if (this._queue != null && !this._queue.isEmpty()) {
+		if (this._queue != null) {
 			///this._queue.push(function() { self.stream(options, cb); });
 			this._queue.add(new Sendor(){
 
@@ -840,9 +842,12 @@ extends EventEmitter2 {
 
 			@Override
 			public void onEvent(Object raw) throws Exception {
-				error_code_b data = (error_code_b)raw;
-				
-                cb.onError(new ErrorEvent(data.errorCode, data.reason, self));				
+				if (raw!=null && raw instanceof error_code_b) {
+					error_code_b data = (error_code_b)raw; 
+					cb.onError(new ErrorEvent(data.errorCode, data.reason, self));		
+				} else {
+					cb.onError(new ErrorEvent(0, raw!=null? raw.toString() : "unknown", self));		
+				}
 			}
         	
         });
