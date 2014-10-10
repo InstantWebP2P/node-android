@@ -70,6 +70,8 @@ extends EventEmitter2 {
 
 		public String origin = null;
 		public int protocolVersion = WebSocket.ProtocolVersion;
+		public String protocolVersionHixie = null;
+
 		public String host = null;
 		public Map<String, String> headers = null;
 		public String protocol = null;
@@ -1141,6 +1143,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 		this.readyState = WebSocket.CONNECTING;
 		this._isServer = true;
 
+		// TBD...
 		// establish connection
 		///if (options.value.protocolVersion == 'hixie-76') establishConnection.call(this, ReceiverHixie, SenderHixie, socket, upgradeHead);
 		///else 
