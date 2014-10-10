@@ -94,6 +94,8 @@ public final class WebSocketServerTest {
 
 						if (event.isBinary()) {
 							Log.d(TAG, "binary message: "+event.getData().toString());
+							
+							socket.send(event.getData(), new WebSocket.SendOptions(true, true), null);
 						} else {
 							Log.d(TAG, "text message: "+(String)(event.getData()));
 							

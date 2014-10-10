@@ -865,9 +865,12 @@ extends EventEmitter2 {
 
 			@Override
 			public void onEvent(Object raw) throws Exception {
-				close_code_b data = (close_code_b)raw;
-				
-                cb.onClose(new CloseEvent(data.closeCode, data.message, self));				
+				if (raw != null && raw instanceof close_code_b) {
+					close_code_b data = (close_code_b)raw;
+					cb.onClose(new CloseEvent(data.closeCode, data.message, self));	
+				} else {
+					cb.onClose(new CloseEvent(0, raw!=null ? raw.toString() : "unknown", self));	
+				}
 			}
         	
         });
@@ -1459,7 +1462,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 	}
 
 	// POJO beans
-	public static class message_data_b {
+	private static class message_data_b {
 		public     Object data;
 		public opcOptions flags;
 
@@ -1469,7 +1472,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 		}
 	}
 
-	public static class error_code_b {
+	private static class error_code_b {
 		public    int errorCode;
 		public String reason;
 
@@ -1479,7 +1482,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 		}
 	}
 
-	public static class close_code_b {
+	private static class close_code_b {
 		public    int closeCode;
 		public String message;
 

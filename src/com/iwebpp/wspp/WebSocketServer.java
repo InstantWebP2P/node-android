@@ -24,7 +24,6 @@ import com.iwebpp.node.http.httpp;
 import com.iwebpp.node.net.AbstractServer;
 import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.others.BasicBean;
-import com.iwebpp.wspp.WebSocketServer.ListeningCallback;
 
 /**
  * WebSocket Server implementation
@@ -44,7 +43,7 @@ extends EventEmitter2 {
 	private List<WebSocket> clients;
 
 	// http/httpp server map to websocket servers with Path
-	private static Map<String, List<String>> _webSocketPaths;
+	private static final Map<String, List<String>> _webSocketPaths;
 
 	static {
 		_webSocketPaths = new Hashtable<String, List<String>>();
@@ -80,7 +79,7 @@ extends EventEmitter2 {
 				@Override
 				public void onEvent(Object raw) throws Exception {
 					WebSocket data = (WebSocket)raw;		
-					
+
 					cb.onConnection(data);
 				}
 
@@ -89,7 +88,7 @@ extends EventEmitter2 {
 	public interface onconnectionListener {
 		public void onConnection(WebSocket socket) throws Exception;
 	}
-	
+
 	public void onerror(final onerrorListener cb) throws Exception {
 		if (cb != null)
 			this.on("error", new Listener(){
@@ -97,7 +96,7 @@ extends EventEmitter2 {
 				@Override
 				public void onEvent(Object raw) throws Exception {
 					String data = raw!=null ? raw.toString() : null;		
-					
+
 					cb.onError(data);
 				}
 
@@ -106,7 +105,7 @@ extends EventEmitter2 {
 	public interface onerrorListener {
 		public void onError(String error) throws Exception;
 	}
-	
+
 	public WebSocketServer(NodeContext ctx, Options options, final ListeningCallback callback) throws Exception {
 		this.context = ctx;
 
@@ -228,8 +227,8 @@ extends EventEmitter2 {
 					  throw new Error('two instances of WebSocketServer cannot listen on the same http server path');
 				  }*/
 				if (_webSocketPaths!=null &&
-					_webSocketPaths.containsKey(this._server.toString()) &&
-					_webSocketPaths.get(this._server.toString()).contains(options.path)) {
+						_webSocketPaths.containsKey(this._server.toString()) &&
+						_webSocketPaths.get(this._server.toString()).contains(options.path)) {
 					throw new Exception("two instances of WebSocketServer cannot listen on the same http server path");
 				}
 
@@ -298,7 +297,7 @@ extends EventEmitter2 {
 						///upgradeHead.copy(head);
 						ByteBuffer head = ByteBuffer.allocate(upgradeHead.capacity());
 						head.put(upgradeHead); head.flip(); upgradeHead.flip();
-						
+
 						Log.d(TAG, "onUpgrade, upgradeHead:"+upgradeHead+",head:"+head);
 
 						/*self.handleUpgrade(req, socket, head, function(client) {
@@ -344,7 +343,7 @@ extends EventEmitter2 {
 						head.put(upgradeHead); head.flip(); upgradeHead.flip();
 
 						Log.d(TAG, "onUpgrade, upgradeHead:"+upgradeHead+",head:"+head);
-						
+
 						/*self.handleUpgrade(req, socket, head, function(client) {
 							self.emit("connection"+req.url, client);
 							self.emit("connection", client);
@@ -449,23 +448,22 @@ extends EventEmitter2 {
 		// check for wrong path
 		if (this.options.path != null) {
 			UrlObj u = Url.parse(req.url());
-			
+
 			Log.d(TAG, "req.url:"+req.url()+",options.path:"+this.options.path+",u.pathname:"+u.pathname);
-			
+
 			if (u!=null && !this.options.path.equalsIgnoreCase(u.pathname)) return;
 		}
 
 		///if (typeof req.headers.upgrade === 'undefined' || req.headers.upgrade.toLowerCase() !== 'websocket') {
 		if (!req.headers().containsKey("upgrade") || 
-			 req.headers().get("upgrade").isEmpty() || 
-			!req.headers().get("upgrade").get(0).equalsIgnoreCase("websocket")) {
+				req.headers().get("upgrade").isEmpty() || 
+				!req.headers().get("upgrade").get(0).equalsIgnoreCase("websocket")) {
 			abortConnection(socket, 400, "Bad Request");
 			return;
 		}
 
-		///if (req.headers['sec-websocket-key1']) handleHixieUpgrade.apply(this, arguments);
-		///else handleHybiUpgrade.apply(this, arguments);
-		handleHybiUpgrade(req, socket, upgradeHead, cb);
+		if (req.headers().containsKey("sec-websocket-key1")) handleHixieUpgrade(req, socket, upgradeHead, cb);
+		else new handleHybiUpgrade(req, socket, upgradeHead, cb);
 	}
 
 	/**
@@ -474,11 +472,279 @@ extends EventEmitter2 {
 	 * @throws Exception 
 	 */
 
-	private void handleHybiUpgrade(final IncomingMessage req, final AbstractSocket socket, final ByteBuffer upgradeHead, final UpgradeCallback cb) throws Exception {
+	private class handleHybiUpgrade {		
+		private final IncomingMessage req;
+		private final AbstractSocket socket;
+		private final ByteBuffer upgradeHead;
+		private final UpgradeCallback cb;
+		private final Listener errorHandler;
+		private int version;
+		private String protocols;
+
+		protected handleHybiUpgrade(
+				final IncomingMessage req,
+				final AbstractSocket socket, 
+				final ByteBuffer upgradeHead, 
+				final UpgradeCallback cb
+				) throws Exception {			
+			this.req = req;
+			this.socket = socket;
+			this.upgradeHead = upgradeHead;
+			this.cb = cb;
+
+
+			// handle premature socket errors
+			/*var errorHandler = function() {
+	    try { socket.destroy(); } catch (e) {}
+	  }*/
+			errorHandler = new Listener(){
+
+				@Override
+				public void onEvent(Object data) throws Exception {
+					try { socket.destroy(null); } catch (Exception e) {}
+				}
+
+			};
+			socket.on("error", errorHandler);
+
+			// verify key presence
+			///if (!req.headers['sec-websocket-key']) {
+			if (!req.headers().containsKey("sec-websocket-key") ||
+					req.headers().get("sec-websocket-key").isEmpty()) {
+				abortConnection(socket, 400, "Bad Request");
+				return;
+			}
+
+			// verify version
+			///var version = parseInt(req.headers['sec-websocket-version']);
+			version = req.headers().containsKey("sec-websocket-version") ? 
+					Integer.parseInt(req.headers().get("sec-websocket-version").get(0), 10) : -1;
+
+					///if ([8, 13].indexOf(version) === -1) {
+					if (version!=13 && version!=8) {
+						abortConnection(socket, 400, "Bad Request");
+						return;
+					}
+
+					// verify protocol
+					///var protocols = req.headers['sec-websocket-protocol'];
+					protocols = req.headers().containsKey("sec-websocket-protocol") ? 
+							req.headers().get("sec-websocket-protocol").get(0) : null;
+
+							// verify client
+							/*var origin = version < 13 ?
+	    req.headers['sec-websocket-origin'] :
+	    req.headers['origin'];
+							 */
+							String origin = version < 13 ?
+									(req.headers().containsKey("sec-websocket-origin") ? req.headers().get("sec-websocket-origin").get(0) : null) :
+										(req.headers().containsKey("origin") ? req.headers().get("origin").get(0) : null);
+
+
+									// optionally call external client verification handler
+									// TBD...
+									/*
+	  if (typeof this.options.verifyClient == 'function') {
+	    var info = {
+	      origin: origin,
+	      secure: typeof req.connection.authorized !== 'undefined' || typeof req.connection.encrypted !== 'undefined',
+	      req: req
+	    };
+	    if (this.options.verifyClient.length == 2) {
+	      this.options.verifyClient(info, function(result, code, name) {
+	        if (typeof code === 'undefined') code = 401;
+	        if (typeof name === 'undefined') name = http.STATUS_CODES[code];
+
+	        if (!result) abortConnection(socket, code, name);
+	        else completeHybiUpgrade1();
+	      });
+	      return;
+	    }
+	    else if (!this.options.verifyClient(info)) {
+	      abortConnection(socket, 401, 'Unauthorized');
+	      return;
+	    }
+	  }*/
+									if (options.verifyClient != null) {
+										VerifyInfo info = new VerifyInfo();
+										info.origin = origin;
+										info.secure = false; // TBD...
+										info.req = req;
+
+										if (!options.verifyClient.onClient(info)) {
+											abortConnection(socket, 401, "Unauthorized");
+											return;
+										}
+									}
+
+									completeHybiUpgrade1();
+
+		}
+
+
+		// optionally call external protocol selection handler before
+		// calling completeHybiUpgrade2
+		private void completeHybiUpgrade1() throws Exception {
+			// choose from the sub-protocols
+			///if (typeof self.options.handleProtocols == 'function') {
+			if (options.handleProtocols != null) {
+				///var protList = (protocols || "").split(/, */);
+				// TBD...
+				String[] protList = (protocols!=null ? protocols : "").split(", *");
+
+				///boolean callbackCalled = false;
+				final BasicBean<Boolean> callbackCalled = new BasicBean<Boolean>(false);
+
+				/*var res = self.options.handleProtocols(protList, function(result, protocol) {
+				callbackCalled = true;
+				if (!result) abortConnection(socket, 404, "Unauthorized");
+				else completeHybiUpgrade2(
+						protocol, version, errorHandler, 
+						req, socket, upgradeHead, cb);
+			});*/
+				options.handleProtocols.onProtocol(protList, new HandleProtocol.HandleProtocolCallback(){
+
+					@Override
+					public void onHandle(boolean result, String protocol) throws Exception {
+						///callbackCalled = true;
+						callbackCalled.set(true);
+
+						if (!result) abortConnection(socket, 404, "Unauthorized");
+						else completeHybiUpgrade2(protocol);				
+					}
+
+				});
+
+				if (!callbackCalled.get()) {
+					// the handleProtocols handler never called our callback
+					abortConnection(socket, 501, "Could not process protocols");
+				}
+
+				return;
+			} else {
+				///if (typeof protocols !== 'undefined') {
+				if (protocols != null) {
+					///completeHybiUpgrade2(protocols.split(/, */)[0]);
+					completeHybiUpgrade2(protocols.split(", *")[0]);
+				}
+				else {
+					completeHybiUpgrade2(null);
+				}
+			}
+
+		}
+
+		private void completeHybiUpgrade2(String protocol) throws Exception {
+			// calc key
+			///var key = req.headers['sec-websocket-key'];
+			String keystr = req.headers().containsKey("sec-websocket-key") ?
+					req.headers().get("sec-websocket-key").get(0) : "";
+					/*var shasum = crypto.createHash('sha1');
+		shasum.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+		key = shasum.digest('base64');
+					 */
+					MessageDigest shasum = MessageDigest.getInstance("SHA1");
+					byte[] sharet = shasum.digest((keystr.trim() + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("utf-8"));
+					byte[] retbuf = Base64.encode(sharet, Base64.DEFAULT);
+
+					String key = new String(retbuf, "utf-8").trim();
+
+					Log.d(TAG, "keystr:"+keystr+",key:"+key);
+
+					/*var headers = [
+		               'HTTP/1.1 101 Switching Protocols'
+		               , 'Upgrade: websocket'
+		               , 'Connection: Upgrade'
+		               , 'Sec-WebSocket-Accept: ' + key
+		               ];
+
+		if (typeof protocol != 'undefined') {
+			headers.push('Sec-WebSocket-Protocol: ' + protocol);
+		}*/
+					List<String> headers = new ArrayList<String>();
+
+					headers.add("HTTP/1.1 101 Switching Protocols");
+					headers.add("Upgrade: websocket");
+					headers.add("Connection: Upgrade");
+					headers.add("Sec-WebSocket-Accept: " + key);
+
+					if (protocol != null && protocol != "") {
+						headers.add("Sec-WebSocket-Protocol: " + protocol);
+					}
+
+					// allows external modification/inspection of handshake headers
+					emit("headers", headers);
+
+					///socket.setTimeout(0);
+					socket.setNoDelay(true);
+					try {
+						String headersStr = "";
+						headersStr += "HTTP/1.1 101 Switching Protocols\r\n";
+						headersStr += "Upgrade: websocket\r\n";
+						headersStr += "Connection: Upgrade\r\n";
+						headersStr += "Sec-WebSocket-Accept: " + key + "\r\n";
+
+						if (protocol != null && protocol != "") 
+							headersStr += "Sec-WebSocket-Protocol: " + protocol.trim() + "\r\n";
+
+						///headersStr += "\r\n\r\n";
+						headersStr += "\r\n";
+
+						///socket.write(headers.concat('', '').join('\r\n'));
+						socket.write(headersStr, "utf-8", null);
+					}
+					catch (Exception e) {
+						// if the upgrade write fails, shut the connection down hard
+						try { socket.destroy(null); } catch (Exception ee) {}
+						return;
+					}
+
+					WebSocket.Options wsopt = new WebSocket.Options();
+					wsopt.protocolVersion = version;
+					wsopt.protocol = protocol;
+					final WebSocket client = new WebSocket(context, new http.request_socket_head_b(req, socket, upgradeHead), wsopt);
+
+					if (options.clientTracking) {
+						///self.clients.push(client);
+						clients.add(client);
+
+						/*
+			client.on("close", function() {
+				var index = self.clients.indexOf(client);
+				if (index != -1) {
+					self.clients.splice(index, 1);
+				}
+			});*/
+						client.on("close", new Listener(){
+
+							@Override
+							public void onEvent(Object data) throws Exception {
+								if (clients.contains(client)) 
+									clients.remove(client);
+							}
+
+						});
+					}
+
+					// signal upgrade complete
+					socket.removeListener("error", errorHandler);
+					cb.onUpgrade(client);
+
+		}
+
+	}
+
+	private void handleHixieUpgrade(
+			final IncomingMessage req, 
+			final AbstractSocket socket, 
+			final ByteBuffer upgradeHead,
+			final UpgradeCallback cb) throws Exception {
 		// handle premature socket errors
 		/*var errorHandler = function() {
     try { socket.destroy(); } catch (e) {}
-  }*/
+  }
+  socket.on('error', errorHandler);
+		 */
 		Listener errorHandler = new Listener(){
 
 			@Override
@@ -489,56 +755,150 @@ extends EventEmitter2 {
 		};
 		socket.on("error", errorHandler);
 
+
+		// bail if options prevent hixie
+		if (this.options.disableHixie) {
+			abortConnection(socket, 401, "Hixie support disabled");
+			return;
+		}
+
 		// verify key presence
-		///if (!req.headers['sec-websocket-key']) {
-		if (!req.headers().containsKey("sec-websocket-key") ||
-			 req.headers().get("sec-websocket-key").isEmpty()) {
+		///if (!req.headers['sec-websocket-key2']) {
+		if (!req.headers().containsKey("sec-websocket-key2")) {
 			abortConnection(socket, 400, "Bad Request");
 			return;
 		}
 
-		// verify version
-		///var version = parseInt(req.headers['sec-websocket-version']);
-		int version = req.headers().containsKey("sec-websocket-version") ? 
-				Integer.parseInt(req.headers().get("sec-websocket-version").get(0), 10) : -1;
+		///var origin = req.headers['origin']
+		///  , self = this;
+		String origin = req.headers().containsKey("origin") ? req.headers().get("origin").get(0) : null;
+		final WebSocketServer self = this;
 
-		///if ([8, 13].indexOf(version) === -1) {
-		if (version!=13 && version!=8) {
-			abortConnection(socket, 400, "Bad Request");
-			return;
-		}
+		// setup handshake completion to run after client has been verified
+		/*var onClientVerified = function() {
+    var wshost;
+    if (!req.headers['x-forwarded-host'])
+        wshost = req.headers.host;
+    else
+        wshost = req.headers['x-forwarded-host'];
+    var location = ((req.headers['x-forwarded-proto'] === 'https' || socket.encrypted) ? 'wss' : 'ws') + '://' + wshost + req.url
+      , protocol = req.headers['sec-websocket-protocol'];
 
-		// verify protocol
-		///var protocols = req.headers['sec-websocket-protocol'];
-		String protocols = req.headers().containsKey("sec-websocket-protocol") ? 
-				req.headers().get("sec-websocket-protocol").get(0) : null;
+    // handshake completion code to run once nonce has been successfully retrieved
+    var completeHandshake = function(nonce, rest) {
+      // calculate key
+      var k1 = req.headers['sec-websocket-key1']
+        , k2 = req.headers['sec-websocket-key2']
+        , md5 = crypto.createHash('md5');
+
+      [k1, k2].forEach(function (k) {
+        var n = parseInt(k.replace(/[^\d]/g, ''))
+          , spaces = k.replace(/[^ ]/g, '').length;
+        if (spaces === 0 || n % spaces !== 0){
+          abortConnection(socket, 400, 'Bad Request');
+          return;
+        }
+        n /= spaces;
+        md5.update(String.fromCharCode(
+          n >> 24 & 0xFF,
+          n >> 16 & 0xFF,
+          n >> 8  & 0xFF,
+          n       & 0xFF));
+      });
+      md5.update(nonce.toString('binary'));
+
+      var headers = [
+          'HTTP/1.1 101 Switching Protocols'
+        , 'Upgrade: WebSocket'
+        , 'Connection: Upgrade'
+        , 'Sec-WebSocket-Location: ' + location
+      ];
+      if (typeof protocol != 'undefined') headers.push('Sec-WebSocket-Protocol: ' + protocol);
+      if (typeof origin != 'undefined') headers.push('Sec-WebSocket-Origin: ' + origin);
+
+      socket.setTimeout(0);
+      socket.setNoDelay(true);
+      try {
+        // merge header and hash buffer
+        var headerBuffer = new Buffer(headers.concat('', '').join('\r\n'));
+        var hashBuffer = new Buffer(md5.digest('binary'), 'binary');
+        var handshakeBuffer = new Buffer(headerBuffer.length + hashBuffer.length);
+        headerBuffer.copy(handshakeBuffer, 0);
+        hashBuffer.copy(handshakeBuffer, headerBuffer.length);
+
+        // do a single write, which - upon success - causes a new client websocket to be setup
+        socket.write(handshakeBuffer, 'binary', function(err) {
+          if (err) return; // do not create client if an error happens
+          var client = new WebSocket([req, socket, rest], {
+            protocolVersion: 'hixie-76',
+            protocol: protocol
+          });
+          if (self.options.clientTracking) {
+            self.clients.push(client);
+            client.on('close', function() {
+              var index = self.clients.indexOf(client);
+              if (index != -1) {
+                self.clients.splice(index, 1);
+              }
+            });
+          }
+
+          // signal upgrade complete
+          socket.removeListener('error', errorHandler);
+          cb(client);
+        });
+      }
+      catch (e) {
+        try { socket.destroy(); } catch (e) {}
+        return;
+      }
+    }
+
+    // retrieve nonce
+    var nonceLength = 8;
+    if (upgradeHead && upgradeHead.length >= nonceLength) {
+      var nonce = upgradeHead.slice(0, nonceLength);
+      var rest = upgradeHead.length > nonceLength ? upgradeHead.slice(nonceLength) : null;
+      completeHandshake.call(self, nonce, rest);
+    }
+    else {
+      // nonce not present in upgradeHead, so we must wait for enough data
+      // data to arrive before continuing
+      var nonce = new Buffer(nonceLength);
+      upgradeHead.copy(nonce, 0);
+      var received = upgradeHead.length;
+      var rest = null;
+      var handler = function (data) {
+        var toRead = Math.min(data.length, nonceLength - received);
+        if (toRead === 0) return;
+        data.copy(nonce, received, 0, toRead);
+        received += toRead;
+        if (received == nonceLength) {
+          socket.removeListener('data', handler);
+          if (toRead < data.length) rest = data.slice(toRead);
+          completeHandshake.call(self, nonce, rest);
+        }
+      }
+      socket.on('data', handler);
+    }
+  }
+		 */
 
 		// verify client
-		/*var origin = version < 13 ?
-    req.headers['sec-websocket-origin'] :
-    req.headers['origin'];
-		 */
-		String origin = version < 13 ?
-				(req.headers().containsKey("sec-websocket-origin") ? req.headers().get("sec-websocket-origin").get(0) : null) :
-				(req.headers().containsKey("origin") ? req.headers().get("origin").get(0) : null);
-
-
-				// optionally call external client verification handler
-				// TBD...
-				/*
-  if (typeof this.options.verifyClient == 'function') {
+		/*if (typeof this.options.verifyClient == 'function') {
     var info = {
       origin: origin,
       secure: typeof req.connection.authorized !== 'undefined' || typeof req.connection.encrypted !== 'undefined',
       req: req
     };
     if (this.options.verifyClient.length == 2) {
+      var self = this;
       this.options.verifyClient(info, function(result, code, name) {
         if (typeof code === 'undefined') code = 401;
         if (typeof name === 'undefined') name = http.STATUS_CODES[code];
 
         if (!result) abortConnection(socket, code, name);
-        else completeHybiUpgrade1();
+        else onClientVerified.apply(self);
       });
       return;
     }
@@ -546,22 +906,145 @@ extends EventEmitter2 {
       abortConnection(socket, 401, 'Unauthorized');
       return;
     }
-  }*/
-				if (this.options.verifyClient != null) {
-					VerifyInfo info = new VerifyInfo();
-					info.origin = origin;
-					info.secure = false; // TBD...
-					info.req = req;
+  }
+		 */
+		if (this.options.verifyClient != null) {
+			VerifyInfo info = new VerifyInfo();
+			info.origin = origin;
+			info.secure = false; // TBD...
+			info.req = req;
 
-					if (!this.options.verifyClient.onClient(info)) {
-						abortConnection(socket, 401, "Unauthorized");
-						return;
-					}
-				}
+			if (!this.options.verifyClient.onClient(info)) {
+				abortConnection(socket, 401, "Unauthorized");
+				return;
+			}
+		}
 
-				completeHybiUpgrade1(
-						protocols, version, errorHandler,
-						req, socket, upgradeHead, cb);
+		// no client verification required
+		///onClientVerified();
+		{
+			/*var wshost;
+	  if (!req.headers['x-forwarded-host'])
+		  wshost = req.headers.host;
+	  else
+		  wshost = req.headers['x-forwarded-host'];
+			 */
+			String wshost;
+			if (!req.headers().containsKey("x-forwarded-host")) {
+				wshost = req.headers().containsKey("host") ? req.headers().get("host").get(0) : null;
+			} else {
+				wshost = req.headers().get("x-forwarded-host").get(0);
+			}   
+
+			// TBD... secure
+			///var location = ((req.headers['x-forwarded-proto'] === 'https' || socket.encrypted) ? 'wss' : 'ws') + '://' + wshost + req.url
+			///		  , protocol = req.headers['sec-websocket-protocol'];
+			String location = "ws://"+wshost+req.url();
+			String protocol = req.headers().containsKey("sec-websocket-protocol") ? req.headers().get("sec-websocket-protocol").get(0) : null;
+
+
+
+			/// TBD...
+			/*
+	  // handshake completion code to run once nonce has been successfully retrieved
+	  var completeHandshake = function(nonce, rest) {
+		  // calculate key
+		  var k1 = req.headers['sec-websocket-key1']
+				  , k2 = req.headers['sec-websocket-key2']
+						  , md5 = crypto.createHash('md5');
+
+		  [k1, k2].forEach(function (k) {
+			  var n = parseInt(k.replace(/[^\d]/g, ''))
+					  , spaces = k.replace(/[^ ]/g, '').length;
+			  if (spaces === 0 || n % spaces !== 0){
+				  abortConnection(socket, 400, 'Bad Request');
+				  return;
+			  }
+			  n /= spaces;
+			  md5.update(String.fromCharCode(
+					  n >> 24 & 0xFF,
+					  n >> 16 & 0xFF,
+					  n >> 8  & 0xFF,
+					  n       & 0xFF));
+		  });
+		  md5.update(nonce.toString('binary'));
+
+		  var headers = [
+		                 'HTTP/1.1 101 Switching Protocols'
+		                 , 'Upgrade: WebSocket'
+		                 , 'Connection: Upgrade'
+		                 , 'Sec-WebSocket-Location: ' + location
+		                 ];
+		  if (typeof protocol != 'undefined') headers.push('Sec-WebSocket-Protocol: ' + protocol);
+		  if (typeof origin != 'undefined') headers.push('Sec-WebSocket-Origin: ' + origin);
+
+		  socket.setTimeout(0);
+		  socket.setNoDelay(true);
+		  try {
+			  // merge header and hash buffer
+			  var headerBuffer = new Buffer(headers.concat('', '').join('\r\n'));
+			  var hashBuffer = new Buffer(md5.digest('binary'), 'binary');
+			  var handshakeBuffer = new Buffer(headerBuffer.length + hashBuffer.length);
+			  headerBuffer.copy(handshakeBuffer, 0);
+			  hashBuffer.copy(handshakeBuffer, headerBuffer.length);
+
+			  // do a single write, which - upon success - causes a new client websocket to be setup
+			  socket.write(handshakeBuffer, 'binary', function(err) {
+				  if (err) return; // do not create client if an error happens
+				  var client = new WebSocket([req, socket, rest], {
+					  protocolVersion: 'hixie-76',
+					  protocol: protocol
+				  });
+				  if (self.options.clientTracking) {
+					  self.clients.push(client);
+					  client.on('close', function() {
+						  var index = self.clients.indexOf(client);
+						  if (index != -1) {
+							  self.clients.splice(index, 1);
+						  }
+					  });
+				  }
+
+				  // signal upgrade complete
+				  socket.removeListener('error', errorHandler);
+				  cb(client);
+			  });
+		  }
+		  catch (e) {
+			  try { socket.destroy(); } catch (e) {}
+			  return;
+		  }
+	  }
+
+	  // retrieve nonce
+	  var nonceLength = 8;
+	  if (upgradeHead && upgradeHead.length >= nonceLength) {
+		  var nonce = upgradeHead.slice(0, nonceLength);
+		  var rest = upgradeHead.length > nonceLength ? upgradeHead.slice(nonceLength) : null;
+		  completeHandshake.call(self, nonce, rest);
+	  }
+	  else {
+		  // nonce not present in upgradeHead, so we must wait for enough data
+		  // data to arrive before continuing
+		  var nonce = new Buffer(nonceLength);
+		  upgradeHead.copy(nonce, 0);
+		  var received = upgradeHead.length;
+		  var rest = null;
+		  var handler = function (data) {
+			  var toRead = Math.min(data.length, nonceLength - received);
+			  if (toRead === 0) return;
+			  data.copy(nonce, received, 0, toRead);
+			  received += toRead;
+			  if (received == nonceLength) {
+				  socket.removeListener('data', handler);
+				  if (toRead < data.length) rest = data.slice(toRead);
+				  completeHandshake.call(self, nonce, rest);
+			  }
+		  }
+		  socket.on('data', handler);
+	  } */
+		}
+
 	}
 
 	public static class VerifyInfo {
@@ -574,170 +1057,6 @@ extends EventEmitter2 {
 		public boolean onClient(VerifyInfo info) throws Exception;
 	}
 
-	private void completeHybiUpgrade2(
-			String protocol, 
-			int version,
-			Listener errorHandler,
-			final IncomingMessage req, final AbstractSocket socket, final ByteBuffer upgradeHead, final UpgradeCallback cb) throws Exception {
-		final WebSocketServer self = this;
-
-		// calc key
-		///var key = req.headers['sec-websocket-key'];
-		String keystr = req.headers().containsKey("sec-websocket-key") ?
-				req.headers().get("sec-websocket-key").get(0) : "";
-		/*var shasum = crypto.createHash('sha1');
-	shasum.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
-	key = shasum.digest('base64');
-		 */
-		MessageDigest shasum = MessageDigest.getInstance("SHA1");
-		byte[] sharet = shasum.digest((keystr.trim() + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("utf-8"));
-		byte[] retbuf = Base64.encode(sharet, Base64.DEFAULT);
-
-		String key = new String(retbuf, "utf-8").trim();
-
-		Log.d(TAG, "keystr:"+keystr+",key:"+key);
-
-		/*var headers = [
-	               'HTTP/1.1 101 Switching Protocols'
-	               , 'Upgrade: websocket'
-	               , 'Connection: Upgrade'
-	               , 'Sec-WebSocket-Accept: ' + key
-	               ];
-
-	if (typeof protocol != 'undefined') {
-		headers.push('Sec-WebSocket-Protocol: ' + protocol);
-	}*/
-		List<String> headers = new ArrayList<String>();
-
-		///headers.put("HTTP/1.1 101 Switching Protocols", new ArrayList<String>());
-		headers.add("HTTP/1.1 101 Switching Protocols");
-		headers.add("Upgrade: websocket");
-		headers.add("Connection: Upgrade");
-		headers.add("Sec-WebSocket-Accept: " + key);
-
-		if (protocol != null) {
-			headers.add("Sec-WebSocket-Protocol: " + protocol);
-		}
-		
-		// allows external modification/inspection of handshake headers
-		self.emit("headers", headers);
-
-		///socket.setTimeout(0);
-		socket.setNoDelay(true);
-		try {
-			String headersStr = "";
-			headersStr += "HTTP/1.1 101 Switching Protocols\r\n";
-			headersStr += "Upgrade: websocket\r\n";
-			headersStr += "Connection: Upgrade\r\n";
-			headersStr += "Sec-WebSocket-Accept: " + key + "\r\n";
-			///headersStr += "\r\n\r\n";
-			headersStr += "\r\n";
-
-			///socket.write(headers.concat('', '').join('\r\n'));
-			socket.write(headersStr, "utf-8", null);
-		}
-		catch (Exception e) {
-			// if the upgrade write fails, shut the connection down hard
-			try { socket.destroy(null); } catch (Exception ee) {}
-			return;
-		}
-
-		WebSocket.Options wsopt = new WebSocket.Options();
-		wsopt.protocolVersion = version;
-		wsopt.protocol = protocol;
-		final WebSocket client = new WebSocket(context, new http.request_socket_head_b(req, socket, upgradeHead), wsopt);
-
-		if (self.options.clientTracking) {
-			///self.clients.push(client);
-			self.clients.add(client);
-
-			/*
-		client.on("close", function() {
-			var index = self.clients.indexOf(client);
-			if (index != -1) {
-				self.clients.splice(index, 1);
-			}
-		});*/
-			client.on("close", new Listener(){
-
-				@Override
-				public void onEvent(Object data) throws Exception {
-					if (self.clients.contains(client)) 
-						self.clients.remove(client);
-				}
-
-			});
-		}
-
-		// signal upgrade complete
-		socket.removeListener("error", errorHandler);
-		cb.onUpgrade(client);
-	}
-
-	// optionally call external protocol selection handler before
-	// calling completeHybiUpgrade2
-	private void completeHybiUpgrade1(
-			String protocols, 
-			final int version,
-			final Listener errorHandler,
-			final IncomingMessage req, final AbstractSocket socket, final ByteBuffer upgradeHead, final UpgradeCallback cb) throws Exception {
-		final WebSocketServer self = this;
-
-		
-		// choose from the sub-protocols
-		///if (typeof self.options.handleProtocols == 'function') {
-		if (self.options.handleProtocols != null) {
-			///var protList = (protocols || "").split(/, */);
-			// TBD...
-			String[] protList = (protocols!=null ? protocols : "").split(", *");
-
-			///boolean callbackCalled = false;
-			final BasicBean<Boolean> callbackCalled = new BasicBean<Boolean>(false);
-
-			/*var res = self.options.handleProtocols(protList, function(result, protocol) {
-			callbackCalled = true;
-			if (!result) abortConnection(socket, 404, "Unauthorized");
-			else completeHybiUpgrade2(
-					protocol, version, errorHandler, 
-					req, socket, upgradeHead, cb);
-		});*/
-			self.options.handleProtocols.onProtocol(protList, new HandleProtocol.HandleProtocolCallback(){
-
-				@Override
-				public void onHandle(boolean result, String protocol) throws Exception {
-					///callbackCalled = true;
-					callbackCalled.set(true);
-
-					if (!result) abortConnection(socket, 404, "Unauthorized");
-					else completeHybiUpgrade2(
-							protocol, version, errorHandler, 
-							req, socket, upgradeHead, cb);				
-				}
-
-			});
-
-			if (!callbackCalled.get()) {
-				// the handleProtocols handler never called our callback
-				abortConnection(socket, 501, "Could not process protocols");
-			}
-
-			return;
-		} else {
-			///if (typeof protocols !== 'undefined') {
-			if (protocols != null) {
-				///completeHybiUpgrade2(protocols.split(/, */)[0]);
-				completeHybiUpgrade2(
-						protocols.split(", *")[0], version, errorHandler,
-						req, socket, upgradeHead, cb);
-			}
-			else {
-				completeHybiUpgrade2(
-						null, version, errorHandler,
-						req, socket, upgradeHead, cb);
-			}
-		}
-	}
-
 	public interface HandleProtocol {
 		public interface HandleProtocolCallback {
 			public void onHandle(boolean result, String protocol) throws Exception;
@@ -746,7 +1065,7 @@ extends EventEmitter2 {
 		public void onProtocol(String[] protList, HandleProtocolCallback cb) throws Exception;
 	}
 
-	interface UpgradeCallback {
+	private interface UpgradeCallback {
 		void onUpgrade(WebSocket client) throws Exception;	
 	}
 
@@ -772,10 +1091,5 @@ extends EventEmitter2 {
 			try { socket.destroy(null); } catch (Exception e) {}
 		}
 	}
-	public static ListeningCallback ListeningCallback() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 
 }
