@@ -12,9 +12,7 @@ import java.util.List;
 
 import android.util.Log;
 
-import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.NodeContext.nextTickListener;
 import com.iwebpp.node.Util;
 
 public abstract class Receiver {

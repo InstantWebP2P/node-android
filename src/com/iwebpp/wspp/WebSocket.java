@@ -90,6 +90,8 @@ extends EventEmitter2 {
 		///hole: {port: -1},
 		///httpp: false // default as HTTP not HTTPP
 		public boolean httpp = false;
+		public boolean https = false;
+
 		public int localPort = -1;
 		public String localAddress = null;
 		
@@ -104,6 +106,13 @@ extends EventEmitter2 {
 	private NodeContext context;
 
 	private int bytesReceived;
+
+	/**
+	 * @return the bytesReceived
+	 */
+	public int getBytesReceived() {
+		return bytesReceived;
+	}
 
 	private int readyState;
 
@@ -125,11 +134,39 @@ extends EventEmitter2 {
 
 	private IncomingMessage upgradeReq;
 
+	/**
+	 * @return the upgradeReq
+	 */
+	public IncomingMessage getUpgradeReq() {
+		return upgradeReq;
+	}
+
 	private String protocol;
+
+	/**
+	 * @return the protocol
+	 */
+	public String getProtocol() {
+		return protocol;
+	}
+
+	/**
+	 * @return the protocolVersion
+	 */
+	public int getProtocolVersion() {
+		return protocolVersion;
+	}
 
 	private int protocolVersion;
 
 	private String url;
+
+	/**
+	 * @return the url
+	 */
+	public String getUrl() {
+		return url;
+	}
 
 	private TimerHandle _closeTimer;
 
@@ -499,8 +536,6 @@ extends EventEmitter2 {
 		if (data instanceof Readable2) {
 			startQueue();
 
-			final WebSocket self = this;
-
 			sendStream(data, options, new WriteCB(){
 
 				public void writeDone(String error) throws Exception {
@@ -651,14 +686,28 @@ extends EventEmitter2 {
 		public interface SendDone {
 			public void done(Object data, boolean finl) throws Exception;
 		}
+		// need to check isPrepand in case send == null
 		public void onStream(String error, SendDone send);
-		public void setSendDone(SendDone send);
-		public boolean isPrepand();
-
+	}
+	public static abstract class AbstractStreamCallback implements StreamCallback {
+		private SendDone done;
+		
+		protected void setSendDone(SendDone send) {
+			this.done = send;
+		}
+		protected SendDone getSendDone() {
+			return this.done;
+		}
+		protected boolean isPrepand() {
+			return this.done != null;
+		}
+		protected AbstractStreamCallback(){
+			this.done = null;
+		}
 	}
 
 	// TBD...
-	private void stream(final SendOptions options, final StreamCallback cb) throws Exception {
+	public void stream(final SendOptions options, final AbstractStreamCallback cb) throws Exception {
 		/*if (typeof options == 'function') {
     cb = options;
     options = {};
@@ -704,9 +753,9 @@ extends EventEmitter2 {
       }
     }
   }*/					
-		// TBD...
+
 		///process.nextTick(cb.bind(null, null, send));
-		/*
+	
 		final StreamCallback.SendDone sendone = new StreamCallback.SendDone() {
 
 			@Override
@@ -722,7 +771,7 @@ extends EventEmitter2 {
 
 						@Override
 						public void onNextTick() throws Exception {
-							cb.onStream(null, sself);						
+                            cb.setSendDone(sself);
 						}
 
 					});
@@ -745,11 +794,11 @@ extends EventEmitter2 {
 
 			@Override
 			public void onNextTick() throws Exception {
-				cb.onStream(null, sendone);
+                cb.setSendDone(sendone);
 			}
 
 		});
-*/
+
 	}
 
 	/**

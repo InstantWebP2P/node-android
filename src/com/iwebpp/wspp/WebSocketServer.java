@@ -97,7 +97,7 @@ extends EventEmitter2 {
 
 				@Override
 				public void onEvent(Object raw) throws Exception {
-					String data = raw!=null ? raw.toString() : null;		
+					String data = raw!=null ? raw.toString() : "";		
 
 					cb.onError(data);
 				}
