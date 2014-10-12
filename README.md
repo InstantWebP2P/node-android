@@ -30,6 +30,13 @@ Usage:
 * WebSocket/WebSocketServer supported, check https://github.com/InstantWebP2P/node-android/tree/httpp/src/com/iwebpp/wspp/tests
 
 
+### TODO
+
+* Crypto
+* TLS, HTTPS
+* UDTS, HTTPPS
+
+
 <br/>
 ### License
 
