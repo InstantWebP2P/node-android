@@ -15,7 +15,7 @@ Usage:
 
 ### Features
 
-* Node.js compatible API
+* Node.js 0.10.x compatible API
 * Timer, set/clear Timeout/Interval
 * EventEmitter
 * Stream
@@ -24,6 +24,8 @@ Usage:
 * HTTPP(run http over udp)
 * TCP
 * UDT(udp transport)
+* DNS
+* URL
 * for API usage, check https://github.com/InstantWebP2P/node-android/tree/httpp/src/com/iwebpp/node/tests
 * WebSocket/WebSocketServer supported, check https://github.com/InstantWebP2P/node-android/tree/httpp/src/com/iwebpp/wspp/tests
 
