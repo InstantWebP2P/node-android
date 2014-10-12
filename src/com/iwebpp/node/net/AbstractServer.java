@@ -358,8 +358,8 @@ slave.getConnections(oncount);
 	
 	
 	// Abstract server methods
-    protected abstract int _bind(final String address, final int port);
-    protected abstract int _bind6(final String address, final int port);
+    protected abstract int _bind(final String ip, final int port);
+    protected abstract int _bind6(final String ip, final int port);
     
     protected abstract Address _getSocketName();
 

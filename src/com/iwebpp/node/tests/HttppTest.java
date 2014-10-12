@@ -206,7 +206,7 @@ public final class HttppTest {
 			
 			// client
 			final ReqOptions ropt = new ReqOptions();
-			ropt.hostname = "127.0.0.1"; // IP address instead localhost
+			ropt.hostname = "localhost"; // IP address instead localhost
 			ropt.port = port;
 			ropt.method = "GET";
 			ropt.path = "/";

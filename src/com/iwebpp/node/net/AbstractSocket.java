@@ -16,6 +16,7 @@ import com.iwebpp.libuvpp.cb.StreamShutdownCallback;
 import com.iwebpp.libuvpp.cb.StreamWriteCallback;
 import com.iwebpp.libuvpp.handles.LoopHandle;
 import com.iwebpp.libuvpp.handles.StreamHandle;
+import com.iwebpp.node.Dns;
 import com.iwebpp.node.EventEmitter;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Timers;
@@ -1014,7 +1015,17 @@ this._writeGeneric(true, chunks, '', cb);
 		self.writable(false);
 		///////////////////////////////////////////////
 
-		connect(4, address, port, null, -1);
+		// DNS lookup
+		// TBD... async
+		String ip = null;
+		if (Util.isIP(address)) {
+			ip = address;
+		} else {
+			ip = Dns.lookup(address);
+			if (ip == null) throw new Exception("Invalid address: "+address);
+		}
+
+		connect(Util.ipFamily(ip), ip, port, null, -1);
 	}
 
 	public void connect(
@@ -1063,7 +1074,17 @@ this._writeGeneric(true, chunks, '', cb);
 		self.writable(false);
 		///////////////////////////////////////////////
 
-		connect(4, address, port, null, localPort);
+		// DNS lookup
+		// TBD... async
+		String ip = null;
+		if (Util.isIP(address)) {
+			ip = address;
+		} else {
+			ip = Dns.lookup(address);
+			if (ip == null) throw new Exception("Invalid address: "+address);
+		}
+		
+		connect(Util.ipFamily(ip), ip, port, null, localPort);
 	}
 
 	public void connect(
@@ -1112,7 +1133,27 @@ this._writeGeneric(true, chunks, '', cb);
 		self.writable(false);
 		///////////////////////////////////////////////
 
-		connect(4, address, port, localAddress, -1);
+		// DNS lookup
+		// TBD... async
+		String ip = null;
+		if (Util.isIP(address)) {
+			ip = address;
+		} else {
+			ip = Dns.lookup(address);
+			if (ip == null) throw new Exception("Invalid address: "+address);
+		}
+
+		String localip = null;
+		if (localAddress != null) {
+			if (Util.isIP(localAddress)) {
+				localip = localAddress;
+			} else {
+				localip = Dns.lookup(localAddress);
+				if (localip == null) throw new Exception("Invalid localAddress: "+localAddress);
+			}
+		}
+				
+		connect(Util.ipFamily(ip), ip, port, localip, -1);
 	}
 
 	public void connect(
@@ -1161,8 +1202,28 @@ this._writeGeneric(true, chunks, '', cb);
 		self.writable(false);
 		///////////////////////////////////////////////
 
-		// TBD... determine addressType
-		connect(4, address, port, localAddress, localPort);
+
+		// DNS lookup
+		// TBD... async
+		String ip = null;
+		if (Util.isIP(address)) {
+			ip = address;
+		} else {
+			ip = Dns.lookup(address);
+			if (ip == null) throw new Exception("Invalid address: "+address);
+		}
+
+		String localip = null;
+		if (localAddress != null) {
+			if (Util.isIP(localAddress)) {
+				localip = localAddress;
+			} else {
+				localip = Dns.lookup(localAddress);
+				if (localip == null) throw new Exception("Invalid localAddress: "+localAddress);
+			}
+		}
+		
+		connect(Util.ipFamily(ip), ip, port, localip, localPort);
 	}
 
 	public void connect(int addressType, String address ,int port, 
@@ -1209,12 +1270,22 @@ this._writeGeneric(true, chunks, '', cb);
 		///self.writable(true);
 		self.writable(false);
 		///////////////////////////////////////////////
-
-		connect(addressType, address, port, null, -1);
+		
+		// DNS lookup
+		// TBD... async
+		String ip = null;
+		if (Util.isIP(address)) {
+			ip = address;
+		} else {
+			ip = Dns.lookup(address);
+			if (ip == null) throw new Exception("Invalid address: "+address);
+		}
+				
+		connect(Util.ipFamily(ip), ip, port, null, -1);
 	}
 
-	private void connect(int addressType, String address, int port, 
-			String localAddress, int localPort) throws Exception {
+	private void connect(int addressType, String ip, int port, 
+			String localIP, int localPort) throws Exception {
 		final AbstractSocket self = this;
 
 		// TODO return promise from AbstractSocket.prototype.connect which
@@ -1269,21 +1340,21 @@ this._writeGeneric(true, chunks, '', cb);
 
 		// Always bind first
 		// TBD... isIP
-		if (Util.zeroString(localAddress)) {
-			localAddress = (addressType == 6) ? "::" : "0.0.0.0";
+		if (Util.zeroString(localIP)) {
+			localIP = (addressType == 6) ? "::" : "0.0.0.0";
 		}
 		if (localPort < 0 || localPort >= 65536) {
 			localPort = 0;
 		}
 
-		Log.d(TAG, "binding to localAddress: " + localAddress +
+		Log.d(TAG, "binding to localAddress: " + localIP +
 				" and localPort: " + localPort);
 
 		int err = 0;
 		if (addressType == 6) {
-			err = this._bind6(localAddress, localPort);  
+			err = this._bind6(localIP, localPort);  
 		} else {
-			err = this._bind(localAddress, localPort);  
+			err = this._bind(localIP, localPort);  
 		}
 		if (err != 0) {
 			Log.e(TAG, "err bind");
@@ -1337,17 +1408,17 @@ this._writeGeneric(true, chunks, '', cb);
 		this._handle.setConnectCallback(afterConnect);
 
 		// TBD... IP validation
-		if (Util.zeroString(address)) {
-			address = (addressType == 6) ? "::1" : "127.0.0.1";
+		if (Util.zeroString(ip)) {
+			ip = (addressType == 6) ? "::1" : "127.0.0.1";
 		}
 
 		if (port <= 0 || port > 65535)
 			throw new Exception("Port should be > 0 and < 65536");
 
 		if (addressType == 6) {
-			err = this._connect6(address, port);
+			err = this._connect6(ip, port);
 		} else {
-			err = this._connect(address, port);
+			err = this._connect(ip, port);
 		}
 
 		if (err != 0) {
@@ -1357,7 +1428,7 @@ this._writeGeneric(true, chunks, '', cb);
 			this._destroy("err connect", null);
 		}
 		
-		Log.d(TAG, "connect to address: " + address +
+		Log.d(TAG, "connect to address: " + ip +
 				" and port: " + port);
 		
 		/*
@@ -1554,11 +1625,11 @@ this._writeGeneric(true, chunks, '', cb);
 	// Abstract socket methods
 	protected abstract StreamHandle _createHandle(final LoopHandle loop);
 
-	protected abstract int _bind(final String address, final int port);
-	protected abstract int _bind6(final String address, final int port);
+	protected abstract int _bind(final String ip, final int port);
+	protected abstract int _bind6(final String ip, final int port);
 
-	protected abstract int _connect(final String address, final int port);
-	protected abstract int _connect6(final String address, final int port);
+	protected abstract int _connect(final String ip, final int port);
+	protected abstract int _connect6(final String ip, final int port);
 
 	protected abstract Address _getSocketName();
 	protected abstract Address _getPeerName();

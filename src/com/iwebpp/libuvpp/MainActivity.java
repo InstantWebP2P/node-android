@@ -2,6 +2,7 @@ package com.iwebpp.libuvpp;
 
 import com.iwebpp.libuvpp.R;
 import com.iwebpp.libuvpp.tests.*;
+import com.iwebpp.node.tests.DnsTest;
 import com.iwebpp.node.tests.EE2Test;
 import com.iwebpp.node.tests.HttpParserTest;
 import com.iwebpp.node.tests.HttpTest;
@@ -48,6 +49,7 @@ public class MainActivity extends Activity {
         ///new UdtTest().start();
 		
 		///new HttpParserTest().start();
+		///new DnsTest().start();
 		///new HttpTest().start();
 		///new HttppTest().start();
 		///new UrlTest().start();

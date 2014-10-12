@@ -9,6 +9,8 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.util.List;
 
+import com.iwebpp.libuvpp.LibUV;
+
 public final class Util {
 	@SuppressWarnings("unused")
 	private static final String TAG = "Util";
@@ -185,5 +187,26 @@ public final class Util {
 
     	return null;
     }
-        
+
+    public static boolean isIPv4(String ip) {
+    	return ip!=null && LibUV.isIPv4(ip);
+    }
+
+    public static boolean isIPv6(String ip) {
+    	return ip!=null && LibUV.isIPv6(ip);
+    }
+
+    public static boolean isIP(String ip) {
+    	return isIPv6(ip) || isIPv4(ip);
+    }
+
+    public static int ipFamily(String ip) {
+    	if (isIPv4(ip)) return 4;
+    	else
+    	if (isIPv6(ip)) return 6;
+    	else
+
+    	return 4;///-1;
+    }
+    
 }

@@ -173,7 +173,7 @@ extern "C" JNIEXPORT  jboolean JNICALL Java_com_iwebpp_libuvpp_LibUV__1isIPv6
   const char *address = env->GetStringUTFChars(ip, JNI_FALSE);
   char address_buffer[sizeof(struct in6_addr)];
   ///if (uv_inet_pton(AF_INET6, address, &address_buffer).code == UV_OK) {
-  if (uv_inet_pton(AF_INET6, address, &address_buffer) == 0) {
+  if (uv_inet_pton(AF_INET6, address, &address_buffer) == 1) {
     return JNI_TRUE;
   }
   return JNI_FALSE;
@@ -190,7 +190,7 @@ extern "C" JNIEXPORT  jboolean JNICALL Java_com_iwebpp_libuvpp_LibUV__1isIPv4
   const char *address = env->GetStringUTFChars(ip, JNI_FALSE);
   char address_buffer[sizeof(struct in_addr)];
   ///if (uv_inet_pton(AF_INET, address, &address_buffer).code == UV_OK) {
-  if (uv_inet_pton(AF_INET, address, &address_buffer) == 0) {
+  if (uv_inet_pton(AF_INET, address, &address_buffer) == 1) {
     return JNI_TRUE;
   }
   return JNI_FALSE;

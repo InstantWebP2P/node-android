@@ -32,7 +32,7 @@ public final class WebSocketServerTest {
 			public void onListening() throws Exception {
 				Log.d(TAG, "websocket server listening ...");		
 				
-				final WebSocket ws = new WebSocket(ctx, "ws://127.0.0.1:6668/wspp", null, new WebSocket.Options());
+				final WebSocket ws = new WebSocket(ctx, "ws://localhost:6668/wspp", null, new WebSocket.Options());
 
 				ws.onmessage(new onmessageListener(){
 
