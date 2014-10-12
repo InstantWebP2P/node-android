@@ -792,11 +792,12 @@ private Object unmask(byte[] mask, ByteBuffer buf, boolean binary) throws Charac
 
 /**
  * Concatenates a list of buffers.
+ * @throws Exception 
  *
  * @api private
  */
 
-private ByteBuffer concatBuffers(List<Object> buffers) {
+private ByteBuffer concatBuffers(List<Object> buffers) throws Exception {
 	/*
   var length = 0;
   for (var i = 0, l = buffers.length; i < l; ++i) length += buffers[i].length;

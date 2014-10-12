@@ -124,20 +124,29 @@ public final class Util {
     		return s == "";
     }
     
-    public static ByteBuffer concatByteBuffer(List<Object> list, int length) {
+    public static ByteBuffer concatByteBuffer(List<Object> list, int length) throws Exception {
     	if (length <= 0) {
     		length = 0;
     		
-    		for (Object b : list) length += ((ByteBuffer) b).capacity();
+    		for (Object b : list)
+    			if (b instanceof ByteBuffer || b instanceof String)
+    				length += chunkByteLength(b, "utf-8");
+    			else
+    				throw new Exception("MUST be ByteBuffer or String:"+b);
     	}
     		
     	if (length > 0) {
     		ByteBuffer bb = ByteBuffer.allocate(length);
 
     		for (Object b : list) {
-    			bb.put((ByteBuffer)b);
-    			
-    			((ByteBuffer)b).flip();
+    			if (b instanceof ByteBuffer) {
+    				bb.put((ByteBuffer)b);
+
+    				((ByteBuffer)b).flip();
+    			} else if (b instanceof String) {
+    				bb.put(chunkToBuffer(b, "utf-8"));
+    			} else
+    				throw new Exception("MUST be ByteBuffer or String:"+b);
     		}
     		bb.flip();
     		

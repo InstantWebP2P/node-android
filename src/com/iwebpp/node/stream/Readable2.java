@@ -548,7 +548,7 @@ this._readableState.encoding = enc;
 
 	//Pluck off n bytes from an array of buffers.
 	//Length is the combined lengths of all the buffers in the list.
-	private  Object fromList(int n, State state) {
+	private  Object fromList(int n, State state) throws Exception {
 		List<Object> list = state.buffer;
 		int length = state.getLength();
 		boolean stringMode = state.getDecoder() != null;
