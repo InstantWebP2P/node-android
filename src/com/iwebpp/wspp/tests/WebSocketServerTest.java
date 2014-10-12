@@ -11,6 +11,7 @@ import com.iwebpp.wspp.WebSocket;
 import com.iwebpp.wspp.WebSocket.ErrorEvent;
 import com.iwebpp.wspp.WebSocket.MessageEvent;
 import com.iwebpp.wspp.WebSocket.OpenEvent;
+import com.iwebpp.wspp.WebSocket.Options;
 import com.iwebpp.wspp.WebSocket.onmessageListener;
 import com.iwebpp.wspp.WebSocket.onopenListener;
 import com.iwebpp.wspp.WebSocketServer;
@@ -113,6 +114,103 @@ public final class WebSocketServerTest {
 		return true;
 	}
 
+	private boolean testConnectPairOverUDP() throws Exception {
+
+		WebSocketServer.Options wssopt = new WebSocketServer.Options();
+		wssopt.port = 6668;
+		wssopt.path = "/wspp";
+		wssopt.httpp = true;
+
+		WebSocketServer wss = new WebSocketServer(ctx, wssopt, new WebSocketServer.ListeningCallback() {
+
+			@Override
+			public void onListening() throws Exception {
+				Log.d(TAG, "httpp websocket server listening ...");		
+				
+				WebSocket.Options wsopt = new WebSocket.Options();
+				wsopt.httpp = true;
+				
+				final WebSocket ws = new WebSocket(ctx, "ws://localhost:6668/wspp", null, wsopt);
+
+				ws.onmessage(new onmessageListener(){
+
+					@Override
+					public void onMessage(MessageEvent event) throws Exception {
+						Log.d(TAG, "httpp message: "+event.toString());		
+
+						if (event.isBinary()) {
+							Log.d(TAG, "httpp binary message: "+event.getData().toString());
+						} else {
+							Log.d(TAG, "httpp text message: "+(String)(event.getData()));
+						}
+					}
+
+				});
+				
+				ws.onerror(new WebSocket.onerrorListener() {
+					
+					@Override
+					public void onError(ErrorEvent event) throws Exception {
+                        Log.d(TAG, "httpp ws error:"+event.getCode()+",message:"+event.getError());						
+					}
+					
+				});
+
+				ws.onopen(new onopenListener(){
+
+					@Override
+					public void onOpen(OpenEvent event) throws Exception {
+                        ws.send("httpp Hello, tom zhou", new WebSocket.SendOptions(false, false), null);	
+                        
+                        ctx.setInterval(new IntervalListener(){
+
+							@Override
+							public void onInterval() throws Exception {
+		                        ws.send("httpp Hello, tom zhou @"+new Date(), new WebSocket.SendOptions(false, true), null);									
+							}
+                        	
+                        }, 3000);
+					}
+					
+				});
+				
+			}
+
+		});
+
+		wss.onconnection(new WebSocketServer.onconnectionListener() {
+
+			@Override
+			public void onConnection(final WebSocket socket) throws Exception {
+				Log.d(TAG, "httpp new ws client:"+socket);	
+				
+				socket.onmessage(new WebSocket.onmessageListener() {
+					
+					@Override
+					public void onMessage(MessageEvent event) throws Exception {
+						Log.d(TAG, "httpp client message: "+event.toString());		
+
+						if (event.isBinary()) {
+							Log.d(TAG, "httpp binary message: "+event.getData().toString());
+							
+							socket.send(event.getData(), new WebSocket.SendOptions(true, true), null);
+						} else {
+							Log.d(TAG, "httpp text message: "+(String)(event.getData()));
+							
+							socket.send(event.getData().toString()+"@srv httpp", new WebSocket.SendOptions(false, false), null);
+						}
+					}
+					
+				});
+				
+				socket.send("httpp Hello@srv", new WebSocket.SendOptions(false, false), null);
+			}
+
+		});
+		
+		return true;
+	}
+	
 	public WebSocketServerTest(){
 		this.ctx = new NodeContext(); 
 	}
@@ -124,7 +222,8 @@ public final class WebSocketServerTest {
 				
 				try {
 					testConnectPair();
-					
+					testConnectPairOverUDP();
+
 					// run loop
 					ctx.getLoop().run();
 					

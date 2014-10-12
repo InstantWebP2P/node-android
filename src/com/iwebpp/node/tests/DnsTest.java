@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.iwebpp.node.Dns;
 import com.iwebpp.node.Url;
+import com.iwebpp.node.Util;
 
 public final class DnsTest {
 	private static final String TAG = "DnsTest";
@@ -63,6 +64,67 @@ public final class DnsTest {
 		}
 		Log.d(TAG, "ip:"+ip4+",hosts:"+hosts4);
 
+		
+		// IP test
+		String ipt0 = "127.0.0.1";
+		
+		if (!Util.isIPv4(ipt0)) 
+			Log.d(TAG, "isIPv4 test failed on "+ipt0);
+		
+		if (Util.isIPv6(ipt0)) 
+			Log.d(TAG, "isIPv6 test failed on "+ipt0);
+		
+		if (!Util.isIP(ipt0)) 
+			Log.d(TAG, "isIP test failed on "+ipt0);
+		
+		
+		String ipt1 = "::1";
+		
+		if (Util.isIPv4(ipt1)) 
+			Log.d(TAG, "isIPv4 test failed on "+ipt1);
+		
+		if (!Util.isIPv6(ipt1)) 
+			Log.d(TAG, "isIPv6 test failed on "+ipt1);
+		
+		if (!Util.isIP(ipt1)) 
+			Log.d(TAG, "isIP test failed on "+ipt1);
+		
+		
+		String ipt2 = "localhost";
+		
+		if (Util.isIPv4(ipt2)) 
+			Log.d(TAG, "isIPv4 test failed on "+ipt2);
+		
+		if (Util.isIPv6(ipt2)) 
+			Log.d(TAG, "isIPv6 test failed on "+ipt2);
+		
+		if (Util.isIP(ipt2)) 
+			Log.d(TAG, "isIP test failed on "+ipt2);
+
+		
+		String ipt3 = "1.127.0.0.1";
+		
+		if (Util.isIPv4(ipt3)) 
+			Log.d(TAG, "isIPv4 test failed on "+ipt3);
+		
+		if (Util.isIPv6(ipt3)) 
+			Log.d(TAG, "isIPv6 test failed on "+ipt3);
+		
+		if (Util.isIP(ipt3)) 
+			Log.d(TAG, "isIP test failed on "+ipt3);
+
+		
+		String ipt4 = ":::1";
+		
+		if (Util.isIPv4(ipt4)) 
+			Log.d(TAG, "isIPv4 test failed on "+ipt4);
+		
+		if (Util.isIPv6(ipt4)) 
+			Log.d(TAG, "isIPv6 test failed on "+ipt4);
+		
+		if (Util.isIP(ipt4)) 
+			Log.d(TAG, "isIP test failed on "+ipt4);
+		
 		return true;
 	}
 
