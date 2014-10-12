@@ -129,12 +129,11 @@ public final class BufferUtil {
 	  dstBuffer.position(dstOffset); dstBuffer.limit(dstBuffer.capacity());
 	  srcBuffer.position(        0); srcBuffer.limit(              length);
 	  
-	  dstBuffer.put(srcBuffer);
-	  /*
+	  ///dstBuffer.put(srcBuffer);
+	  
 	  switch (length) {
 	  default: 
-		  for (int i = 0; i < length; i ++)
-          dstBuffer.put(srcBuffer.get());
+		  dstBuffer.put(srcBuffer);
 		  break;
 		  
 	  case 16: dstBuffer.put(srcBuffer.get());
@@ -144,16 +143,16 @@ public final class BufferUtil {
 	  case 12: dstBuffer.put(srcBuffer.get());
 	  case 11: dstBuffer.put(srcBuffer.get());
 	  case 10: dstBuffer.put(srcBuffer.get());
-	  case 9: dstBuffer.put(srcBuffer.get());
-	  case 8: dstBuffer.put(srcBuffer.get());
-      case 7: dstBuffer.put(srcBuffer.get());
-	  case 6: dstBuffer.put(srcBuffer.get());
-	  case 5: dstBuffer.put(srcBuffer.get());
-	  case 4: dstBuffer.put(srcBuffer.get());
-	  case 3: dstBuffer.put(srcBuffer.get());
-	  case 2: dstBuffer.put(srcBuffer.get());
-	  case 1: dstBuffer.put(srcBuffer.get());
-	  }*/
+	  case  9: dstBuffer.put(srcBuffer.get());
+	  case  8: dstBuffer.put(srcBuffer.get());
+      case  7: dstBuffer.put(srcBuffer.get());
+	  case  6: dstBuffer.put(srcBuffer.get());
+	  case  5: dstBuffer.put(srcBuffer.get());
+	  case  4: dstBuffer.put(srcBuffer.get());
+	  case  3: dstBuffer.put(srcBuffer.get());
+	  case  2: dstBuffer.put(srcBuffer.get());
+	  case  1: dstBuffer.put(srcBuffer.get());
+	  }
 	  
 	  dstBuffer.position(0); dstBuffer.limit(dstBuffer.capacity());
 	  srcBuffer.position(0); srcBuffer.limit(srcBuffer.capacity());
