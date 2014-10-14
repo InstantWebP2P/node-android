@@ -16,6 +16,7 @@ Usage:
 ### Features
 
 * Node.js 0.10.x compatible API
+* libUV native support
 * Timer, set/clear Timeout/Interval
 * EventEmitter
 * Stream
