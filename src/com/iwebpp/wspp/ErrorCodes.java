@@ -32,7 +32,7 @@ public final class ErrorCodes {
 	}
 
 	protected static String desc(int code) {
-		if (isValidErrorCode(code))
+		if (_descs.containsKey(code))
 			return _descs.get(code);
 		else 
 			return "unknown error";
