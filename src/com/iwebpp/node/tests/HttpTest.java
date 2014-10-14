@@ -35,7 +35,7 @@ public final class HttpTest {
 		try {
 			srv = new HttpServer(ctx);
 
-			srv.listen(port, "0.0.0.0", 4, 10, new HttpServer.ListeningCallback() {
+			srv.listen(port, "0.0.0.0", 10, new HttpServer.ListeningCallback() {
 				
 				@Override
 				public void onListening() throws Exception {
@@ -93,7 +93,7 @@ public final class HttpTest {
 				
 			});
 
-			srv.listen(port, "0.0.0.0", 4, 10, new HttpServer.ListeningCallback() {
+			srv.listen(port, "0.0.0.0", 10, new HttpServer.ListeningCallback() {
 
 				@Override
 				public void onListening() throws Exception {
@@ -282,7 +282,7 @@ public final class HttpTest {
 
 			});
 
-			srv.listen(port, "0.0.0.0", 4, 1, new HttpServer.ListeningCallback() {
+			srv.listen(port, "0.0.0.0", 1, new HttpServer.ListeningCallback() {
 
 				@Override
 				public void onListening() throws Exception {

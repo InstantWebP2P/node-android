@@ -218,6 +218,10 @@ public final class TCP {
 		protected void _listen2(String address, int port, int addressType, 
 				int backlog, int fd) throws Exception {
 			Log.d(TAG, "listen2 "+address+":"+port+":"+addressType+":"+backlog);
+			
+			// check if address is ip
+			if (!Util.isIP(address)) throw new Exception("Invalid IP address: "+address);
+			
 			final AbstractServer self = this;
 
 			boolean alreadyListening = false;

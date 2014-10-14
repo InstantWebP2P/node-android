@@ -288,30 +288,26 @@ extends TCP.Server {
 	public HttpServer listen(
 			int port, 
 			String hostname, 
-			int addressType, // 4 or 6
 			int backlog, 
 			ListeningCallback cb) throws Exception {
 		if (cb != null) onListening(cb);
           
-		// TBD... address type parser
-		super.listen(hostname, port, addressType, backlog, -1, null);
+		super.listen(hostname, port, Util.ipFamily(hostname), backlog, -1, null);
 		
 		return this;
 	}
-
+	
 	public HttpServer listen(
 			int port, 
 			String hostname,
 			ListeningCallback cb) throws Exception {
-		// TBD... determine address type by hostname
-		return listen(port, hostname, 4, 256, cb);
+		return listen(port, hostname, 256, cb);
 	}
 	
 	public HttpServer listen(
 			int port, 
 			String hostname) throws Exception {
-		// TBD... determine address type by hostname
-		return listen(port, hostname, 4, 256, null);
+		return listen(port, hostname, 256, null);
 	}
 	
 	/*public void close(final closeListener cb) throws Exception {

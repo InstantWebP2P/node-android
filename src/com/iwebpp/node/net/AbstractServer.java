@@ -13,6 +13,7 @@ import com.iwebpp.libuvpp.handles.LoopHandle;
 import com.iwebpp.libuvpp.handles.StreamHandle;
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.Util;
 
 
 public abstract class AbstractServer 
@@ -139,7 +140,26 @@ configurable: true, enumerable: true
 
 		_listen2(address, port, addressType, backlog, fd);
 	}
+	
+	public void listen(String address, int port, int backlog, 
+			final ListeningCallback cb) throws Exception {
+		listen(address, port, Util.ipFamily(address), backlog, -1, cb);
+	}
+	
+	public void listen(String address, int port, 
+			final ListeningCallback cb) throws Exception {
+		listen(address, port, Util.ipFamily(address), 256, -1, cb);
+	}
+	
+	public void listen(int port, int backlog, 
+			final ListeningCallback cb) throws Exception {
+		listen("0.0.0.0", port, 4, backlog, -1, cb);
+	}
 
+	public void listen(int port, final ListeningCallback cb) throws Exception {
+		listen("0.0.0.0", port, 4, 256, -1, cb);
+	}
+	
 	public Address address() {
 		return this._getsockname();
 	}
@@ -317,14 +337,14 @@ slave.getConnections(oncount);
 	/**
 	 * @return the _connections
 	 */
-	public int get_connections() {
+	protected int get_connections() {
 		return _connections;
 	}
 
 	/**
 	 * @param _connections the _connections to set
 	 */
-	public void set_connections(int _connections) {
+	protected void set_connections(int _connections) {
 		this._connections = _connections;
 	}
 
@@ -352,7 +372,7 @@ slave.getConnections(oncount);
 	/**
 	 * @param allowHalfOpen the allowHalfOpen to set
 	 */
-	public void setAllowHalfOpen(boolean allowHalfOpen) {
+	protected void setAllowHalfOpen(boolean allowHalfOpen) {
 		this.allowHalfOpen = allowHalfOpen;
 	}
 	

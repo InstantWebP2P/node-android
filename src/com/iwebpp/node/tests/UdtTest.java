@@ -28,7 +28,7 @@ public final class UdtTest {
 		try {
 			srv = new UDT.Server(ctx, new Server.Options(false), null);
 
-			srv.listen("0.0.0.0", 51688, 4, 18, -1, new ListeningCallback(){
+			srv.listen("0.0.0.0", 51688, new ListeningCallback(){
 
 				@Override
 				public void onListening() {
@@ -52,7 +52,7 @@ public final class UdtTest {
 		try {
 			srv = new UDT.Server(ctx, new Server.Options(false), null);
 
-			srv.listen("0.0.0.0", port, 4, 1, -1, new ListeningCallback(){
+			srv.listen("0.0.0.0", port, new ListeningCallback(){
 
 				@Override
 				public void onListening() {
@@ -120,7 +120,7 @@ public final class UdtTest {
 		try {
 			srv = new UDT.Server(ctx, new Server.Options(false), null);
 
-			srv.listen("::", 51866, 6, 18, -1, new ListeningCallback(){
+			srv.listen("::", 51866, new ListeningCallback(){
 
 				@Override
 				public void onListening() {
@@ -156,7 +156,7 @@ public final class UdtTest {
 				}
 				
 			});
-			srv.listen("::", port, 6, 18, -1, null);
+			srv.listen("::", port, null);
 			
 			cln = new UDT.Socket(ctx, new Socket.Options(null, false, false, true));
 			
@@ -246,7 +246,7 @@ public final class UdtTest {
 				}
 				
 			});
-			srv.listen("0.0.0.0", port, 4, 18, -1, null);
+			srv.listen("0.0.0.0", port, null);
 			
 			cln = new UDT.Socket(ctx, new Socket.Options(null, false, false, true));
 			
