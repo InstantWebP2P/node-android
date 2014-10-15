@@ -1,6 +1,8 @@
-package com.iwebpp.libuvpp;
+package com.iwebpp;
 
 import com.iwebpp.libuvpp.R;
+import com.iwebpp.libuvpp.R.layout;
+import com.iwebpp.libuvpp.R.menu;
 import com.iwebpp.libuvpp.tests.*;
 import com.iwebpp.node.tests.DnsTest;
 import com.iwebpp.node.tests.EE2Test;
