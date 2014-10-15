@@ -30,6 +30,7 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 * IPv6
 * for API usage, check https://github.com/InstantWebP2P/node-android/tree/httpp/src/com/iwebpp/node/tests
 * WebSocket/WebSocketServer supported, check https://github.com/InstantWebP2P/node-android/tree/httpp/src/com/iwebpp/wspp/tests
+* Connect middleware
 
 
 ### TODO
