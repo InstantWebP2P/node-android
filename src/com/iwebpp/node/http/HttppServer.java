@@ -10,6 +10,13 @@ import android.util.Log;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
 import com.iwebpp.node.HttpParser.http_parser_type;
+import com.iwebpp.node.http.HttpServer.checkContinueListener;
+import com.iwebpp.node.http.HttpServer.clientErrorListener;
+import com.iwebpp.node.http.HttpServer.closeListener;
+import com.iwebpp.node.http.HttpServer.connectListener;
+import com.iwebpp.node.http.HttpServer.connectionListener;
+import com.iwebpp.node.http.HttpServer.requestListener;
+import com.iwebpp.node.http.HttpServer.upgradeListener;
 import com.iwebpp.node.http.http.exception_socket_b;
 import com.iwebpp.node.http.http.request_response_b;
 import com.iwebpp.node.http.http.request_socket_head_b;
@@ -331,10 +338,6 @@ extends UDT.Server {
 
 		});
 	}
-	public interface ListeningCallback {
-		public void onListening() throws Exception;
-	}
-
 	public void onRequest(final requestListener cb) throws Exception {
 		this.on("request", new Listener(){
 
@@ -347,10 +350,6 @@ extends UDT.Server {
 
 		});
 	}
-	public interface requestListener {
-		public void onRequest(IncomingMessage req, ServerResponse res) throws Exception;
-	}
-
 	public void onConnection(final connectionListener cb) throws Exception {
 		this.on("connection", new Listener(){
 
@@ -363,10 +362,6 @@ extends UDT.Server {
 
 		});
 	}
-	public interface connectionListener {
-		public void onConnection(AbstractSocket socket) throws Exception;
-	}
-
 	public void onClose(final closeListener cb) throws Exception {
 		this.on("close", new Listener(){
 
@@ -377,10 +372,6 @@ extends UDT.Server {
 
 		});
 	}
-	public interface closeListener {
-		public void onClose() throws Exception;
-	}
-
 	public void onCheckContinue(final checkContinueListener cb) throws Exception {
 		this.on("checkContinue", new Listener(){
 
@@ -393,10 +384,6 @@ extends UDT.Server {
 
 		});
 	}
-	public interface checkContinueListener {
-		public void onCheckContinue(IncomingMessage req, ServerResponse res) throws Exception;
-	}
-
 	public void onConnect(final connectListener cb) throws Exception {
 		this.on("connect", new Listener(){
 
@@ -409,10 +396,6 @@ extends UDT.Server {
 
 		});
 	}
-	public interface connectListener {
-		public void onConnect(IncomingMessage request, AbstractSocket socket, ByteBuffer head) throws Exception;
-	}
-
 	public void onUpgrade(final upgradeListener cb) throws Exception {
 		this.on("upgrade", new Listener(){
 
@@ -425,10 +408,6 @@ extends UDT.Server {
 
 		});
 	}
-	public interface upgradeListener {
-		public void onUpgrade(IncomingMessage request, AbstractSocket socket, ByteBuffer head) throws Exception;
-	}
-
 	public void onClientError(final clientErrorListener cb) throws Exception {
 		this.on("clientError", new Listener(){
 
@@ -441,10 +420,6 @@ extends UDT.Server {
 
 		});
 	}
-	public interface clientErrorListener {
-		public void onClientError(String exception, AbstractSocket socket) throws Exception;
-	}
-	
 	// Parser on request
 	private static class parserOnIncoming 
 	extends IncomingParser {

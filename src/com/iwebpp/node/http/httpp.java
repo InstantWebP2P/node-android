@@ -12,7 +12,7 @@ public final class httpp {
 	// httpp.createServer([requestListener])
 	public static HttppServer createServer(
 			NodeContext ctx, 
-			HttppServer.requestListener onreq) throws Exception {
+			HttpServer.requestListener onreq) throws Exception {
 		  return new HttppServer(ctx, onreq);
 	}
 

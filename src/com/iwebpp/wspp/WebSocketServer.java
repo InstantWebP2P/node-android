@@ -172,7 +172,7 @@ extends EventEmitter2 {
 		if (options.port > 0) {
 
 			if (options.httpp) {
-				this._server = httpp.createServer(context, new HttppServer.requestListener() {
+				this._server = httpp.createServer(context, new HttpServer.requestListener() {
 
 					public void onRequest(IncomingMessage req, ServerResponse res) throws Exception {
 						Map<String, List<String>> headers = new Hashtable<String, List<String>>();
@@ -289,7 +289,7 @@ extends EventEmitter2 {
 
 				});
 
-				srv.onUpgrade(new HttppServer.upgradeListener() {
+				srv.onUpgrade(new HttpServer.upgradeListener() {
 
 					@Override
 					public void onUpgrade(final IncomingMessage req, AbstractSocket socket,

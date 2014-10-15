@@ -11,12 +11,14 @@ import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.NodeContext.TimeoutListener;
 import com.iwebpp.node.http.ClientRequest;
+import com.iwebpp.node.http.HttpServer.requestListener;
 import com.iwebpp.node.http.HttppServer;
-import com.iwebpp.node.http.HttppServer.clientErrorListener;
+import com.iwebpp.node.http.HttpServer;
 import com.iwebpp.node.http.IncomingMessage;
 import com.iwebpp.node.http.ReqOptions;
 import com.iwebpp.node.http.ServerResponse;
 import com.iwebpp.node.http.httpp;
+import com.iwebpp.node.net.AbstractServer.ListeningCallback;
 import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.stream.Writable.WriteCB;
 
@@ -49,7 +51,7 @@ public final class HttppTest {
 		HttppServer srv;
 		final int port = 6288;
 		try {
-			srv = new HttppServer(ctx, new HttppServer.requestListener(){
+			srv = new HttppServer(ctx, new HttpServer.requestListener(){
 
 				@Override
 				public void onRequest(IncomingMessage req, ServerResponse res)
@@ -78,7 +80,7 @@ public final class HttppTest {
 
 			});
 			
-			srv.onClientError(new clientErrorListener(){
+			srv.onClientError(new HttpServer.clientErrorListener(){
 
 				@Override
 				public void onClientError(String exception, AbstractSocket socket) throws Exception {
@@ -166,7 +168,7 @@ public final class HttppTest {
 		final int port = 6688;
 
 		try {
-			final HttppServer srv = httpp.createServer(ctx, new HttppServer.requestListener(){
+			final HttppServer srv = httpp.createServer(ctx, new requestListener(){
 
 				@Override
 				public void onRequest(IncomingMessage req, ServerResponse res)
@@ -195,7 +197,7 @@ public final class HttppTest {
 
 			});
 
-			srv.listen(port, "0.0.0.0", 1, new HttppServer.ListeningCallback() {
+			srv.listen(port, "0.0.0.0", 1, new ListeningCallback() {
 
 				@Override
 				public void onListening() throws Exception {

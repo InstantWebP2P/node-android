@@ -4,6 +4,7 @@ import com.iwebpp.libuvpp.R;
 import com.iwebpp.libuvpp.R.layout;
 import com.iwebpp.libuvpp.R.menu;
 import com.iwebpp.libuvpp.tests.*;
+import com.iwebpp.middleware.test.ConnectTest;
 import com.iwebpp.node.tests.DnsTest;
 import com.iwebpp.node.tests.EE2Test;
 import com.iwebpp.node.tests.HttpParserTest;
@@ -58,6 +59,9 @@ public class MainActivity extends Activity {
 		///new WebSocketTest().start();
 		new WebSocketServerTest().start();
 
+		// Connect middleware tests
+		new ConnectTest().start();
+		
 	}
 
 	@Override
