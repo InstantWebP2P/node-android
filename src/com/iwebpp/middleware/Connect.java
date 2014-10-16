@@ -1,10 +1,7 @@
 package com.iwebpp.middleware;
 
-import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-
 import android.util.Log;
 
 import com.iwebpp.node.EventEmitter2;
@@ -18,12 +15,38 @@ implements requestListener{
 
 	private static final String TAG = "Connect";
 
-	private Map<String, List<requestListener>> stack;
+	private String parent;
+	
+	private class stack_b {
+		private String path;
+		private requestListener cb;
+		
+		protected stack_b(String path, requestListener cb) {
+			this.path = path;
+			this.cb = cb;
+		}
+	}
+	
+	private List<stack_b> stack;
 
 	public Connect() {
-		stack = new Hashtable<String, List<requestListener>>();
+		parent = null;
+		stack = new LinkedList<stack_b>();
 	}
-
+	
+	public Connect(String path) {
+		parent = path;
+		stack = new LinkedList<stack_b>();
+	}
+	
+	public Connect setParent(String path) {
+		parent = path;
+		return this;
+	}
+	public String getParent() {
+		return parent!=null? parent : "";
+	}
+	
 	/*
 	 * @description 
 	 *   append callback on default path /
@@ -39,12 +62,16 @@ implements requestListener{
 	public Connect use(String path, requestListener cb) throws Exception {
 		Log.d(TAG, "added request cb:"+cb+" on "+path);
 		
-		if (!stack.containsKey(path))
-			stack.put(path, new LinkedList<requestListener>());
+		// normalize
+		if (path == null)
+			path = "/";
+		else if (path.charAt(0) != '/')
+			path = "/" + path;
 		
-		stack.get(path).add(cb);
+		// queue request handler
+		stack.add(new stack_b(path, cb));
 		
-		this.emit("add/"+path, cb);
+		this.emit("add:"+path, cb);
 		
 		return this;
 	}
@@ -63,12 +90,20 @@ implements requestListener{
 	 * */
 	public Connect unuse(String path, requestListener cb) throws Exception {
 		Log.d(TAG, "removed request cb:"+cb+" on "+path);
-		
-		if (stack.containsKey(path) && stack.get(path).contains(cb))
-			stack.get(path).remove(cb);
-				
-		this.emit("del/"+path, cb);
-		
+
+		// normalize
+		if (path == null)
+			path = "/";
+		else if (path.charAt(0) != '/')
+			path = "/" + path;
+
+		// cost operation
+		for (stack_b b : stack) 
+			if (b.path.equalsIgnoreCase(path) && b.cb == cb)
+				stack.remove(b);
+
+		this.emit("del:"+path, cb);
+
 		return this;
 	}
 	
@@ -78,11 +113,19 @@ implements requestListener{
 	 * */
 	public Connect unuse(String path) throws Exception {
 		Log.d(TAG, "removed request on "+path);
-		
-		if (stack.containsKey(path))
-			stack.get(path).clear();
-		
-		this.emit("del/"+path+"/all");
+
+		// normalize
+		if (path == null)
+			path = "/";
+		else if (path.charAt(0) != '/')
+			path = "/" + path;
+
+		// cost operation
+		for (stack_b b : stack) 
+			if (b.path.equalsIgnoreCase(path))
+				stack.remove(b);
+
+		this.emit("del/"+path+":all");
 
 		return this;
 	}
@@ -96,7 +139,7 @@ implements requestListener{
 		
 		stack.clear();
 		
-		this.emit("del/any/all");
+		this.emit("del:/any:all");
 
 		return this;
 	}
@@ -108,32 +151,46 @@ implements requestListener{
 
 		Log.d(TAG, "request on "+path);
 
-		if (stack.containsKey(path)) {
-			// run stack until response header sent out
-			boolean complete = false;
-			for (requestListener cb : stack.get(path)) {
-				cb.onRequest(req, res);
+		// check if embedded stack
+		if (parent != null && !parent.equals("/")) {
+			path = path.substring(parent.length());
+			Log.d(TAG, "child path: "+path);
+		}
+
+		// run stack until response header sent out
+		for (stack_b b : stack) {
+			// check absolute path
+			if (b.path.equalsIgnoreCase(path)) {
+				Log.d(TAG, "absolute path handle");
+				b.cb.onRequest(req, res);
+			}
+			
+			// check if res.sent
+			if (res.headersSent()) {
+				Log.d(TAG, "absolute response sent done, stop stack");
+				break;
+			}
+			
+			
+			// check embedded path
+			if (b.cb instanceof Connect) {
+				Log.d(TAG, "embedded path handle");
 				
-				// check if res.sent
-				if (res.headersSent()) {
-				    Log.d(TAG, "response sent done, stop stack");
-				    
-				    complete = true;
-				    break;
-				}
+				Connect embedded = (Connect)b.cb;
+				// set parent path
+				String ppath = null;
+				if (!b.path.equals("/")) ppath = b.path;
+				if (parent!=null && !parent.equals("/")) ppath = ppath!=null ? parent+ppath : parent;
+				embedded.setParent(ppath);
+				
+				embedded.onRequest(req, res);
 			}
-			
-			// check if completed
-			if (!complete) {
-				// flush out
-				Log.d(TAG, "flush out");
-				res.end(null, null, null);
+
+			// check if res.sent
+			if (res.headersSent()) {
+				Log.d(TAG, "embedded response sent done, stop stack");
+				break;
 			}
-		} else {
-			Log.w(TAG, "No request handler on "+path);
-			
-			res.writeHead(404);
-			res.end("No Service", "utf-8", null);
 		}
 	}
 

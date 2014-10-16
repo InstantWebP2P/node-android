@@ -45,6 +45,20 @@ extends OutgoingMessage {
 
 	private String path;
 
+	/**
+	 * @return the method
+	 */
+	public String getMethod() {
+		return method;
+	}
+
+	/**
+	 * @return the path
+	 */
+	public String getPath() {
+		return path;
+	}
+
 	public ClientRequest(NodeContext context, ReqOptions options, responseListener cb) throws Exception {
 		super(context);
 		final ClientRequest self = this;
