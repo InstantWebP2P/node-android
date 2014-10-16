@@ -125,7 +125,7 @@ implements requestListener{
 			if (b.path.equalsIgnoreCase(path))
 				stack.remove(b);
 
-		this.emit("del/"+path+":all");
+		this.emit("del:"+path+":all");
 
 		return this;
 	}

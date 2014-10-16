@@ -1,1 +1,1 @@
-Run node-android context from JS engine on JVM
+Run node-android API from JS engine on JVM
