@@ -5,6 +5,7 @@ import com.iwebpp.libuvpp.R.layout;
 import com.iwebpp.libuvpp.R.menu;
 import com.iwebpp.libuvpp.tests.*;
 import com.iwebpp.middleware.test.ConnectTest;
+import com.iwebpp.node.js.tests.RhinoTest;
 import com.iwebpp.node.tests.DnsTest;
 import com.iwebpp.node.tests.EE2Test;
 import com.iwebpp.node.tests.HttpParserTest;
@@ -62,6 +63,8 @@ public class MainActivity extends Activity {
 		// Connect middleware tests
 		new ConnectTest().start();
 		
+		// JS engine tests
+		new RhinoTest().start();
 	}
 
 	@Override

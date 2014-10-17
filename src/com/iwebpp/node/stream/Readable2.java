@@ -804,7 +804,11 @@ this._readableState.encoding = enc;
 			er = "Invalid non-string/buffer chunk";
 		return er;
 	}
-
+	
+	public Writable pipe(final Writable dest) throws Exception {
+		return pipe(dest, true);
+	}
+	
 	public Writable pipe(final Writable dest, boolean pipeOpts) throws Exception {
 		  final Readable2 src = this;
 		  final State state = this._readableState;

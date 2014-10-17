@@ -11,6 +11,8 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 ### Usage:
 
   clone the code, open Android eclipse ADT and import the project.
+  
+  notes: to run node-android API from Rhino JS engine, add libs/js.jar in build path manually
 
 
 ### Features
