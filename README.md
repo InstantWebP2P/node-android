@@ -36,7 +36,7 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 
 ### JS runtime
 
-* Rhino supported, check https://github.com/InstantWebP2P/node-android/tree/httpp/src/com/iwebpp/node/js/tests
+* Rhino supported, check https://github.com/InstantWebP2P/node-android/tree/master/src/com/iwebpp/node/js/tests
 
 
 ### TODO
