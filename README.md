@@ -34,6 +34,10 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 * WebSocket/WebSocketServer supported, check https://github.com/InstantWebP2P/node-android/tree/httpp/src/com/iwebpp/wspp/tests
 * Connect middleware
 
+### JS runtime
+
+* Rhino supported, check https://github.com/InstantWebP2P/node-android/tree/httpp/src/com/iwebpp/node/js/tests
+
 
 ### TODO
 
