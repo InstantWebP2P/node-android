@@ -20,7 +20,7 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 * Timer, set/clear Timeout/Interval
 * EventEmitter
 * Stream
-* HttpParser(rewrite http-parse.c in java)
+* HttpParser(rewrite http-parser.c in java)
 * HTTP
 * HTTPP(run http over udp)
 * TCP
