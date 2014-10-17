@@ -5,7 +5,6 @@ import java.util.List;
 import android.util.Log;
 
 import com.iwebpp.node.Dns;
-import com.iwebpp.node.Url;
 import com.iwebpp.node.Util;
 
 public final class DnsTest {
