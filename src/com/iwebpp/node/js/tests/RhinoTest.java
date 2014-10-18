@@ -302,6 +302,7 @@ public final class RhinoTest {
 
 		return true;
 	}
+	
 	private class WebSocketTest extends Host {
 
 		@Override
@@ -389,6 +390,41 @@ public final class RhinoTest {
 		return true;
 	}
 	
+	private class RequireTest extends Host {
+
+		@Override
+		public String content() {
+			// TODO Auto-generated method stub
+			String content = "Log.d('RhinoTest', 'RequireTest, js');";
+			
+			// require module
+			content += "var any = require('any.js'); Log.d('RhinoTest', 'modulepath:'+any.modulepath);";
+			content += "var tom = require('tom.js'); Log.d('RhinoTest', 'modulepath:'+any.modulepath);";
+
+			return content;
+		}
+		
+	}
+	
+	private boolean testRequire() throws Exception {		
+		new Thread(new Runnable() {
+			public void run() {
+				Log.d(TAG, "start test");
+				
+				try {
+					new RequireTest().execute();
+					
+					Log.d(TAG, "exit test");
+				} catch (Throwable e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}    
+			}
+		}).start();
+
+		return true;
+	}
+	
 	public RhinoTest(){
 	}
 	
@@ -403,6 +439,8 @@ public final class RhinoTest {
 			testHttpp();
 			
 			testWebsocket();
+			
+			testRequire();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

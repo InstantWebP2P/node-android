@@ -17,11 +17,22 @@ public interface JS {
 	/*
 	 * @description
 	 *   Node.js require
-	 * @param module - module path, like file path
+	 * @param module - module path, like file path, URL
 	 * @return generic JS Object, JS engine dependent
 	 * */
 	public Object require(String module);
-
+	
+	/*
+	 * @description
+	 *   Async Node.js require 
+	 * @param module - module path, like file path, URL
+	 * @param cb - callback on require done
+	 * */
+	public void require(String module, RequireCallback cb);
+	public interface RequireCallback {
+		public void onResponse(Object exports);
+	}
+	
 	/*
 	 * @description
 	 *   Node.js context execute
