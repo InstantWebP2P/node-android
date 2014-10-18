@@ -6,7 +6,6 @@ package com.iwebpp.node.net;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import android.util.Log;
 
 import com.iwebpp.libuvpp.Address;
 import com.iwebpp.libuvpp.cb.StreamCloseCallback;
@@ -148,19 +147,19 @@ extends Duplex {
 			public void onEvent(Object data) throws Exception {
 				// If still connecting - defer handling 'finish' until 'connect' will happen
 				if (self._connecting) {
-					Log.d(TAG, "osF: not yet connected");
+					debug(TAG, "osF: not yet connected");
 					self.once("connect", this);
 					return;
 				}
 
-				Log.d(TAG, "onSocketFinish");
+				debug(TAG, "onSocketFinish");
 				if (!self.readable() || self.get_readableState().isEnded()) {
-					Log.d(TAG, "oSF: ended, destroy "+self.get_readableState());
+					debug(TAG, "oSF: ended, destroy "+self.get_readableState());
 					self.destroy(null);
 					return;
 				}
 
-				Log.d(TAG, "oSF: not ended, call shutdown()");
+				debug(TAG, "oSF: not ended, call shutdown()");
 
 				// otherwise, just shutdown, or destroy() if not possible
 				if (self._handle==null /*|| !self._handle.shutdown*/) {
@@ -181,7 +180,7 @@ extends Duplex {
 							throws Exception {
 						///var self = handle.owner;
 
-						Log.d(TAG, "afterShutdown destroyed="+self.destroyed+","+
+						debug(TAG, "afterShutdown destroyed="+self.destroyed+","+
 								self.get_readableState());
 
 						// callback may come after call to destroy.
@@ -189,7 +188,7 @@ extends Duplex {
 							return;
 
 						if (self.get_readableState().isEnded()) {
-							Log.d(TAG, "readableState ended, destroying");
+							debug(TAG, "readableState ended, destroying");
 							self.destroy(null);
 						} else {
 							///self.once("_socketEnd", self.destroy);
@@ -227,7 +226,7 @@ extends Duplex {
 				// XXX Should not have to do as much crap in this function.
 				// ended should already be true, since this is called *after*
 				// the EOF errno and onread has eof'ed
-				Log.d(TAG, "onSocketEnd "+self.get_readableState());
+				debug(TAG, "onSocketEnd "+self.get_readableState());
 				self.get_readableState().setEnded(true);
 				if (self.get_readableState().isEndEmitted()) {
 					self.readable(false);
@@ -319,11 +318,11 @@ extends Duplex {
 					Timers._unrefActive(self);
 
 					///debug('onread', nread);
-					Log.d(TAG, "onread "+nread);
+					debug(TAG, "onread "+nread);
 
 					if (nread > 0) {
 						///debug('got data');
-						Log.d(TAG, "got data");
+						debug(TAG, "got data");
 
 						// read success.
 						// In theory (and in practice) calling readStop right now
@@ -339,7 +338,7 @@ extends Duplex {
 
 						if (/*handle.reading &&*/ !ret) {
 							///handle.reading = false;
-							Log.d(TAG, "readStop");
+							debug(TAG, "readStop");
 							handle.readStop();
 							///var err = handle.readStop();
 							///if (err)
@@ -351,7 +350,7 @@ extends Duplex {
 					// if we didn't get any bytes, that doesn't necessarily mean EOF.
 					// wait for the next one.
 					if (nread == 0) {
-						Log.d(TAG, "not any data, keep waiting");
+						debug(TAG, "not any data, keep waiting");
 						return;
 					}
 
@@ -360,7 +359,7 @@ extends Duplex {
 					///	return self._destroy(errnoException(nread, "read"));
 					///}
 
-					Log.d(TAG, "EOF");
+					debug(TAG, "EOF");
 
 					if (self.get_readableState().getLength() == 0) {
 						self.readable(false);
@@ -395,12 +394,12 @@ extends Duplex {
 	}
 
 	public void destroy(String exception) throws Exception {
-		Log.d(TAG, "destroy "+exception);
+		debug(TAG, "destroy "+exception);
 		this._destroy(exception, null);
 	}
 
 	private void _destroy(final String exception, final Listener cb) throws Exception {
-		Log.d(TAG, "destroy");
+		debug(TAG, "destroy");
 
 		final AbstractSocket self = this;
 
@@ -426,7 +425,7 @@ extends Duplex {
 		};
 
 		if (this.destroyed) {
-			Log.d(TAG, "already destroyed, fire error callbacks");
+			debug(TAG, "already destroyed, fire error callbacks");
 			fireErrorCallbacks.onEvent(null);
 			return;
 		}
@@ -438,11 +437,11 @@ extends Duplex {
 
 		Timers.unenroll(this);
 
-		Log.d(TAG, "close");
+		debug(TAG, "close");
 		if (this._handle != null) {
 			///if (this !== process.stderr)
 			///debug('close handle');
-			Log.d(TAG, "close handle");
+			debug(TAG, "close handle");
 
 			final boolean isException = exception != null ? true : false;
 
@@ -454,7 +453,7 @@ extends Duplex {
 
 				@Override
 				public void onClose() throws Exception { 
-					Log.d(TAG, "emit close");
+					debug(TAG, "emit close");
 					self.emit("close", isException);
 				}
 
@@ -483,7 +482,7 @@ extends Duplex {
 		if (this.abstractServer != null) {
 			// TBD...
 			///COUNTER_NET_SERVER_CONNECTION_CLOSE(this);
-			Log.d(TAG, "has abstractServer");
+			debug(TAG, "has abstractServer");
 			this.abstractServer
 					.set_connections(this.abstractServer.get_connections() - 1);
 			///if (this.server._emitCloseIfDrained) {
@@ -702,10 +701,10 @@ extends Duplex {
 	public void _read(final int n) throws Exception {
 		final AbstractSocket self = this;
 
-		Log.d(TAG, "_read");
+		debug(TAG, "_read");
 
 		if (this._connecting || null==this._handle) {
-			Log.d(TAG, "_read wait for connection");
+			debug(TAG, "_read wait for connection");
 			///this.once("connect", this._read.bind(this, n));
 			this.once("connect", new Listener(){
 
@@ -718,7 +717,7 @@ extends Duplex {
 			});
 		} else if (!this._handle.reading) {
 			// not already reading, start the flow
-			Log.d(TAG, "AbstractSocket._read readStart");
+			debug(TAG, "AbstractSocket._read readStart");
 			this._handle.reading = true;
 			///var err = this._handle.readStart();
 			///if (err)
@@ -849,18 +848,18 @@ this._writeGeneric(true, chunks, '', cb);
 					throws Exception {
 				///var self = handle.owner;
 				///if (self !== process.stderr && self !== process.stdout)
-				Log.d(TAG, "afterWrite "+status);
+				debug(TAG, "afterWrite "+status);
 
 				// callback may come after call to destroy.
 				if (self.destroyed) {
-					Log.d(TAG, "afterWrite destroyed");
+					debug(TAG, "afterWrite destroyed");
 					return;
 				}
 
 				if (status < 0) {
 					///var ex = errnoException(status, 'write', err);
 					String ex = "" + status + " write " + err;
-					Log.d(TAG, "write failure:" + ex);
+					debug(TAG, "write failure:" + ex);
 					///self._destroy(ex, req.cb);
 					self._destroy(ex, null);
 					return;
@@ -869,7 +868,7 @@ this._writeGeneric(true, chunks, '', cb);
 				Timers._unrefActive(self);
 
 				///if (self !== process.stderr && self !== process.stdout)
-				Log.d(TAG, "afterWrite call cb");
+				debug(TAG, "afterWrite call cb");
 
 				// TBD...
 				///if (req.cb)
@@ -1347,7 +1346,7 @@ this._writeGeneric(true, chunks, '', cb);
 			localPort = 0;
 		}
 
-		Log.d(TAG, "binding to localAddress: " + localIP +
+		debug(TAG, "binding to localAddress: " + localIP +
 				" and localPort: " + localPort);
 
 		int err = 0;
@@ -1357,7 +1356,7 @@ this._writeGeneric(true, chunks, '', cb);
 			err = this._bind(localIP, localPort);  
 		}
 		if (err != 0) {
-			Log.e(TAG, "err bind");
+			error(TAG, "err bind");
 			///self._destroy(errnoException(err, 'bind'));
 			this._destroy("err bind", null);
 			return;
@@ -1396,7 +1395,7 @@ this._writeGeneric(true, chunks, '', cb);
 					if (readable())
 						self.read(0);
 				} else {
-					Log.e(TAG, "err connect status: "+status);
+					error(TAG, "err connect status: "+status);
 
 					self._connecting = false;
 					///self._destroy(errnoException(status, 'connect'));
@@ -1422,13 +1421,13 @@ this._writeGeneric(true, chunks, '', cb);
 		}
 
 		if (err != 0) {
-			Log.e(TAG, "err connect");
+			error(TAG, "err connect");
 
 			///self._destroy(errnoException(err, 'connect'));
 			this._destroy("err connect", null);
 		}
 		
-		Log.d(TAG, "connect to address: " + ip +
+		debug(TAG, "connect to address: " + ip +
 				" and port: " + port);
 		
 		/*

@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import android.util.Log;
 
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.net.AbstractSocket;
@@ -66,7 +65,7 @@ extends Readable2 {
 	public IncomingMessage(NodeContext context, AbstractSocket socket) {
 		super(context, new Options(-1, null, false, "utf8", false));
 		
-		Log.d(TAG, "start ...");
+		debug(TAG, "start ...");
 
 		// XXX This implementation is kind of all over the place
 		// When the parser emits body chunks, they go in this list.

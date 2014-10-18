@@ -2,7 +2,6 @@ package com.iwebpp.middleware;
 
 import java.util.LinkedList;
 import java.util.List;
-import android.util.Log;
 
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.http.HttpServer.requestListener;
@@ -60,7 +59,7 @@ implements requestListener{
 	 *   append callback on path
 	 * */
 	public Connect use(String path, requestListener cb) throws Exception {
-		Log.d(TAG, "added request cb:"+cb+" on "+path);
+		debug(TAG, "added request cb:"+cb+" on "+path);
 		
 		// normalize
 		if (path == null)
@@ -89,7 +88,7 @@ implements requestListener{
 	 *   take out callback on path
 	 * */
 	public Connect unuse(String path, requestListener cb) throws Exception {
-		Log.d(TAG, "removed request cb:"+cb+" on "+path);
+		debug(TAG, "removed request cb:"+cb+" on "+path);
 
 		// normalize
 		if (path == null)
@@ -112,7 +111,7 @@ implements requestListener{
 	 *   take out all callback on path
 	 * */
 	public Connect unuse(String path) throws Exception {
-		Log.d(TAG, "removed request on "+path);
+		debug(TAG, "removed request on "+path);
 
 		// normalize
 		if (path == null)
@@ -135,7 +134,7 @@ implements requestListener{
 	 *   take out all callback on all path
 	 * */
 	public Connect unuse() throws Exception {
-		Log.d(TAG, "removed all requests");
+		debug(TAG, "removed all requests");
 		
 		stack.clear();
 		
@@ -149,32 +148,32 @@ implements requestListener{
 			throws Exception {
 		String path = req.url();
 
-		Log.d(TAG, "request on "+path);
+		debug(TAG, "request on "+path);
 
 		// check if embedded stack
 		if (parent != null && !parent.equals("/")) {
 			path = path.substring(parent.length());
-			Log.d(TAG, "child path: "+path);
+			debug(TAG, "child path: "+path);
 		}
 
 		// run stack until response header sent out
 		for (stack_b b : stack) {
 			// check absolute path
 			if (b.path.equalsIgnoreCase(path)) {
-				Log.d(TAG, "absolute path handle");
+				debug(TAG, "absolute path handle");
 				b.cb.onRequest(req, res);
 			}
 			
 			// check if res.sent
 			if (res.headersSent()) {
-				Log.d(TAG, "absolute response sent done, stop stack");
+				debug(TAG, "absolute response sent done, stop stack");
 				break;
 			}
 			
 			
 			// check embedded path
 			if (b.cb instanceof Connect) {
-				Log.d(TAG, "embedded path handle");
+				debug(TAG, "embedded path handle");
 				
 				Connect embedded = (Connect)b.cb;
 				// set parent path
@@ -188,7 +187,7 @@ implements requestListener{
 
 			// check if res.sent
 			if (res.headersSent()) {
-				Log.d(TAG, "embedded response sent done, stop stack");
+				debug(TAG, "embedded response sent done, stop stack");
 				break;
 			}
 		}

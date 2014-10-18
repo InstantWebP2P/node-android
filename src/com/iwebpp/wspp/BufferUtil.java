@@ -6,11 +6,11 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.List;
 
-import android.util.Log;
 
+import com.iwebpp.SimpleDebug;
 import com.iwebpp.node.Util;
 
-public final class BufferUtil {
+public final class BufferUtil extends SimpleDebug {
 	
   private static final String TAG = "BufferUtil";
   
@@ -23,7 +23,7 @@ public final class BufferUtil {
   
   protected static ByteBuffer mask(ByteBuffer source, byte[] mask, ByteBuffer output,
 		  int offset, int length) {
-	  Log.d(TAG, "unmask, source:"+source+",mask:"+mask);
+	  debug(TAG, "unmask, source:"+source+",mask:"+mask);
 
 	  long mask0 = mask[0], mask1 = mask[1], mask2 = mask[2], mask3 = mask[3];
 	  long maskNum = 
@@ -62,7 +62,7 @@ public final class BufferUtil {
   }
   
   protected static ByteBuffer unmask(ByteBuffer data, byte[] mask) {
-	  Log.d(TAG, "unmask, data:"+data+",mask:"+mask);
+	  debug(TAG, "unmask, data:"+data+",mask:"+mask);
 	  
 	  long mask0 = mask[0], mask1 = mask[1], mask2 = mask[2], mask3 = mask[3];
 	  long maskNum = 
@@ -121,7 +121,7 @@ public final class BufferUtil {
     case 1: dstBuffer[dstOffset] = srcBuffer[0];
   }*/
 	  
-	  Log.d(TAG, "fastCopy, srcBuffer:"+srcBuffer+",dstBuffer:"+dstBuffer+", length:"+length+",dstOffset:"+dstOffset);
+	  debug(TAG, "fastCopy, srcBuffer:"+srcBuffer+",dstBuffer:"+dstBuffer+", length:"+length+",dstOffset:"+dstOffset);
 
 	  if (length == 0)
 		  return;
@@ -157,7 +157,7 @@ public final class BufferUtil {
 	  dstBuffer.position(0); dstBuffer.limit(dstBuffer.capacity());
 	  srcBuffer.position(0); srcBuffer.limit(srcBuffer.capacity());
 	  
-	  Log.d(TAG, "fastCopy, srcBuffer:"+srcBuffer+",dstBuffer:"+dstBuffer);
+	  debug(TAG, "fastCopy, srcBuffer:"+srcBuffer+",dstBuffer:"+dstBuffer);
   }
 
   protected static ByteBuffer renewBuffer(ByteBuffer buf) {

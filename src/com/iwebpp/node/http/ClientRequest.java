@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 
-import android.util.Log;
 
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.NodeContext.nextTickListener;
@@ -113,7 +112,7 @@ extends OutgoingMessage {
 			  ///}
 
 			  String method = self.method = (options.method!=null? options.method : "GET").toUpperCase();
-			  self.path = options.path!=null? options.path : "/";
+			  self.path = options.path!=null && !options.path.equals("") ? options.path : "/";
 			  if (cb!=null) {
 				  ///self.once("response", cb);
 				  self.onceResponse(cb);
@@ -211,7 +210,7 @@ extends OutgoingMessage {
 								  options.localPort,
 								  null);
 			  } else {
-				  Log.d(TAG, "CLIENT use TCP.createConnection " + options);
+				  debug(TAG, "CLIENT use TCP.createConnection " + options);
 				  conn = options.httpp ?
 						  UDT.createConnection(
 									 context, 
@@ -235,7 +234,7 @@ extends OutgoingMessage {
 			  public void onEvent(Object data) throws Exception {
 				  self._flush();
 				  ///self = null;
-				  Log.d(TAG, "_flush done");
+				  debug(TAG, "_flush done");
 			  }
 
 		  });
@@ -292,11 +291,11 @@ extends OutgoingMessage {
 			public void onEvent(Object data) throws Exception {
 				///final TCP.Socket socket = (TCP.Socket)data;
 				
-				Log.d(TAG, "onSocket: "+self.socket);
-				Log.d(TAG, "this.connection: "+self.connection);
+				debug(TAG, "onSocket: "+self.socket);
+				debug(TAG, "this.connection: "+self.connection);
 				
 				if (self.socket.writable()) {
-					Log.d(TAG, "_deferToConnect: "+self.socket.writable());
+					debug(TAG, "_deferToConnect: "+self.socket.writable());
 
 					/*
 					if (method) {
@@ -325,7 +324,7 @@ extends OutgoingMessage {
 						
 						@Override
 						public void onEvent(Object data) throws Exception {
-							Log.d(TAG, "onSocket connected: "+socket);
+							debug(TAG, "onSocket connected: "+socket);
 
 							if (method!=null && method == "setNoDelay") {
 								Boolean args = (Boolean)arguments_;
@@ -478,11 +477,11 @@ extends OutgoingMessage {
 
 			// propogate "domain" setting...
 			/*if (req.domain && !res.domain) {
-				Log.d(TAG, "setting res.domain");
+				debug(TAG, "setting res.domain");
 				res.domain = req.domain;
 			}*/
 
-			Log.d(TAG, "AGENT incoming response!");
+			debug(TAG, "AGENT incoming response!");
 
 			if (req.res != null) {
 				// We already have a response object, this means the server
@@ -505,7 +504,7 @@ extends OutgoingMessage {
 			// to the content-length of the entity-body had the request
 			// been a GET.
 			boolean isHeadResponse = req.method == "HEAD";
-			Log.d(TAG, "AGENT isHeadResponse "+isHeadResponse);
+			debug(TAG, "AGENT isHeadResponse "+isHeadResponse);
 
 			if (res.statusCode() == 100) {
 				// restart the parser, as this is a continue message.
@@ -539,12 +538,12 @@ extends OutgoingMessage {
 
 					if (!req.shouldKeepAlive) {
 						if (socket.writable()) {
-							Log.d(TAG, "AGENT socket.destroySoon()");
+							debug(TAG, "AGENT socket.destroySoon()");
 							socket.destroySoon();
 						}
 						assert(!socket.writable());
 					} else {
-						Log.d(TAG, "AGENT socket keep-alive");
+						debug(TAG, "AGENT socket keep-alive");
 						// TBD...
 						///if (req.timeoutCb) {
 						///  socket.setTimeout(0, req.timeoutCb);
@@ -599,7 +598,7 @@ extends OutgoingMessage {
 		socket.setParser(parser);
 		socket.set_httpMessage(req);
 
-		Log.d(TAG, "req.connection: "+req.connection);
+		debug(TAG, "req.connection: "+req.connection);
 
 		// Setup "drain" propogation.
 		http.httpSocketSetup(socket);
@@ -629,25 +628,25 @@ extends OutgoingMessage {
 		
 		req.emit("socket", socket);
 		
-		Log.d(TAG, "emit socket: "+socket);
+		debug(TAG, "emit socket: "+socket);
 	}
 
 	public void onSocket(final AbstractSocket socket) {
 		final ClientRequest req = this;
 		
-		Log.d(TAG, "onSocket");
+		debug(TAG, "onSocket");
 
 		context.nextTick(new NodeContext.nextTickListener() {
 
 			@Override
 			public void onNextTick() throws Exception {
-				Log.d(TAG, "onNextTick ");
+				debug(TAG, "onNextTick ");
 
 				if (req.aborted > 0) {
 					// If we were aborted while waiting for a socket, skip the whole thing.
 					socket.emit("free");
 				} else {
-					Log.d(TAG, "tickOnSocket");
+					debug(TAG, "tickOnSocket");
 
 					tickOnSocket(req, socket);
 				}
@@ -695,7 +694,7 @@ extends OutgoingMessage {
 		public void onEvent(Object data) throws Exception {
 			///var socket = this;
 			final ClientRequest req = (ClientRequest)socket.get_httpMessage();
-			Log.d(TAG, "http socket close");
+			debug(TAG, "http socket close");
 
 			// Pull through final chunk, if anything is buffered.
 			// the ondata function will handle it properly, and this
@@ -761,7 +760,7 @@ extends OutgoingMessage {
 			///var socket = this;
 			parserOnIncomingClient parser = (parserOnIncomingClient) socket.getParser();
 			ClientRequest req = (ClientRequest) socket.get_httpMessage();
-			Log.d(TAG, "SOCKET ERROR: " + err);/// err.message, err.stack);
+			debug(TAG, "SOCKET ERROR: " + err);/// err.message, err.stack);
 
 			if (req != null) {
 				req.emit("error", err);
@@ -832,13 +831,13 @@ extends OutgoingMessage {
 
 			int ret = parser.Execute(d);
 			if (ret < 0/*ret instanceof Error*/) {
-				Log.d(TAG, "parse error");
+				debug(TAG, "parse error");
 				IncomingParser.freeParser(parser, req);
 				socket.destroy(null);
 				req.emit("error", "parse error");
 				req.socket.set_hadError(true);
 			} else if (parser.incoming!=null && parser.incoming.isUpgrade()) {
-				Log.d(TAG, "Upgrade or CONNECT");
+				debug(TAG, "Upgrade or CONNECT");
 				
 				// Upgrade or CONNECT
 				int bytesParsed = ret;
@@ -867,7 +866,7 @@ extends OutgoingMessage {
 					req.emit(eventName, new http.response_socket_head_b(res, socket, bodyHead));
 					req.emit("close");
 				} else {
-					Log.d(TAG, "Got Upgrade header or CONNECT method, but have no handler");
+					debug(TAG, "Got Upgrade header or CONNECT method, but have no handler");
 
 					// Got Upgrade header or CONNECT method, but have no handler.
 					socket.destroy(null);

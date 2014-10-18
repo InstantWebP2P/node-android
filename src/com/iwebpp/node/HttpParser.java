@@ -5,9 +5,11 @@ package com.iwebpp.node;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import android.util.Log;
 
-public abstract class HttpParser {
+import com.iwebpp.SimpleDebug;
+
+
+public abstract class HttpParser extends SimpleDebug {
 	private final static String TAG = "HttpParser";
 
 	protected HttpParser(http_parser_type type, Object data) {
@@ -540,14 +542,14 @@ public abstract class HttpParser {
 	private static boolean IS_ALPHA(char c) {
 		boolean yes = (LOWER(c) >= 'a' && LOWER(c) <= 'z');
 		
-		if (!yes) Log.d(TAG, "\n\n\nNot alpha: "+c);
+		if (!yes) debug(TAG, "\n\n\nNot alpha: "+c);
 		
 		return yes;
 	}
 	private static boolean IS_NUM(char c) {
 		boolean yes = ((c) >= '0' && (c) <= '9');
 
-		if (!yes) Log.d(TAG, "\n\n\nNot num: "+c);
+		if (!yes) debug(TAG, "\n\n\nNot num: "+c);
 
 		return yes;
 	}
@@ -557,7 +559,7 @@ public abstract class HttpParser {
 	private static boolean IS_HEX(char c) {
 		boolean yes = (IS_NUM(c) || (LOWER(c) >= 'a' && LOWER(c) <= 'f'));
 		
-		if (!yes) Log.d(TAG, "\n\n\nNot HEX: "+c);
+		if (!yes) debug(TAG, "\n\n\nNot HEX: "+c);
 
 		return yes;
 	}
@@ -576,7 +578,7 @@ public abstract class HttpParser {
 	private static char TOKEN(int uc) {
 		uc &= 0xff;
 		
-		Log.d(TAG, "TOKEN uc: "+uc);
+		debug(TAG, "TOKEN uc: "+uc);
 
 		return (tokens[uc]);
 	}
@@ -587,7 +589,7 @@ public abstract class HttpParser {
 		String cstr = "" + c; 
 		int uc = cstr.getBytes("utf-8")[0] & 0xff;
 		
-		Log.d(TAG, "IS_URL_CHAR cstr: "+cstr+", uc: "+uc);
+		debug(TAG, "IS_URL_CHAR cstr: "+cstr+", uc: "+uc);
 
 		return (BIT_AT(normal_url_char, uc));
 	}
@@ -876,14 +878,14 @@ struct http_parser_settings {
 		int len = (data == null) ? 0 : data.capacity();
 		int reexecute_byte = 0;
 
-		Log.d(TAG, "http_parser_execute .");
+		debug(TAG, "http_parser_execute .");
 		
 		/* We're in an error state. Don't bother doing anything. */
 		if (HTTP_PARSER_ERRNO() != http_errno.HPE_OK) {
 			return 0;
 		}
 		
-		Log.d(TAG, "http_parser_execute ..");
+		debug(TAG, "http_parser_execute ..");
 
 		if (len == 0) {
 			switch (state) {
@@ -950,7 +952,7 @@ struct http_parser_settings {
 			break;
 		}
 		
-		Log.d(TAG, "http_parser_execute ... state:"+state.state);
+		debug(TAG, "http_parser_execute ... state:"+state.state);
 
 		///for (p=data; p != data + len; p++) {
 		for (p = 0; p < len; p ++) {
@@ -958,11 +960,11 @@ struct http_parser_settings {
 			uc = data.get(p) & 0xff;
 			ch = ASCII[uc];
 
-			Log.d(TAG, "uc: "+uc+", ch: "+ch);
+			debug(TAG, "uc: "+uc+", ch: "+ch);
 			
 			///if (PARSING_HEADER(state)) {
 			if (PARSING_HEADER()) {
-				Log.d(TAG, "PARSING_HEADER");
+				debug(TAG, "PARSING_HEADER");
 				
 				///++nread;
 				nread++;
@@ -995,7 +997,7 @@ struct http_parser_settings {
 
 			///reexecute_byte:
 			while (true) {
-				Log.d(TAG, "reexecute_byte "+(reexecute_byte++)+",err:"+HTTP_PARSER_ERRNO().desc()+",state:"+state.state);
+				debug(TAG, "reexecute_byte "+(reexecute_byte++)+",err:"+HTTP_PARSER_ERRNO().desc()+",state:"+state.state);
 
 				switch (state) {
 
@@ -2864,7 +2866,7 @@ struct http_parser_settings {
 
 				case s_headers_done:
 				{
-					///Log.d(TAG, "STRICT_CHECK ch:"+ch+",state:"+state.state);
+					///debug(TAG, "STRICT_CHECK ch:"+ch+",state:"+state.state);
 					///STRICT_CHECK(ch != '\n');
 					if (ch != '\n') {                                                       
 						SET_ERRNO(http_errno.HPE_STRICT);  
@@ -3319,7 +3321,7 @@ struct http_parser_settings {
 				}
 
 				// break while loop
-				Log.d(TAG, "break while loop, reexecute_byte:"+reexecute_byte+",err:"+HTTP_PARSER_ERRNO().desc());
+				debug(TAG, "break while loop, reexecute_byte:"+reexecute_byte+",err:"+HTTP_PARSER_ERRNO().desc());
 
 				break;
 			}
@@ -3649,7 +3651,7 @@ struct http_parser_settings {
 			
 			int v = Integer.parseInt(pstr, 10);
 			
-			Log.d(TAG, "port str: "+pstr+", port: "+v);
+			debug(TAG, "port str: "+pstr+", port: "+v);
 			
 			/* Ports have a max value of 2^16 */
 			if (v > 0xffff) {

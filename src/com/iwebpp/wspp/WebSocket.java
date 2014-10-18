@@ -13,7 +13,6 @@ import java.util.Map.Entry;
 import java.util.Random;
 
 import android.util.Base64;
-import android.util.Log;
 
 import com.iwebpp.libuvpp.handles.TimerHandle;
 import com.iwebpp.node.EventEmitter2;
@@ -211,7 +210,7 @@ extends EventEmitter2 {
 
 			@Override
 			public void onEvent(Object error) throws Exception {
-				Log.d(TAG, "cleanupWebsocketResources:"+error!=null ? error.toString() : "");
+				debug(TAG, "cleanupWebsocketResources:"+error!=null ? error.toString() : "");
 				
 				
 				if (self.readyState == WebSocket.CLOSED) return;
@@ -1225,7 +1224,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 			throw new Exception("unsupported protocol version");
 		}
 
-		Log.d(TAG, "as client, options:"+options);
+		debug(TAG, "as client, options:"+options);
 		
 		// verify url and establish http class
 		Url.UrlObj serverUrl = Url.parse(address);
@@ -1261,7 +1260,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 
 		final String expectedServerKey = new String(retbuf, "utf-8").trim();
 
-		Log.d(TAG, "str:"+str+",srv key:"+key+",exp:"+expectedServerKey);
+		debug(TAG, "str:"+str+",srv key:"+key+",exp:"+expectedServerKey);
 
 		Agent agent = options.agent;
 
@@ -1373,7 +1372,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
   }
 		 */
 
-		Log.d(TAG, "serverUrl.path:"+serverUrl.path);
+		debug(TAG, "serverUrl.path:"+serverUrl.path);
 		requestOptions.path = serverUrl.path!=null && serverUrl.path!="" ? serverUrl.path : "/";
 
 		if (agent!=null) {
@@ -1444,7 +1443,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 					public void onUpgrade(IncomingMessage res, AbstractSocket socket,
 							ByteBuffer upgradeHead) throws Exception {
 						
-						Log.d(TAG, "got upgrade");
+						debug(TAG, "got upgrade");
 
 						if (self.readyState == WebSocket.CLOSED) {
 							// client closed before server accepted connection
@@ -1454,7 +1453,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 							return;
 						}
 
-						Log.d(TAG, "res.headers:"+res.headers());
+						debug(TAG, "res.headers:"+res.headers());
 						
 						String serverKey = 
 								res.headers().containsKey("sec-websocket-accept") ? 
@@ -1464,7 +1463,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 							   // TBD...
 							   ///if (typeof serverKey == 'undefined' || serverKey !== expectedServerKey) {
 							   if (serverKey == null || !serverKey.trim().equals(expectedServerKey)) {
-								   Log.d(TAG, "invalid server key:"+serverKey+", expectedServerKey:"+expectedServerKey);
+								   debug(TAG, "invalid server key:"+serverKey+", expectedServerKey:"+expectedServerKey);
 
 								   self.emit("error", "invalid server key");
 								   self.removeAllListeners();
@@ -1643,7 +1642,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 			@Override
 			public void onEvent(Object raw) throws Exception {				
 				ByteBuffer data = (ByteBuffer)raw;
-				Log.d(TAG, "realHandler: "+data);
+				debug(TAG, "realHandler: "+data);
 
 				if (data!=null) self.bytesReceived += data.capacity();
 				self._receiver.add(data);	
@@ -1658,14 +1657,14 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 			public void onEvent(Object raw) throws Exception {
 				ByteBuffer data = (ByteBuffer)raw;
 				
-				Log.d(TAG, "firstHandler, data: "+data+", upgradeHead:"+upgradeHead);
+				debug(TAG, "firstHandler, data: "+data+", upgradeHead:"+upgradeHead);
 
 				// TBD...
 				///dataHandler = realHandler;
 				socket.removeListener("data", this); 
 				socket.addListener("data", realHandler);
 				///socket.on("data", realHandler);
-                Log.d(TAG, "retrain data handler");
+                debug(TAG, "retrain data handler");
 				
 				if (self.readyState != WebSocket.OPEN) return;
 				if (upgradeHead!=null && upgradeHead.capacity() > 0) {

@@ -118,9 +118,35 @@ implements Writable {
 		return _writable.write(chunk, encoding, cb);
 	}
 	@Override
+	public boolean write(Object chunk, String encoding) throws Exception {
+		return _writable.write(chunk, encoding);
+	}
+	@Override
+	public boolean write(Object chunk) throws Exception {
+		return _writable.write(chunk);
+	}
+	@Override
+	public boolean write() throws Exception {
+		return _writable.write();
+	}
+	
+	@Override
 	public boolean end(Object chunk, String encoding, WriteCB cb) throws Exception {
 		return _writable.end(chunk, encoding, cb);
 	}
+	@Override
+	public boolean end(Object chunk, String encoding) throws Exception {
+		return _writable.end(chunk, encoding);
+	}
+	@Override
+	public boolean end(Object chunk) throws Exception {
+		return _writable.end(chunk);
+	}
+	@Override
+	public boolean end() throws Exception {
+		return _writable.end();
+	}
+	
 	@Override
 	public boolean writable() {
 		return _writable.writable();

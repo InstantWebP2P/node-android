@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import android.util.Log;
 
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
@@ -104,7 +103,7 @@ extends EventEmitter2 {
 				ReqOptions options = data.options;
 
 				String name = self.name(options);
-				Log.d(TAG, "agent.on(free) " + name);
+				debug(TAG, "agent.on(free) " + name);
 
 				if (!socket.isDestroyed() &&
 						self.requests.containsKey(name) && 
@@ -221,7 +220,7 @@ extends EventEmitter2 {
 		if (freeLen > 0) {
 			// we have a free socket, so use that.
 			AbstractSocket socket = this.freeSockets.get(name).remove(0);
-			Log.d(TAG, "have free socket");
+			debug(TAG, "have free socket");
 
 			// don't leak
 			if (this.freeSockets.get(name).isEmpty())
@@ -233,11 +232,11 @@ extends EventEmitter2 {
 
 			this.sockets.get(name).add(socket);
 		} else if (sockLen < this.maxSockets) {
-			Log.d(TAG, "call onSocket " + sockLen + " " + freeLen);
+			debug(TAG, "call onSocket " + sockLen + " " + freeLen);
 			// If we are under maxSockets create a new one.
 			req.onSocket(this.createSocket(req, options));
 		} else {
-			Log.d(TAG, "wait for socket");
+			debug(TAG, "wait for socket");
 			// We are over limit so we'll add it to the queue.
 			if (!this.requests.containsKey(name)) {
 				this.requests.put(name, new LinkedList<ClientRequest>());
@@ -283,7 +282,7 @@ extends EventEmitter2 {
 
 		String name = self.name(options);
 
-		Log.d(TAG, "createConnection "+name+" "+options);
+		debug(TAG, "createConnection "+name+" "+options);
 
 		options.encoding = null;
 		final AbstractSocket s = createConnection(
@@ -299,7 +298,7 @@ extends EventEmitter2 {
 		}
 		this.sockets.get(name).add(s);
 
-		Log.d(TAG, "sockets "+ name+" "+ this.sockets.get(name).size());
+		debug(TAG, "sockets "+ name+" "+ this.sockets.get(name).size());
 
 		final Listener onFree = new Listener(){
 
@@ -315,7 +314,7 @@ extends EventEmitter2 {
 
 			@Override
 			public void onEvent(Object data) throws Exception {
-				Log.d(TAG, "CLIENT socket onClose");
+				debug(TAG, "CLIENT socket onClose");
 				// This is the only place where sockets get removed from the Agent.
 				// If you want to remove a socket from the pool, just close it.
 				// All socket errors end in a close event anyway.
@@ -332,7 +331,7 @@ extends EventEmitter2 {
 				// We need this function for cases like http 'upgrade'
 				// (defined by WebSockets) where we need to remove a socket from the
 				// pool because it'll be locked up indefinitely
-				Log.d(TAG, "CLIENT socket onRemove");
+				debug(TAG, "CLIENT socket onRemove");
 				self.removeSocket(s, options);
 				s.removeListener("close", onClose);
 				s.removeListener("free", onFree);
@@ -348,7 +347,7 @@ extends EventEmitter2 {
 	public void removeSocket(AbstractSocket s, ReqOptions options) throws Exception {
 		String name = this.name(options);
 
-		Log.d(TAG, "removeSocket "+ name+ " destroyed:" + s.isDestroyed());
+		debug(TAG, "removeSocket "+ name+ " destroyed:" + s.isDestroyed());
 
 		if (this.sockets.containsKey(name))
 			if (this.sockets.get(name).contains(s)) {
@@ -369,7 +368,7 @@ extends EventEmitter2 {
 				}
 
 		if (this.requests.containsKey(name) && this.requests.get(name).size() > 0) {
-			Log.d(TAG, "removeSocket, have a request, make a socket");
+			debug(TAG, "removeSocket, have a request, make a socket");
 			ClientRequest req = this.requests.get(name).get(0);
 			// If we have pending requests and a socket gets closed make a new one
 			this.createSocket(req, options).emit("free");

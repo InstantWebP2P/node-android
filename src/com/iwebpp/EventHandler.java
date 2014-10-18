@@ -14,16 +14,17 @@ import java.util.List;
 import java.util.Map;
 
 import com.iwebpp.node.EventEmitter;
+
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 
 /*
  * @description 
  *   Node.js EvenEmitter implementation with Android Handler
  * */
 public class EventHandler 
+extends SimpleDebug 
 implements EventEmitter {
 	private final static String TAG = "EventHandler";
     private msgHdl hdl;
@@ -53,10 +54,10 @@ implements EventEmitter {
     				} catch (Exception e) {
     					// TODO Auto-generated catch block
     					///e.printStackTrace();
-    					Log.e(TAG, "Exception event "+event+","+e);
+    					error(TAG, "Exception event "+event+","+e);
     				}
     		} else {
-    			Log.w(TAG, "unknown event "+event);
+    			warn(TAG, "unknown event "+event);
     		}
     	}
 
@@ -115,7 +116,7 @@ implements EventEmitter {
 		// check maxListens
 		if (maxEvents.containsKey(event) && 
 			maxEvents.get(event) < listenerCount(event)) {
-			Log.w(TAG, "exceed maxListeners@"+event+" at="+this);
+			warn(TAG, "exceed maxListeners@"+event+" at="+this);
 
 			///return this;
 		}
@@ -133,7 +134,7 @@ implements EventEmitter {
 		// check maxListens
 		if (maxEvents.containsKey(event) && 
 			maxEvents.get(event) < listenerCount(event)) {
-			Log.w(TAG, "exceed maxListeners@"+event+" at="+this);
+			warn(TAG, "exceed maxListeners@"+event+" at="+this);
 
 			///return this;
 		}

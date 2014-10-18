@@ -452,7 +452,16 @@ implements Writable {
 
     	return ret;
     }
-
+    public boolean write(Object chunk, String encoding) throws Exception {
+        return write(chunk, encoding, null);
+    }
+    public boolean write(Object chunk) throws Exception {
+        return write(chunk, null, null);
+    }
+    public boolean write() throws Exception {
+        return write(null, null, null);
+    }
+    
     public boolean end(Object chunk, String encoding, WriteCB cb) throws Exception {
     	State state = this._writableState;
 
@@ -481,7 +490,16 @@ implements Writable {
     	
     	return false;
     }
-
+    public boolean end(Object chunk, String encoding) throws Exception {
+    	return end(chunk, encoding, null);
+    }
+    public boolean end(Object chunk) throws Exception {
+    	return end(chunk, null, null);
+    }
+    public boolean end() throws Exception {
+    	return end(null, null, null);
+    }
+    
     private void endWritable(Writable2 stream, State state, final WriteCB cb) throws Exception {
     	state.setEnding(true);
     	finishMaybe(stream, state);

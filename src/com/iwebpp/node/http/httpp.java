@@ -1,12 +1,12 @@
 package com.iwebpp.node.http;
 
-import android.util.Log;
 
+import com.iwebpp.SimpleDebug;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Url;
 import com.iwebpp.node.Url.UrlObj;
 
-public final class httpp {
+public final class httpp extends SimpleDebug {
 	private static final String TAG = "httpp";
 
 	// httpp.createServer([requestListener])
@@ -21,7 +21,7 @@ public final class httpp {
 			NodeContext ctx, 
 			ReqOptions options, 
 			ClientRequest.responseListener onres) throws Exception {
-		Log.d(TAG, "httpp request");
+		debug(TAG, "httpp request");
 
 		options.httpp = true;
 

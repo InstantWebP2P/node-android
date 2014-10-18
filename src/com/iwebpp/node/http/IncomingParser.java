@@ -9,7 +9,6 @@ import java.nio.charset.CharsetDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.util.Log;
 
 import com.iwebpp.node.HttpParser;
 import com.iwebpp.node.NodeContext;
@@ -154,7 +153,7 @@ extends HttpParser {
 	// processed in a single run. This method is also
 	// called to process trailing http headers.
 	protected void parserOnHeaders(List<String> headers, String url) {
-		Log.d(TAG, "parserOnHeaders ");
+		debug(TAG, "parserOnHeaders ");
 		
 		// Once we exceeded headers limit - stop collecting them
 		if (this.maxHeaderPairs <= 0 ||
@@ -173,7 +172,7 @@ extends HttpParser {
 	///function parserOnHeadersComplete(info) {
 	protected boolean parserOnHeadersComplete(parseInfo info) throws Exception {
 		///debug('parserOnHeadersComplete', info);
-		Log.d(TAG, "parserOnHeadersComplete "+info);
+		debug(TAG, "parserOnHeadersComplete "+info);
 
 		///var parser = this;
 		List<String> headers = info.headers;
@@ -254,7 +253,7 @@ extends HttpParser {
 	// TODO: http.Parser should be a Writable emits request/response events.
 	///function parserOnBody(b, start, len) {
 	protected void parserOnBody(ByteBuffer b) throws Exception {
-		Log.d(TAG, "parserOnBody ");
+		debug(TAG, "parserOnBody ");
 
 		IncomingParser parser = this;
 		IncomingMessage stream = parser.incoming;
@@ -278,7 +277,7 @@ extends HttpParser {
 
 	///function parserOnMessageComplete() {
 	protected void parserOnMessageComplete() throws Exception {
-		Log.d(TAG, "parserOnMessageComplete ");
+		debug(TAG, "parserOnMessageComplete ");
 
 		IncomingParser parser = this;
 		IncomingMessage stream = parser.incoming;

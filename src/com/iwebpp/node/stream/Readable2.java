@@ -16,7 +16,6 @@ import com.iwebpp.node.Util;
 import com.iwebpp.node.others.TripleState;
 
 import android.text.TextUtils;
-import android.util.Log;
 
 
 public abstract class Readable2 
@@ -305,7 +304,7 @@ implements Readable {
 			} else {
 				if (state.getDecoder()!=null && !addToFront && Util.zeroString(encoding)) {
 					chunk = state.getDecoder().decode((ByteBuffer) chunk).toString();
-					Log.d(TAG, "decoded chunk "+chunk);
+					debug(TAG, "decoded chunk "+chunk);
 				}
 
 				if (!addToFront)
@@ -347,7 +346,7 @@ implements Readable {
 	//needReadable was set, then we ought to push more, so that another
 	//'readable' event will be triggered.
 	private  boolean needMoreData(State state) {
-		Log.d(TAG, "needMoreData: state.length:"+
+		debug(TAG, "needMoreData: state.length:"+
 				state.getLength()+",state.highWaterMark:"+
 				state.highWaterMark);
 
@@ -429,7 +428,7 @@ this._readableState.encoding = enc;
 
 	//you can override either this method, or the async _read(n) below.
 	public Object read(int n) throws Exception {
-		Log.d(TAG, "read " + n);
+		debug(TAG, "read " + n);
 		State state = this._readableState;
 		int nOrig = n;
 
@@ -443,7 +442,7 @@ this._readableState.encoding = enc;
 		if (n == 0 &&
 				state.needReadable &&
 				(state.getLength() >= state.highWaterMark || state.isEnded())) {
-			Log.d(TAG, "read: emitReadable" + state.getLength() + "" + state.isEnded());
+			debug(TAG, "read: emitReadable" + state.getLength() + "" + state.isEnded());
 			if (state.getLength() == 0 && state.isEnded())
 				endReadable(this);
 			else
@@ -484,23 +483,23 @@ this._readableState.encoding = enc;
 
 		// if we need a readable event, then we need to do some reading.
 		boolean doRead = state.needReadable;
-		Log.d(TAG, "need readable " + doRead);
+		debug(TAG, "need readable " + doRead);
 
 		// if we currently have less than the highWaterMark, then also read some
 		if (state.getLength() == 0 || state.getLength() - n < state.highWaterMark) {
 			doRead = true;
-			Log.d(TAG, "length less than watermark " + doRead);
+			debug(TAG, "length less than watermark " + doRead);
 		}
 
 		// however, if we've ended, then there's no point, and if we're already
 		// reading, then it's unnecessary.
 		if (state.isEnded() || state.isReading()) {
 			doRead = false;
-			Log.d(TAG, "reading or ended " + doRead);
+			debug(TAG, "reading or ended " + doRead);
 		}
 
 		if (doRead) {
-			Log.d(TAG, "do read");
+			debug(TAG, "do read");
 			state.setReading(true);
 			state.sync = true;
 			// if the length is currently zero, then we *need* a readable event.
@@ -556,30 +555,30 @@ this._readableState.encoding = enc;
 		Object ret;
 		
 		
-		Log.d(TAG, "fromList n="+n);
+		debug(TAG, "fromList n="+n);
 
 		// nothing in the list, definitely empty.
 		if (list.size() == 0)
 			return null;
 
 		if (length == 0) {
-			Log.d(TAG, "length == 0");
+			debug(TAG, "length == 0");
 			
 			ret = null;
 		} else if (objectMode) {
-			Log.d(TAG, "objectMode");
+			debug(TAG, "objectMode");
 
 			///ret = list.shift();
 			ret = list.get(0);
 		} else if (n==0 || n >= length) {	
-			Log.d(TAG, "n==0 || n >= length");
+			debug(TAG, "n==0 || n >= length");
 
 			// read it all, truncate the array.
 			if (stringMode) {
 				///ret = list.join('');
 				ret = TextUtils.join("", list);
 				
-				Log.d(TAG, "join.string:"+ret.toString());
+				debug(TAG, "join.string:"+ret.toString());
 			} else {
 				///ret = Buffer.concat(list, length);
 				ret = Util.concatByteBuffer(list, length);
@@ -591,7 +590,7 @@ this._readableState.encoding = enc;
 			// read just some of it.
 			///if (n < list[0].length) {
 			if (n < Util.chunkLength(list.get(0))) {
-				Log.d(TAG, "n < Util.chunkLength(list.get(0))");
+				debug(TAG, "n < Util.chunkLength(list.get(0))");
 
 				// just take a part of the first list item.
 				// slice is the same for buffers and strings.
@@ -601,18 +600,18 @@ this._readableState.encoding = enc;
 				///list[0] = buf.slice(n);
 				list.set(0, Util.chunkSlice(buf, n));
 			} else if (n == Util.chunkLength(list.get(0))) {
-				Log.d(TAG, "n == Util.chunkLength(list.get(0))");
+				debug(TAG, "n == Util.chunkLength(list.get(0))");
 
 				// first list is a perfect match
 				///ret = list.shift();
 				ret = list.remove(0);
 			} else {
-				Log.d(TAG, "complex case");
+				debug(TAG, "complex case");
 
 				// complex case.
 				// we have enough to cover it, but it spans past the first buffer.
 				if (stringMode) {
-					Log.d(TAG, "stringMode");
+					debug(TAG, "stringMode");
 
 					ret = "";
 				} else {
@@ -631,8 +630,8 @@ this._readableState.encoding = enc;
 						rs += (String)(Util.chunkSlice(buf, 0, cpy));
 						ret = rs;
 						
-						Log.d(TAG, "string mode complex buf:"+buf.toString());
-						Log.d(TAG, "string mode ret buf:"+ret.toString());
+						debug(TAG, "string mode complex buf:"+buf.toString());
+						debug(TAG, "string mode ret buf:"+ret.toString());
 					} else {
 						///buf.copy(ret, c, 0, cpy);
 						ByteBuffer rb = (ByteBuffer)ret;
@@ -713,7 +712,7 @@ this._readableState.encoding = enc;
 		int len = state.getLength();
 		while (!state.isReading() && state.flowing!=TripleState.TRUE && !state.isEnded() &&
 				state.getLength() < state.highWaterMark) {
-			Log.d(TAG, "maybeReadMore read 0");
+			debug(TAG, "maybeReadMore read 0");
 			stream.read(0);
 			if (len == state.getLength())
 				// didn't get any data, stop spinning.
@@ -731,7 +730,7 @@ this._readableState.encoding = enc;
 		State state = stream._readableState;
 		state.needReadable = false;
 		if (!state.emittedReadable) {
-			Log.d(TAG, "emitReadable " + state.flowing);
+			debug(TAG, "emitReadable " + state.flowing);
 			state.emittedReadable = true;
 			if (state.sync) {
 				//TBD...
@@ -749,14 +748,14 @@ this._readableState.encoding = enc;
 		}
 	}
 	private  void emitReadable_(Readable2 stream) throws Exception {
-		Log.d(TAG, "emit readable");
+		debug(TAG, "emit readable");
 		stream.emit("readable");
 		flow(stream);
 	}
 
 	private  void flow(Readable2 stream) throws Exception {
 		State state = stream._readableState;
-		Log.d(TAG, "flow " + state.flowing);
+		debug(TAG, "flow " + state.flowing);
 		if (state.flowing==TripleState.TRUE) {
 			Object chunk;
 			do {
@@ -826,7 +825,7 @@ this._readableState.encoding = enc;
 		  }*/
 		  state.pipes.add(dest);
 		  state.pipesCount += 1;
-		  Log.d(TAG, "pipe count=" + state.pipesCount + "opts=" + pipeOpts);
+		  debug(TAG, "pipe count=" + state.pipesCount + "opts=" + pipeOpts);
 
 		  /*
 		  boolean doEnd = (!pipeOpts || pipeOpts.end !== false) &&
@@ -839,7 +838,7 @@ this._readableState.encoding = enc;
 
 			  @Override
 			  public void onEvent(Object readable) throws Exception {
-				  Log.d(TAG, "onend");
+				  debug(TAG, "onend");
 				  dest.end(null, null, null);
 			  }
 
@@ -856,10 +855,10 @@ this._readableState.encoding = enc;
 
 			@Override
 			public void onEvent(Object chunk) throws Exception {
-			    Log.d(TAG, "ondata");
+			    debug(TAG, "ondata");
 			    boolean ret = dest.write(chunk, null, null);
 			    if (false == ret) {
-			      Log.d(TAG, "false write response, pause " + src._readableState.awaitDrain);
+			      debug(TAG, "false write response, pause " + src._readableState.awaitDrain);
 			      src._readableState.awaitDrain++;
 			      src.pause();
 			    }
@@ -874,7 +873,7 @@ this._readableState.encoding = enc;
 
         	  @Override
         	  public void onEvent(Object er) throws Exception {
-        		  Log.d(TAG, "onerror " + er);
+        		  debug(TAG, "onerror " + er);
         		  unpipe(src, (Writable2) dest);
         		  dest.removeListener("error", this);
         		  if (dest.listenerCount("error") == 0)
@@ -912,7 +911,7 @@ this._readableState.encoding = enc;
 
         	  @Override
         	  public void onEvent(Object er) throws Exception {
-      		    Log.d(TAG, "onfinish");
+      		    debug(TAG, "onfinish");
     		    dest.removeListener("close", onclose);
     		    unpipe(src, (Writable2) dest);
     		  }
@@ -925,7 +924,7 @@ this._readableState.encoding = enc;
 
 		  // start the flow if it hasn't been started already.
 		  if (state.flowing!=TripleState.TRUE) {
-		    Log.d(TAG, "pipe resume");
+		    debug(TAG, "pipe resume");
 		    src.resume();
 		  }
 		  		  
@@ -933,7 +932,7 @@ this._readableState.encoding = enc;
 
 			  @Override
 			  public void onEvent(Object data) throws Exception {
-				  Log.d(TAG, "cleanup");
+				  debug(TAG, "cleanup");
 
 				  // cleanup event handlers once the pipe is broken
 				  dest.removeListener("close", onclose);
@@ -963,7 +962,7 @@ this._readableState.encoding = enc;
 
 			  @Override
 			  public void onEvent(Object readable) throws Exception {
-				  Log.d(TAG, "onunpipe");
+				  debug(TAG, "onunpipe");
 				  if (readable.equals(src)) {
 					  cleanup.onEvent(null);
 				  }
@@ -991,7 +990,7 @@ this._readableState.encoding = enc;
 }
 
 	private  void unpipe(Readable2 src, Writable2 dest) throws Exception {
-		Log.d(TAG, "unpipe");
+		debug(TAG, "unpipe");
 		src.unpipe(dest);
 	}
 
@@ -1001,7 +1000,7 @@ this._readableState.encoding = enc;
 			public void onEvent(Object data) throws Exception {
 				State state = src._readableState;
 
-				Log.d(TAG, "pipeOnDrain "+state.awaitDrain);
+				debug(TAG, "pipeOnDrain "+state.awaitDrain);
 				if (state.awaitDrain > 0)
 					state.awaitDrain--;
 				if (state.awaitDrain == 0 && src.listenerCount("data")>0) {
@@ -1016,7 +1015,7 @@ this._readableState.encoding = enc;
 	public Readable unpipe(Writable dest) throws Exception {
 		State state = this._readableState;
 
-		Log.d(TAG, "pipesCount "+state.pipesCount);
+		debug(TAG, "pipesCount "+state.pipesCount);
 		
 		// if we're not piping anywhere, then do nothing.
 		if (state.pipesCount == 0)
@@ -1102,7 +1101,7 @@ this._readableState.encoding = enc;
 
 						@Override
 						public void onNextTick() throws Exception {
-							Log.d(TAG, "readable nexttick read 0");
+							debug(TAG, "readable nexttick read 0");
 							self.read(0);
 						}
 						
@@ -1121,7 +1120,7 @@ this._readableState.encoding = enc;
 	public Readable resume() throws Exception {
 		State state = this._readableState;
 		if (state.flowing!=TripleState.TRUE) {
-			Log.d(TAG, "resume");
+			debug(TAG, "resume");
 			state.flowing = TripleState.TRUE;
 			resume(this, state);
 		}
@@ -1146,7 +1145,7 @@ this._readableState.encoding = enc;
 
 	private  void resume_(Readable2 stream, State state) throws Exception {
 		if (!state.isReading()) {
-			Log.d(TAG, "resume read 0");
+			debug(TAG, "resume read 0");
 			stream.read(0);
 		}
 
@@ -1160,9 +1159,9 @@ this._readableState.encoding = enc;
 	}
 
 	public Readable pause() throws Exception {
-		Log.d(TAG, "call pause flowing=" + this._readableState.flowing);
+		debug(TAG, "call pause flowing=" + this._readableState.flowing);
 		if (TripleState.FALSE != this._readableState.flowing) {
-			Log.d(TAG, "pause");
+			debug(TAG, "pause");
 			this._readableState.flowing = TripleState.FALSE;
 			this.emit("pause");
 		}

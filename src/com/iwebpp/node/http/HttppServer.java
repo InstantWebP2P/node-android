@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import android.util.Log;
 
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
@@ -51,7 +50,7 @@ extends UDT.Server {
 		@Override
 		public void onConnection(final AbstractSocket socket) throws Exception {
 			
-			Log.d(TAG, "SERVER new HTTPP connection");
+			debug(TAG, "SERVER new HTTPP connection");
 
 			http.httpSocketSetup(socket);
 
@@ -94,7 +93,7 @@ extends UDT.Server {
 
 				@Override
 				public void onEvent(Object data) throws Exception {
-					Log.d(TAG, "server socket close");
+					debug(TAG, "server socket close");
 					// mark this parser as reusable
 					if (socket.getParser() != null)
 						IncomingParser.freeParser(socket.getParser(), null);
@@ -121,7 +120,7 @@ extends UDT.Server {
 					int ret = parser.Finish();
 
 					if (ret != 0/*instanceof Error*/) {
-						Log.d(TAG, "parse error");
+						debug(TAG, "parse error");
 						socket.destroy("parse error");
 						return;
 					}
@@ -151,19 +150,19 @@ extends UDT.Server {
 					
 					assert(!socket.is_paused());
 					
-					Log.d(TAG, "SERVER socketOnData " + Util.chunkLength(d));
-					Log.d(TAG, "\t\t\t"+Util.chunkToString(d, "utf-8"));
+					debug(TAG, "SERVER socketOnData " + Util.chunkLength(d));
+					debug(TAG, "\t\t\t"+Util.chunkToString(d, "utf-8"));
 					
 					int ret = parser.Execute(d);
 					
 					if (ret < 0 /*instanceof Error*/) {
-						Log.d(TAG, "parse error");
+						debug(TAG, "parse error");
 						socket.destroy("parse error");
 					} else if (parser.incoming!=null && parser.incoming.isUpgrade()) {
 						// Upgrade or CONNECT
 						int bytesParsed = ret;
 						IncomingMessage req = parser.incoming;
-						Log.d(TAG, "SERVER upgrade or connect " + req.method());
+						debug(TAG, "SERVER upgrade or connect " + req.method());
 
 						socket.removeListener("data", this);
 						socket.removeListener("end", socketOnEnd);
@@ -174,7 +173,7 @@ extends UDT.Server {
 
 						String eventName = req.method() == "CONNECT" ? "connect" : "upgrade";
 						if (self.listenerCount(eventName) > 0) {
-							Log.d(TAG, "SERVER have listener for " + eventName);
+							debug(TAG, "SERVER have listener for " + eventName);
 							///var bodyHead = d.slice(bytesParsed, d.length);
 							ByteBuffer bodyHead = (ByteBuffer) Util.chunkSlice(d, bytesParsed, d.capacity());
 
@@ -190,7 +189,7 @@ extends UDT.Server {
 
 					if (socket.is_paused()) {
 						// onIncoming paused the socket, we should pause the parser as well
-						Log.d(TAG, "pause parser");
+						debug(TAG, "pause parser");
 						///socket.parser.pause();
 						socket.getParser().Pause(false);
 					}					
@@ -476,11 +475,11 @@ extends UDT.Server {
 				// There are already pending outgoing res, append.
 				outgoings.add(res);
 				
-				Log.d(TAG, "outgoings.add(res)");
+				debug(TAG, "outgoings.add(res)");
 			} else {
 				res.assignSocket(socket);
 				
-				Log.d(TAG, "res.assignSocket(socket)");
+				debug(TAG, "res.assignSocket(socket)");
 			}
 	
 			// When we're finished writing the response, check if this is the last
@@ -504,13 +503,13 @@ extends UDT.Server {
 						req._dump();
 	
 					res.detachSocket(socket);
-					Log.d(TAG, "res.detachSocket(socket)");
+					debug(TAG, "res.detachSocket(socket)");
 
 					// Reset Parser state 
 					ips.Reinitialize(ips.getType());
 					
 					if (res.is_last()) {
-						Log.d(TAG, "res.is_last()");
+						debug(TAG, "res.is_last()");
 
 						socket.destroySoon();
 					} else {

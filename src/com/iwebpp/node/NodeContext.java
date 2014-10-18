@@ -5,15 +5,15 @@ package com.iwebpp.node;
 
 import java.util.Date;
 
-import android.util.Log;
 
+import com.iwebpp.SimpleDebug;
 import com.iwebpp.libuvpp.LibUV;
 import com.iwebpp.libuvpp.cb.TimerCallback;
 import com.iwebpp.libuvpp.handles.LoopHandle;
 import com.iwebpp.libuvpp.handles.TimerHandle;
 
 // Node.android libUV loop context
-public final class NodeContext {
+public final class NodeContext extends SimpleDebug {
     private static final String TAG = "NodeContext";
 	
 	static {
@@ -52,14 +52,14 @@ public final class NodeContext {
     	timer.setCloseCallback(new TimerCallback() {
             @Override
             public void onTimer(final int i) throws Exception {
-                Log.d(TAG, "setTimeout timer closed");
+                debug(TAG, "setTimeout timer closed");
             }
         });
 
         timer.setTimerFiredCallback(new TimerCallback() {
             @Override
             public void onTimer(final int status) throws Exception {
-                Log.d(TAG, "setTimeout timer fired");
+                debug(TAG, "setTimeout timer fired");
 
                 callback.onTimeout();
                 
@@ -86,14 +86,14 @@ public final class NodeContext {
     	timer.setCloseCallback(new TimerCallback() {
             @Override
             public void onTimer(final int i) throws Exception {
-                Log.d(TAG, "setInterval timer closed");
+                debug(TAG, "setInterval timer closed");
             }
         });
 
         timer.setTimerFiredCallback(new TimerCallback() {
             @Override
             public void onTimer(final int status) throws Exception {
-                Log.d(TAG, "setInterval timer fired");
+                debug(TAG, "setInterval timer fired");
 
                 callback.onInterval();
             }
@@ -114,14 +114,14 @@ public final class NodeContext {
         timer.setCloseCallback(new TimerCallback() {
             @Override
             public void onTimer(final int i) throws Exception {
-                Log.d(TAG, "nextTick timer closed");
+                debug(TAG, "nextTick timer closed");
             }
         });
 
         timer.setTimerFiredCallback(new TimerCallback() {
             @Override
             public void onTimer(final int status) throws Exception {
-                Log.d(TAG, "nextTick timer fired");
+                debug(TAG, "nextTick timer fired");
 
                 next.onNextTick();
                 

@@ -9,11 +9,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-
-import android.util.Log;
+import com.iwebpp.SimpleDebug;
 
 
 public class EventEmitter2 
+extends SimpleDebug 
 implements EventEmitter {
 	private final static String TAG = "EventEmitter2";
     private Map<String, List<Listener>> events;
@@ -27,11 +27,11 @@ implements EventEmitter {
 	@Override
 	public boolean emit(final String event) throws Exception {
 		if (events.containsKey(event)) {
-			Log.d(TAG, "emit "+event+" at="+this);
+			debug(TAG, "emit "+event+" at="+this);
 			for (Listener cb : events.get(event))
 				cb.onEvent(null);
 		} else {
-			Log.d(TAG, "unknown event "+event+" at="+this);
+			debug(TAG, "unknown event "+event+" at="+this);
 			return false;
 		}
 		return true;
@@ -40,7 +40,7 @@ implements EventEmitter {
 	@Override
 	public boolean emit(final String event, final Object data) throws Exception {
 		if (events.containsKey(event)) {
-			Log.d(TAG, "emit "+event+" data="+data+" at="+this);
+			debug(TAG, "emit "+event+" data="+data+" at="+this);
 
 			for (Listener cb : events.get(event))
 				// always create new one to share in case ByteBuffer, etc
@@ -50,7 +50,7 @@ implements EventEmitter {
 				} else 
 					cb.onEvent(data);
 		} else {
-			Log.d(TAG, "unknown event "+event+" data "+data+" at="+this);
+			debug(TAG, "unknown event "+event+" data "+data+" at="+this);
 			return false;
 		}
 		return true;
@@ -61,7 +61,7 @@ implements EventEmitter {
 		// check maxListens
 		if (maxEvents.containsKey(event) && 
 			maxEvents.get(event) < listenerCount(event)) {
-			Log.w(TAG, "exceed maxListeners@"+event+" at="+this);
+			warn(TAG, "exceed maxListeners@"+event+" at="+this);
 
 			///return this;
 		}
@@ -70,7 +70,7 @@ implements EventEmitter {
 			events.put(event, new LinkedList<Listener>());
 		}
 		
-		Log.d(TAG, "addListener "+event+" cb="+cb+" at="+this);
+		debug(TAG, "addListener "+event+" cb="+cb+" at="+this);
 
 		events.get(event).add(cb);
 		
@@ -82,7 +82,7 @@ implements EventEmitter {
 		// check maxListens
 		if (maxEvents.containsKey(event) && 
 				maxEvents.get(event) < listenerCount(event)) {
-			Log.w(TAG, "exceed maxListeners@"+event+" at="+this);
+			warn(TAG, "exceed maxListeners@"+event+" at="+this);
 
 			///return this;
 		}
@@ -168,5 +168,4 @@ implements EventEmitter {
 		// TODO Auto-generated method stub
 		return events.containsKey(event) ? events.get(event).size() : 0;
 	}
-
 }

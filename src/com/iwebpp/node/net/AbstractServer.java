@@ -6,7 +6,6 @@ package com.iwebpp.node.net;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.util.Log;
 
 import com.iwebpp.libuvpp.Address;
 import com.iwebpp.libuvpp.handles.LoopHandle;
@@ -32,11 +31,11 @@ extends EventEmitter2 {
 	protected NodeContext context;
 
 	protected void _emitCloseIfDrained() throws Exception {
-		Log.d(TAG, "SERVER _emitCloseIfDrained");
+		debug(TAG, "SERVER _emitCloseIfDrained");
 		final AbstractServer self = this;
 
 		if (self._handle!=null || self.get_connections()>0) {
-			Log.d(TAG, "SERVER handle? " + self._handle +
+			debug(TAG, "SERVER handle? " + self._handle +
 					" connections? " + self.get_connections());
 			return;
 		}
@@ -47,7 +46,7 @@ extends EventEmitter2 {
 
 			@Override
 			public void onNextTick() throws Exception {
-				Log.d(TAG, "SERVER: emit close");
+				debug(TAG, "SERVER: emit close");
 				self.emit("close");
 			}
 

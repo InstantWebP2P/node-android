@@ -1,7 +1,7 @@
 package com.iwebpp.middleware.test;
 
-import android.util.Log;
 
+import com.iwebpp.SimpleDebug;
 import com.iwebpp.middleware.Connect;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.NodeContext.TimeoutListener;
@@ -14,7 +14,7 @@ import com.iwebpp.node.http.ServerResponse;
 import com.iwebpp.node.http.http;
 import com.iwebpp.node.http.httpp;
 
-public final class ConnectTest {
+public final class ConnectTest extends SimpleDebug {
 	private static final String TAG = "ConnectTest";
 	
 	private NodeContext ctx;
@@ -72,8 +72,8 @@ public final class ConnectTest {
 		HttppServer srvpp = httpp.createServer(ctx, stack);
 
 		int port = 5188;
-		srv.listen(port, "0.0.0.0"); Log.d(TAG, "http server listen on "+port);
-		srvpp.listen(port, "0.0.0.0"); Log.d(TAG, "httpp server listen on "+port);
+		srv.listen(port, "0.0.0.0"); debug(TAG, "http server listen on "+port);
+		srvpp.listen(port, "0.0.0.0"); debug(TAG, "httpp server listen on "+port);
 
 		// request on /, /route
 		ctx.setTimeout(new TimeoutListener(){
@@ -84,7 +84,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());					
+						debug(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());					
 					}
 
 				});
@@ -92,7 +92,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());				
+						debug(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());				
 					}
 
 				});
@@ -101,7 +101,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());				
+						debug(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());				
 					}
 
 				});
@@ -109,7 +109,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());			
+						debug(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());			
 					}
 
 				});
@@ -158,8 +158,8 @@ public final class ConnectTest {
 		HttppServer srvpp = httpp.createServer(ctx, stack);
 
 		int port = 5189;
-		srv.listen(port, "0.0.0.0"); Log.d(TAG, "http server listen on "+port);
-		srvpp.listen(port, "0.0.0.0"); Log.d(TAG, "httpp server listen on "+port);
+		srv.listen(port, "0.0.0.0"); debug(TAG, "http server listen on "+port);
+		srvpp.listen(port, "0.0.0.0"); debug(TAG, "httpp server listen on "+port);
 
 		// request on /, /route
 		ctx.setTimeout(new TimeoutListener(){
@@ -170,7 +170,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getReq().getPath() +", headers:"+res.headers());			
+						debug(TAG, "got http response on " + res.getReq().getPath() +", headers:"+res.headers());			
 					}
 
 				});
@@ -178,7 +178,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());		
+						debug(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());		
 					}
 
 				});
@@ -187,7 +187,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());		
+						debug(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());		
 					}
 
 				});
@@ -195,7 +195,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());			
+						debug(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());			
 					}
 
 				});
@@ -204,7 +204,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());	
+						debug(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());	
 					}
 
 				});
@@ -212,7 +212,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());		
+						debug(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());		
 					}
 
 				});
@@ -221,7 +221,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());	
+						debug(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());	
 					}
 
 				});
@@ -229,7 +229,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());		
+						debug(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());		
 					}
 
 				});
@@ -247,7 +247,7 @@ public final class ConnectTest {
 	public void start() {		
 		(new Thread(new Runnable() {
 			public void run() {
-				Log.d(TAG, "start test");
+				debug(TAG, "start test");
 				
 				try {
 					testStack();
@@ -256,7 +256,7 @@ public final class ConnectTest {
 					// run loop
 					ctx.getLoop().run();
 					
-					Log.d(TAG, "exit test");
+					debug(TAG, "exit test");
 				} catch (Throwable e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

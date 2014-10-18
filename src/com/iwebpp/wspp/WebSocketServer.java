@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 import android.util.Base64;
-import android.util.Log;
 
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
@@ -300,7 +299,7 @@ extends EventEmitter2 {
 						ByteBuffer head = ByteBuffer.allocate(upgradeHead.capacity());
 						head.put(upgradeHead); head.flip(); upgradeHead.flip();
 
-						Log.d(TAG, "onUpgrade, upgradeHead:"+upgradeHead+",head:"+head);
+						debug(TAG, "onUpgrade, upgradeHead:"+upgradeHead+",head:"+head);
 
 						/*self.handleUpgrade(req, socket, head, function(client) {
 							self.emit("connection"+req.url, client);
@@ -344,7 +343,7 @@ extends EventEmitter2 {
 						ByteBuffer head = ByteBuffer.allocate(upgradeHead.capacity());
 						head.put(upgradeHead); head.flip(); upgradeHead.flip();
 
-						Log.d(TAG, "onUpgrade, upgradeHead:"+upgradeHead+",head:"+head);
+						debug(TAG, "onUpgrade, upgradeHead:"+upgradeHead+",head:"+head);
 
 						/*self.handleUpgrade(req, socket, head, function(client) {
 							self.emit("connection"+req.url, client);
@@ -451,7 +450,7 @@ extends EventEmitter2 {
 		if (this.options.path != null) {
 			UrlObj u = Url.parse(req.url());
 
-			Log.d(TAG, "req.url:"+req.url()+",options.path:"+this.options.path+",u.pathname:"+u.pathname);
+			debug(TAG, "req.url:"+req.url()+",options.path:"+this.options.path+",u.pathname:"+u.pathname);
 
 			if (u!=null && !this.options.path.equalsIgnoreCase(u.pathname)) return;
 		}
@@ -651,7 +650,7 @@ extends EventEmitter2 {
 
 					String key = new String(retbuf, "utf-8").trim();
 
-					Log.d(TAG, "keystr:"+keystr+",key:"+key);
+					debug(TAG, "keystr:"+keystr+",key:"+key);
 
 					/*var headers = [
 		               'HTTP/1.1 101 Switching Protocols'

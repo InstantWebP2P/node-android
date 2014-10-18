@@ -5,7 +5,6 @@ package com.iwebpp.wspp;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import android.util.Log;
 
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.Util;
@@ -41,7 +40,7 @@ extends EventEmitter2 {
 	 * @api public
 	 */
 	protected boolean close(int code, Object data, boolean mask) throws Exception {
-		Log.d(TAG, "close, code:"+code+",data:"+data+",mask:"+mask);
+		debug(TAG, "close, code:"+code+",data:"+data+",mask:"+mask);
 		
 		if (code > 0) {
 			if (!ErrorCodes.isValidErrorCode(code)) 
@@ -91,7 +90,7 @@ extends EventEmitter2 {
 	 * @api public
 	 */
 	protected boolean send(Object data, SendOptions options, WriteCB cb) throws Exception {
-		Log.d(TAG, "send");
+		debug(TAG, "send");
 		
 		boolean finalFragment = options!=null && options.fin == false ? false : true;
 		boolean mask = options!=null && options.mask;
@@ -116,14 +115,14 @@ extends EventEmitter2 {
 	 */
 	private boolean frameAndSend(int opcode, Object data, boolean finalFragment,
 			boolean maskData, WriteCB cb) throws Exception {
-		Log.d(TAG, "frameAndSend,opcode:"+opcode+",data:"+data+",mask:"+maskData);
+		debug(TAG, "frameAndSend,opcode:"+opcode+",data:"+data+",mask:"+maskData);
 
 		if (data != null && data instanceof ByteBuffer) {
 			ByteBuffer bd = (ByteBuffer)data;
 			String dstr = "";
 			for (int i = 0; i < bd.capacity(); i ++)
 				dstr += " "+bd.get(i);
-			Log.d(TAG, dstr);
+			debug(TAG, dstr);
 		}
 
 		boolean canModifyData = false;
@@ -187,7 +186,7 @@ extends EventEmitter2 {
 			}
 		}
 		
-		Log.d(TAG, "frameAndSend ... 1, data:"+data.toString());
+		debug(TAG, "frameAndSend ... 1, data:"+data.toString());
 
 
 		int dataLength = Util.chunkByteLength(data, null);
@@ -240,7 +239,7 @@ extends EventEmitter2 {
 			if (mergeBuffers) {
 				BufferUtil.mask((ByteBuffer) data, mask, outputBuffer, dataOffset, dataLength);
 				try {
-					BufferUtil.renewBuffer(outputBuffer); Log.d(TAG, "outputBuffer 3:"+outputBuffer);
+					BufferUtil.renewBuffer(outputBuffer); debug(TAG, "outputBuffer 3:"+outputBuffer);
 
 					out = this._socket.write(outputBuffer, null, cb);
 				}
@@ -254,11 +253,11 @@ extends EventEmitter2 {
 				try {
 					///this._socket.write(outputBuffer, 'binary');
 					///out = this._socket.write(data, 'binary', cb);
-					BufferUtil.renewBuffer(outputBuffer); Log.d(TAG, "outputBuffer 1:"+outputBuffer);
+					BufferUtil.renewBuffer(outputBuffer); debug(TAG, "outputBuffer 1:"+outputBuffer);
 
 					this._socket.write(outputBuffer, null, null);
 					
-					BufferUtil.renewBuffer((ByteBuffer)data); Log.d(TAG, "data 1:"+(ByteBuffer)data);
+					BufferUtil.renewBuffer((ByteBuffer)data); debug(TAG, "data 1:"+(ByteBuffer)data);
 					
 					out = this._socket.write(data, null, cb);
 				}
@@ -277,7 +276,7 @@ extends EventEmitter2 {
 				BufferUtil.fastCopy(tfc.capacity(), tfc, outputBuffer, dataOffset);
 				
 				try {
-					BufferUtil.renewBuffer(outputBuffer); Log.d(TAG, "outputBuffer 2:"+outputBuffer);
+					BufferUtil.renewBuffer(outputBuffer); debug(TAG, "outputBuffer 2:"+outputBuffer);
 
 					out = this._socket.write(outputBuffer, null, cb);
 				}
@@ -291,11 +290,11 @@ extends EventEmitter2 {
 					///this._socket.write(outputBuffer, 'binary');
 					///out = this._socket.write(data, 'binary', cb);
 					
-					BufferUtil.renewBuffer(outputBuffer); Log.d(TAG, "outputBuffer 0:"+outputBuffer);
+					BufferUtil.renewBuffer(outputBuffer); debug(TAG, "outputBuffer 0:"+outputBuffer);
 					
 					this._socket.write(outputBuffer, null, null);
 					
-					BufferUtil.renewBuffer((ByteBuffer)data); Log.d(TAG, "data 0:"+(ByteBuffer)data);
+					BufferUtil.renewBuffer((ByteBuffer)data); debug(TAG, "data 0:"+(ByteBuffer)data);
 
 					out = this._socket.write(data, null, cb);
 				}
@@ -306,7 +305,7 @@ extends EventEmitter2 {
 			}
 		}
 		
-		Log.d(TAG, "frameAndSend ... 2");
+		debug(TAG, "frameAndSend ... 2");
 
 		return out;
 	}

@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
-import android.util.Log;
 
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
@@ -139,7 +138,7 @@ extends OutgoingMessage {
 	public void writeHead(int statusCode, String statusMessage, Map<String, List<String>> obj) throws Exception {
 		Map<String, List<String>> headers;
 
-		Log.d(TAG, "..... -1");
+		debug(TAG, "..... -1");
 
 		if (Util.zeroString(statusMessage)) {
 			this.statusMessage = http.STATUS_CODES.containsKey(statusCode) ?
@@ -151,7 +150,7 @@ extends OutgoingMessage {
 		this.statusCode = statusCode;
 
 		if (this._headers != null) {
-			Log.d(TAG, "..... -2");
+			debug(TAG, "..... -2");
 
 			// Slow-case: when progressive API and header fields are passed.
 			if (obj != null) {
@@ -190,7 +189,7 @@ extends OutgoingMessage {
 			setShouldKeepAlive(false);
 		}
 		
-		Log.d(TAG, "..... -3");
+		debug(TAG, "..... -3");
 
 		this._storeHeader(statusLine, headers);
 	}

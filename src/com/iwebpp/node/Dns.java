@@ -7,7 +7,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import android.util.Log;
 
 public final class Dns 
 extends EventEmitter2 {
@@ -50,7 +49,7 @@ extends EventEmitter2 {
 			InetAddress ipaddr = InetAddress.getByName(domain);
 			String ip = ipaddr.getHostAddress();
 
-			Log.d(TAG, "domain:"+domain+",ip:"+ip);
+			debug(TAG, "domain:"+domain+",ip:"+ip);
 			
 			return ip;
 		} catch (UnknownHostException e) {
@@ -80,7 +79,7 @@ extends EventEmitter2 {
 				}
 			}
 			
-			Log.d(TAG, "domain:"+domain+",ip:"+ip);
+			debug(TAG, "domain:"+domain+",ip:"+ip);
 
 			return ip;
 		} catch (UnknownHostException e) {

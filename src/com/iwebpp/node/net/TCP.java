@@ -3,8 +3,8 @@
 
 package com.iwebpp.node.net;
 
-import android.util.Log;
 
+import com.iwebpp.SimpleDebug;
 import com.iwebpp.libuvpp.Address;
 import com.iwebpp.libuvpp.cb.StreamConnectionCallback;
 import com.iwebpp.libuvpp.handles.LoopHandle;
@@ -13,7 +13,7 @@ import com.iwebpp.libuvpp.handles.TCPHandle;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
 
-public final class TCP {
+public final class TCP extends SimpleDebug {
 	private final static String TAG = "TCP";
 
 	public static final class Socket 
@@ -190,7 +190,7 @@ public final class TCP {
 			int err = 0;
 
 
-			Log.d(TAG, "bind to " + (address /*|| 'anycast'*/)+":"+port);
+			debug(TAG, "bind to " + (address /*|| 'anycast'*/)+":"+port);
 			if (Util.zeroString(address)) {
 				// Try binding to ipv6 first
 				err = handle.bind6("::", port);
@@ -206,7 +206,7 @@ public final class TCP {
 			}
 
 			if (err!=0) {
-				Log.d(TAG, "bind err "+err);
+				debug(TAG, "bind err "+err);
 				handle.close();
 				return null;
 			}
@@ -217,7 +217,7 @@ public final class TCP {
 		@Override
 		protected void _listen2(String address, int port, int addressType, 
 				int backlog, int fd) throws Exception {
-			Log.d(TAG, "listen2 "+address+":"+port+":"+addressType+":"+backlog);
+			debug(TAG, "listen2 "+address+":"+port+":"+addressType+":"+backlog);
 			
 			// check if address is ip
 			if (!Util.isIP(address)) throw new Exception("Invalid IP address: "+address);
@@ -229,7 +229,7 @@ public final class TCP {
 			// If there is not yet a handle, we need to create one and bind.
 			// In the case of a server sent via IPC, we don't need to do this.
 			if (null==self._handle) {
-				Log.d(TAG, "_listen2: create a handle");
+				debug(TAG, "_listen2: create a handle");
 
 				/*var rval = createServerHandle(address, port, addressType, fd);
 			    if (util.isNumber(rval)) {
@@ -258,7 +258,7 @@ public final class TCP {
 				self._handle = rval;
 			} else {
 				///debug('_listen2: have a handle already');
-				Log.d(TAG, "_listen2: have a handle already");
+				debug(TAG, "_listen2: have a handle already");
 			}
 
 			///self._handle.onconnection = onconnection;
@@ -276,7 +276,7 @@ public final class TCP {
 					int err = handle.accept(clientHandle);
 
 
-					Log.d(TAG, "onconnection");
+					debug(TAG, "onconnection");
 
 					if (err!=0) {
 						///self.emit('error', errnoException(err, 'accept'));
@@ -285,7 +285,7 @@ public final class TCP {
 					}
 
 					if (/*self.maxConnections &&*/ self.get_connections() >= self.getMaxConnections()) {
-						Log.d(TAG, "exceed maxim connections");
+						debug(TAG, "exceed maxim connections");
 
 						clientHandle.close();
 						return;
@@ -332,7 +332,7 @@ public final class TCP {
 
 				});
 
-				Log.d(TAG, ex);
+				debug(TAG, ex);
 
 				return;
 			}
@@ -375,7 +375,7 @@ public final class TCP {
 			String address, int port,
 			String localAddress, int localPort,
 			final AbstractSocket.ConnectListener cb) throws Exception {
-		Log.d(TAG, "createConnection " + address + ":" + port + "@"+localAddress+":"+localPort);
+		debug(TAG, "createConnection " + address + ":" + port + "@"+localAddress+":"+localPort);
 
 		Socket s = new Socket(ctx, new Socket.Options(null, false, false, true));
 
@@ -389,7 +389,7 @@ public final class TCP {
 			String address, int port,
 			String localAddress, int localPort,
 			final Socket.ConnectListener cb) throws Exception {
-		Log.d(TAG, "connect " + address + ":" + port + "@"+localAddress+":"+localPort);
+		debug(TAG, "connect " + address + ":" + port + "@"+localAddress+":"+localPort);
 
 		Socket s = new Socket(ctx, new Socket.Options(null, false, false, true));
 

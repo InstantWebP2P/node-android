@@ -13,14 +13,17 @@ public interface JS {
 	/*
 	 * @description
 	 *   Node.js require
+	 * @param module - module path, like file path
+	 * @return serialized JS Object, JS engine dependent
 	 * */
 	public String require(String module);
 
 	/*
 	 * @description
 	 *   Node.js context execute
+	 * @return false on error
 	 * */
-	public void execute();
+	public boolean execute();
 
 	/*
 	 * @description

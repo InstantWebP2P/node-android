@@ -10,12 +10,12 @@ import java.nio.charset.CharsetDecoder;
 import java.util.LinkedList;
 import java.util.List;
 
-import android.util.Log;
 
+import com.iwebpp.SimpleDebug;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
 
-public abstract class Receiver {
+public abstract class Receiver extends SimpleDebug {
 	
 	private static final String TAG = "Receiver";
 	
@@ -163,7 +163,7 @@ public abstract class Receiver {
 					  String dstr = "";
 					  for (int i = 0; i < data.capacity(); i ++)
 						  dstr += " "+data.get(i);
-					  Log.d(TAG, dstr);
+					  debug(TAG, dstr);
 				  }
 				  
 				  ///var self = this;
@@ -230,7 +230,7 @@ public abstract class Receiver {
                             mask[2] = data.get(2);
                             mask[3] = data.get(3);
                                                         
-                            Log.d(TAG, "mask: "+mask[0]+" "+mask[1]+" "+mask[2]+" "+mask[3]);
+                            debug(TAG, "mask: "+mask[0]+" "+mask[1]+" "+mask[2]+" "+mask[3]);
 
                             self.expectData(length, new PacketHandler(){
 
@@ -261,11 +261,11 @@ public abstract class Receiver {
 
 			  @Override
 			  public void finish(byte[] mask, ByteBuffer data) throws Exception {
-			      Log.d(TAG, "ontext, mask:"+mask+",data:"+data);
+			      debug(TAG, "ontext, mask:"+mask+",data:"+data);
 
 			      Object packet = self.unmask(mask, data, true);
 			      
-			      Log.d(TAG, "ontext, mask:"+mask+",packet:"+packet);
+			      debug(TAG, "ontext, mask:"+mask+",packet:"+packet);
 			      
 			      if (packet != null) self.currentMessage.add(packet);
 			      if (self.state.lastFragment) {
@@ -296,7 +296,7 @@ public abstract class Receiver {
 					  String dstr = "";
 					  for (int i = 0; i < data.capacity(); i ++)
 						  dstr += " "+data.get(i);
-					  Log.d(TAG, dstr);
+					  debug(TAG, dstr);
 				  }
 					
 			      ///var self = this;
@@ -397,7 +397,7 @@ public abstract class Receiver {
 			  @Override
 			  public void finish(byte[] mask, ByteBuffer data) throws Exception {
 			      Object packet = self.unmask(mask, data, true);
-			      Log.d(TAG, "onbinary, mask:"+mask+",packet:"+packet);
+			      debug(TAG, "onbinary, mask:"+mask+",packet:"+packet);
 
 			      if (packet != null) self.currentMessage.add(packet);
 			      if (self.state.lastFragment) {
@@ -418,7 +418,7 @@ public abstract class Receiver {
 					  String dstr = "";
 					  for (int i = 0; i < data.capacity(); i ++)
 						  dstr += " "+data.get(i);
-					  Log.d(TAG, dstr);
+					  debug(TAG, dstr);
 				  }
 					
 				  ///var self = this;
@@ -491,7 +491,7 @@ public abstract class Receiver {
 			  public void finish(byte[] mask, ByteBuffer data) throws Exception {
 			      ///var self = this;
 			      data = (ByteBuffer) self.unmask(mask, data, true);
-			      Log.d(TAG, "onclose, mask:"+mask+",data:"+data);
+			      debug(TAG, "onclose, mask:"+mask+",data:"+data);
 
 			      if (data!=null && data.capacity() == 1) {
 			        self.error("close packets with data must be at least two bytes long", 1002);
@@ -526,7 +526,7 @@ public abstract class Receiver {
 					  String dstr = "";
 					  for (int i = 0; i < data.capacity(); i ++)
 						  dstr += " "+data.get(i);
-					  Log.d(TAG, dstr);
+					  debug(TAG, dstr);
 				  }
 					
 				  ///var self = this;
@@ -696,13 +696,13 @@ public abstract class Receiver {
 
 		@Override
 		public void onPacket(ByteBuffer data) throws Exception {
-			Log.d(TAG, "processPacket.onPacket: "+data);
+			debug(TAG, "processPacket.onPacket: "+data);
 
 			if (data != null) {
 				String dstr = "";
 				for (int i = 0; i < data.capacity(); i ++)
 					dstr += " "+data.get(i);
-				Log.d(TAG, dstr);
+				debug(TAG, dstr);
 			}
 			
 			///if ((data[0] & 0x70) != 0) {
@@ -714,7 +714,7 @@ public abstract class Receiver {
 			state.masked = (data.get(1) & 0x80) == 0x80;
 			int opcode = data.get(0) & 0xf;
 		
-			Log.d(TAG, "opcode: "+opcode+", masked:"+state.masked+",lastFragment:"+state.fragmentedOperation);
+			debug(TAG, "opcode: "+opcode+", masked:"+state.masked+",lastFragment:"+state.fragmentedOperation);
 			
 			if (opcode == 0) {
 				// continuation frame
@@ -877,7 +877,7 @@ private void reset() {
  * @api private
  */
 	private void expectHeader(int length, PacketHandler handler) throws Exception {
-		Log.d(TAG, "expectHeader, length:"+length+",handler:"+handler);
+		debug(TAG, "expectHeader, length:"+length+",handler:"+handler);
 		
 		if (length == 0) {
 			handler.onPacket(null);
@@ -897,7 +897,7 @@ private void reset() {
 			toRead -= read;
 		}
 		
-		Log.d(TAG, "expectHeader, expectBuffer:"+expectBuffer+",expectOffset:"+expectOffset);
+		debug(TAG, "expectHeader, expectBuffer:"+expectBuffer+",expectOffset:"+expectOffset);
 		
 	}
 
@@ -907,7 +907,7 @@ private void reset() {
  * @api private
  */
 	private void  expectData(int length, PacketHandler handler) throws Exception {
-		Log.d(TAG, "expectData, length:"+length+",handler:"+handler);
+		debug(TAG, "expectData, length:"+length+",handler:"+handler);
 
 		if (length == 0) {
 			handler.onPacket(null);
@@ -927,7 +927,7 @@ private void reset() {
 			toRead -= read;
 		}
 		
-		Log.d(TAG, "expectData, expectBuffer:"+expectBuffer+",expectOffset:"+expectOffset);
+		debug(TAG, "expectData, expectBuffer:"+expectBuffer+",expectOffset:"+expectOffset);
 		
 	}
 
@@ -948,7 +948,7 @@ private ByteBuffer allocateFromPool(int length, boolean isFragmented) {
  */
 
 protected void add(ByteBuffer data) throws Exception {
-	Log.d(TAG, "add data: "+data);
+	debug(TAG, "add data: "+data);
 
 	int dataLength = data!=null ? data.capacity() : 0; ///Util.chunkLength(data); ///data.length;
 	if (dataLength == 0) return;
@@ -957,19 +957,19 @@ protected void add(ByteBuffer data) throws Exception {
 		return;
 	}
 	
-	Log.d(TAG, "add data: ... 2");
+	debug(TAG, "add data: ... 2");
 	
 	int toRead = Math.min(dataLength, this.expectBuffer.capacity() - this.expectOffset);
 	BufferUtil.fastCopy(toRead, data, this.expectBuffer, this.expectOffset);
 	
-	Log.d(TAG, "add data: ... 3");
+	debug(TAG, "add data: ... 3");
 
 	this.expectOffset += toRead;
 	if (toRead < dataLength) {
 		this.overflow.add((ByteBuffer) Util.chunkSlice(data, toRead, data.capacity())/*data.slice(toRead)*/);
 	}
 	
-	Log.d(TAG, "add data: ... 5");
+	debug(TAG, "add data: ... 5");
 
 	while (this.expectBuffer!=null && this.expectOffset == this.expectBuffer.capacity()) {
 		ByteBuffer bufferForHandler = this.expectBuffer;
@@ -979,7 +979,7 @@ protected void add(ByteBuffer data) throws Exception {
 		this.expectHandler.onPacket(bufferForHandler);
 	}
 	
-	Log.d(TAG, "add data: ... 6");
+	debug(TAG, "add data: ... 6");
 
 }
 

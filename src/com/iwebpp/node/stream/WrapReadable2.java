@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import com.iwebpp.node.EventEmitter;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.Util;
-import android.util.Log;
 
 public final class WrapReadable2 extends Readable2 {
 	private final static String TAG = "WrapReadable2";
@@ -30,7 +29,7 @@ public final class WrapReadable2 extends Readable2 {
 		stream.on("end", new EventEmitter.Listener() {
 			@Override
 			public void onEvent(Object data) throws Exception {
-				Log.d(TAG, "wrapped end");
+				debug(TAG, "wrapped end");
 
 				if (state.getDecoder()!=null && !state.isEnded()) {
 					/*var chunk = state.decoder.end();
@@ -58,7 +57,7 @@ public final class WrapReadable2 extends Readable2 {
 
 			@Override
 			public void onEvent(Object chunk) throws Exception {
-				Log.d(TAG, "wrapped data");
+				debug(TAG, "wrapped data");
 				if (state.getDecoder() != null)
 					///chunk = state.decoder.write(chunk);
 					chunk = state.getDecoder().decode((ByteBuffer) chunk).toString();
@@ -131,7 +130,7 @@ public final class WrapReadable2 extends Readable2 {
 	// underlying stream.
 	@Override
 	protected void _read(int n) throws Exception {
-		Log.d(TAG, "wrapped _read "+n);
+		debug(TAG, "wrapped _read "+n);
 		if (paused) {
 			paused = false;
 			stream.resume();

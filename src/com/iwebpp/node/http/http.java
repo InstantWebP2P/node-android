@@ -7,8 +7,8 @@ import java.nio.ByteBuffer;
 import java.util.Hashtable;
 import java.util.Map;
 
-import android.util.Log;
 
+import com.iwebpp.SimpleDebug;
 import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.node.Url;
 import com.iwebpp.node.Url.UrlObj;
@@ -16,7 +16,7 @@ import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.NodeContext;
 
 
-public final class http {
+public final class http extends SimpleDebug {
 
 	private static final String TAG = "http";
 	
@@ -240,7 +240,7 @@ public final class http {
 			NodeContext ctx, 
 			ReqOptions options, 
 			ClientRequest.responseListener onres) throws Exception {
-		Log.d(TAG, "http request");
+		debug(TAG, "http request");
 		
 		options.httpp = false;
 

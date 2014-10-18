@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import android.util.Log;
 
 import com.iwebpp.node.HttpParser.http_parser_type;
 import com.iwebpp.node.NodeContext;
@@ -47,7 +46,7 @@ extends TCP.Server {
 		@Override
 		public void onConnection(final AbstractSocket socket) throws Exception {
 			
-			Log.d(TAG, "SERVER new HTTP connection");
+			debug(TAG, "SERVER new HTTP connection");
 
 			http.httpSocketSetup(socket);
 
@@ -90,7 +89,7 @@ extends TCP.Server {
 
 				@Override
 				public void onEvent(Object data) throws Exception {
-					Log.d(TAG, "server socket close");
+					debug(TAG, "server socket close");
 					// mark this parser as reusable
 					if (socket.getParser() != null)
 						IncomingParser.freeParser(socket.getParser(), null);
@@ -117,7 +116,7 @@ extends TCP.Server {
 					int ret = parser.Finish();
 
 					if (ret != 0/*instanceof Error*/) {
-						Log.d(TAG, "parse error");
+						debug(TAG, "parse error");
 						socket.destroy("parse error");
 						return;
 					}
@@ -147,19 +146,19 @@ extends TCP.Server {
 					
 					assert(!socket.is_paused());
 					
-					Log.d(TAG, "SERVER socketOnData " + Util.chunkLength(d));
-					Log.d(TAG, "\t\t\t"+Util.chunkToString(d, "utf-8"));
+					debug(TAG, "SERVER socketOnData " + Util.chunkLength(d));
+					debug(TAG, "\t\t\t"+Util.chunkToString(d, "utf-8"));
 					
 					int ret = parser.Execute(d);
 					
 					if (ret < 0 /*instanceof Error*/) {
-						Log.d(TAG, "parse error");
+						debug(TAG, "parse error");
 						socket.destroy("parse error");
 					} else if (parser.incoming!=null && parser.incoming.isUpgrade()) {
 						// Upgrade or CONNECT
 						int bytesParsed = ret;
 						IncomingMessage req = parser.incoming;
-						Log.d(TAG, "SERVER upgrade or connect " + req.method());
+						debug(TAG, "SERVER upgrade or connect " + req.method());
 
 						socket.removeListener("data", this);
 						socket.removeListener("end", socketOnEnd);
@@ -170,7 +169,7 @@ extends TCP.Server {
 
 						String eventName = req.method() == "CONNECT" ? "connect" : "upgrade";
 						if (self.listenerCount(eventName) > 0) {
-							Log.d(TAG, "SERVER have listener for " + eventName);
+							debug(TAG, "SERVER have listener for " + eventName);
 							///var bodyHead = d.slice(bytesParsed, d.length);
 							ByteBuffer bodyHead = (ByteBuffer) Util.chunkSlice(d, bytesParsed, d.capacity());
 
@@ -186,7 +185,7 @@ extends TCP.Server {
 
 					if (socket.is_paused()) {
 						// onIncoming paused the socket, we should pause the parser as well
-						Log.d(TAG, "pause parser");
+						debug(TAG, "pause parser");
 						///socket.parser.pause();
 						socket.getParser().Pause(false);
 					}					
@@ -334,10 +333,6 @@ extends TCP.Server {
 
 		});
 	}
-	public interface ListeningCallback {
-		public void onListening() throws Exception;
-	}
-
 	public void onRequest(final requestListener cb) throws Exception {
 		this.on("request", new Listener(){
 
@@ -504,11 +499,11 @@ extends TCP.Server {
 				// There are already pending outgoing res, append.
 				outgoings.add(res);
 				
-				Log.d(TAG, "outgoings.add(res)");
+				debug(TAG, "outgoings.add(res)");
 			} else {
 				res.assignSocket(socket);
 				
-				Log.d(TAG, "res.assignSocket(socket)");
+				debug(TAG, "res.assignSocket(socket)");
 			}
 	
 			// When we're finished writing the response, check if this is the last
@@ -532,13 +527,13 @@ extends TCP.Server {
 						req._dump();
 	
 					res.detachSocket(socket);
-					Log.d(TAG, "res.detachSocket(socket)");
+					debug(TAG, "res.detachSocket(socket)");
 
 					// Reset Parser state 
 					ips.Reinitialize(ips.getType());
 					
 					if (res.is_last()) {
-						Log.d(TAG, "res.is_last()");
+						debug(TAG, "res.is_last()");
 
 						socket.destroySoon();
 					} else {
