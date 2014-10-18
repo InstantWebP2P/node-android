@@ -34,9 +34,24 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 * WebSocket/WebSocketServer supported, check https://github.com/InstantWebP2P/node-android/tree/httpp/src/com/iwebpp/wspp/tests
 * Connect middleware
 
+
 ### JS runtime
 
-* Rhino supported, check https://github.com/InstantWebP2P/node-android/tree/master/src/com/iwebpp/node/js/tests
+* Rhino supported
+* Exposed node-android packages: com.iwebpp.node.http, com.iwebpp.node.stream, com.iwebpp.node.net, etc
+* Exposed node-android classes: com.iwebpp.node.EventEmitter2, com.iwebpp.node.Dns, com.iwebpp.node.Url, etc
+* Exposed node-android native context in JS standard scope as NodeCurrentContext alias NCC
+* Exposed Android API: android.util.Log
+* NodeJS compatible internal modules are available in JS standard scope
+* Exposed WebSocket classes: com.iwebpp.wspp.WebSocket, com.iwebpp.wspp.WebSocketServer
+
+### JS usage
+
+* In case Rhino, create class 'MyScript' extends from com.iwebpp.node.js.rhino.Host
+* Implement 'public String content()' in 'MyScript' to return user script
+* Execute JS engine in a separate Java Thread with 'MyScript.execute()'
+* When authoring script, please use NodeCurrentContext(alias NCC) in node-android API
+* For details, check https://github.com/InstantWebP2P/node-android/tree/master/src/com/iwebpp/node/js/tests
 
 
 ### TODO

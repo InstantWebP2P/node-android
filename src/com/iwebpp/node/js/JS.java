@@ -2,6 +2,10 @@ package com.iwebpp.node.js;
 
 import com.iwebpp.node.NodeContext;
 
+/*
+ * @description
+ *   NodeJS host env interface implemented by JS engine
+ * */
 public interface JS {
 
 	/*
@@ -14,9 +18,9 @@ public interface JS {
 	 * @description
 	 *   Node.js require
 	 * @param module - module path, like file path
-	 * @return serialized JS Object, JS engine dependent
+	 * @return generic JS Object, JS engine dependent
 	 * */
-	public String require(String module);
+	public Object require(String module);
 
 	/*
 	 * @description

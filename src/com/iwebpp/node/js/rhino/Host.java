@@ -19,7 +19,7 @@ public abstract class Host
 extends SimpleDebug 
 implements JS {
 
-	private final static String TAG = "Host";
+	private final static String TAG = "RhinoHost";
 
 	private final NodeContext nodectx; // node.js native context
 
@@ -41,7 +41,7 @@ implements JS {
 	 * @description 
 	 *   NodeJS like require, TBD...
 	 * */
-	public String require(String module) {
+	public Object require(String module) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -84,10 +84,10 @@ implements JS {
 			// Evaluating user authored script in one line
 		    String userscript = ("with(NodeJS){var NCC=NodeCurrentContext;" + content() + "}").replace("[\r\n]+", "");
 		    
-		    ///DebugLevel lvl = getDebugLevel();
-		    ///setDebugLevel(DebugLevel.INFO);
+		    DebugLevel lvl = getDebugLevel();
+		    setDebugLevel(DebugLevel.INFO);
 		    info(TAG, "user script: \n\n"+userscript+"\n\n");
-		    ///setDebugLevel(lvl);
+		    setDebugLevel(lvl);
 		    
 		    jsctx.evaluateString(scope, userscript, "UserContent", 1, null);
 

@@ -1,7 +1,6 @@
 package com.iwebpp.node.js.tests;
 
 import com.iwebpp.node.js.rhino.Host;
-
 import android.util.Log;
 
 
@@ -303,6 +302,92 @@ public final class RhinoTest {
 
 		return true;
 	}
+	private class WebSocketTest extends Host {
+
+		@Override
+		public String content() {
+			// TODO Auto-generated method stub
+			String content = "Log.d('RhinoTest', 'WebSocketTest, js');";
+			
+			// websocket server
+			content += 
+					"var wssopt = new WebSocketServer.Options();" +
+					"wssopt.port = 6869;" +
+					"wssopt.path = '/wspp';" +
+		
+					"var wss = new WebSocketServer(NCC, wssopt, function(){" +
+			        "  Log.d('RhinoTest', 'websocket server listening ... '+wssopt.port);" +
+			        "" +
+			        "  var ws = new WebSocket(NCC, 'ws://localhost:6869/wspp', null, new WebSocket.Options());" +
+			        "" +
+			        "  ws.onmessage(function(event){" +
+			        "    if (event.isBinary()) {" +
+			        "      Log.d('RhinoTest', 'ws binary message: '+event.getData().toString());" +
+			        "    } else {" +
+			        "      Log.d('RhinoTest', 'ws text message: '+event.getData().toString());" +
+			        "    }" +
+			        "  });" +
+			        "" +
+			        "  ws.onerror(function(event){" +
+                    "    Log.d('RhinoTest', 'ws error:'+event.getCode()+',message:'+event.getError());" +
+                    "  });" +
+                    "" +
+                    "  ws.onopen(function(){" +
+                    "    ws.send('Hello, Am Tom.', new WebSocket.SendOptions(false, false), null);" +
+                    "" +
+                    "    NCC.setInterval(function(){" +
+                    "      ws.send('Hello, tom zhou @'+new Date(), new WebSocket.SendOptions(false, true), null);" +
+                    "    }, 3000);" +
+                    "  });" +
+                    "" +
+					"});" +
+					"";
+			
+			content +=
+					"wss.onconnection(function(socket){" +
+					"  Log.d('RhinoTest', 'new ws client:'+socket.toString());" +
+					"" +
+					"  socket.onmessage(function(event){" +
+					"    Log.d('RhinoTest', 'client message: '+event.toString());" +
+					"" +
+				    "    if (event.isBinary()) {" +
+			        "      Log.d('RhinoTest', 'client binary message: '+event.getData().toString());" +
+			        "" +
+			        "      socket.send(event.getData(), new WebSocket.SendOptions(true, true), null);" +
+			        "    } else {" +
+			        "      Log.d('RhinoTest', 'client text message: '+event.getData().toString());" +
+			        "" +
+			        "      socket.send(event.getData().toString()+'@srv', new WebSocket.SendOptions(false, false), null);" +
+			        "    }" +
+					"  });" +
+					"" +
+					"  socket.send('Hello@srv', new WebSocket.SendOptions(false, false), null);" +
+					"});";
+			
+			
+			return content;
+		}
+		
+	}
+	
+	private boolean testWebsocket() throws Exception {		
+		new Thread(new Runnable() {
+			public void run() {
+				Log.d(TAG, "start test");
+				
+				try {
+					new WebSocketTest().execute();
+					
+					Log.d(TAG, "exit test");
+				} catch (Throwable e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}    
+			}
+		}).start();
+
+		return true;
+	}
 	
 	public RhinoTest(){
 	}
@@ -316,7 +401,8 @@ public final class RhinoTest {
 
 			testHttp();
 			testHttpp();
-
+			
+			testWebsocket();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
