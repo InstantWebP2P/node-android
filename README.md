@@ -60,6 +60,7 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 * TLS, HTTPS
 * UDTS, HTTPPS
 * API doc, more demos
+* JS runtime CommonJS compliance
 
 
 <br/>

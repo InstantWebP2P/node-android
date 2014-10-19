@@ -20,7 +20,7 @@ public interface JS {
 	 * @param module - module path, like file path, URL
 	 * @return generic JS Object, JS engine dependent
 	 * */
-	public Object require(String module);
+	public Object require(String module) throws Exception;
 	
 	/*
 	 * @description
@@ -28,9 +28,9 @@ public interface JS {
 	 * @param module - module path, like file path, URL
 	 * @param cb - callback on require done
 	 * */
-	public void require(String module, RequireCallback cb);
+	public void require(String module, RequireCallback cb) throws Exception;
 	public interface RequireCallback {
-		public void onResponse(Object exports);
+		public void onResponse(Object exports) throws Exception;
 	}
 	
 	/*
@@ -38,7 +38,7 @@ public interface JS {
 	 *   Node.js context execute
 	 * @return false on error
 	 * */
-	public boolean execute();
+	public void execute() throws Exception;
 
 	/*
 	 * @description
