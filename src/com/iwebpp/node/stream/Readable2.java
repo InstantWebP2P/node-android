@@ -1200,7 +1200,10 @@ this._readableState.encoding = enc;
 
 		return readableAddChunk(this, state, chunk, encoding, false);
 	}
-
+	public boolean push() throws Exception {
+	    return push(null, null);
+	}
+		
 	// _read(size)
 	// abstract method.  to be overridden in specific implementation classes.
 	// call cb(er, data) where data is <= n in length.

@@ -63,7 +63,7 @@ implements EventEmitter {
 
     }
     
-    EventHandler() {
+    public EventHandler() {
     	this.hdl = new msgHdl();
     	this.events = new Hashtable<String, List<Listener>>();
     	this.maxEvents = new Hashtable<String, Integer>();
@@ -81,7 +81,7 @@ implements EventEmitter {
 		// data object
 		msg.obj = data;
 		
-		return events.containsKey(event) && hdl.sendMessage(msg);
+		return hdl.sendMessage(msg) && events.containsKey(event);
 	}
 
 	@Override

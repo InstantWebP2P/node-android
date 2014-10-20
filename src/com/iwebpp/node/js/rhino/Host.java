@@ -28,6 +28,8 @@ implements JS {
 	private Context jsctx; // js context
 
 	private ScriptableObject jsscope;
+	
+	private boolean onceRun; // have-only run once
 
 	public Host() {
 		nodectx = new NodeContext();
@@ -58,6 +60,7 @@ implements JS {
 		Context subctx = Context.enter();
 
 		// Turn off optimization to make Rhino Android compatible
+		// not use dex, just java bytecode
 		subctx.setOptimizationLevel(-1);
 		
 		// Initializing standard objects
@@ -93,8 +96,9 @@ implements JS {
 		    subctx.evaluateString(subscope, nodejs, "NodeJSAPI", 1, null);
 		    
 			// Evaluating module script source in one line
-		    String modulescript = ("with(NodeJS){(function(){var NCC=NodeCurrentContext;" + modulesrc + "})();}").replace("[\r\n]+", "");
-		    
+		    ///String modulescript = ("with(NodeJS){(function(){var NCC=NodeCurrentContext;" + modulesrc + "})();}").replace("[\r\n]+", "");
+		    String modulescript = ("with(NodeJS){var NCC=NodeCurrentContext;" + modulesrc + "}").replace("[\r\n]+", "");
+
 		    ///DebugLevel lvl = getDebugLevel();
 		    ///setDebugLevel(DebugLevel.INFO);
 		    info(TAG, "module script: \n\n"+modulescript+"\n\n");
@@ -106,9 +110,11 @@ implements JS {
 		    ret = subscope.get("exports", subscope);
 		} catch (Throwable e) {			
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			///e.printStackTrace();
 			
 			error(TAG, e.toString());
+			
+			throw new Exception("Rhino require exception: "+e.toString());
 		} finally {
 			Context.exit();
 		}
@@ -134,7 +140,14 @@ implements JS {
 	 * @description
 	 *   refer to https://developer.mozilla.org/en-US/docs/Mozilla/Projects/Rhino/Embedding_tutorial#runScript
 	 * */
-	public void execute() throws Exception {		
+	public void execute() throws Exception {	
+		// Check if run once
+		if (onceRun) 
+			return;
+		else 
+			onceRun = true;
+		
+		
 		// Entering a Context
 		jsctx = Context.enter();
 
@@ -174,7 +187,8 @@ implements JS {
 		    jsctx.evaluateString(jsscope, nodejs, "NodeJSAPI", 1, null);
 		    
 			// Evaluating user authored script in one line
-		    String userscript = ("with(NodeJS){(function(){var NCC=NodeCurrentContext;" + content() + "})();}").replace("[\r\n]+", "");
+		    ///String userscript = ("with(NodeJS){(function(){var NCC=NodeCurrentContext;" + content() + "})();}").replace("[\r\n]+", "");
+		    String userscript = ("with(NodeJS){var NCC=NodeCurrentContext;" + content() + "}").replace("[\r\n]+", "");
 
 		    ///DebugLevel lvl = getDebugLevel();
 		    ///setDebugLevel(DebugLevel.INFO);

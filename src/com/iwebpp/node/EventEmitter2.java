@@ -19,7 +19,7 @@ implements EventEmitter {
     private Map<String, List<Listener>> events;
     private Map<String, Integer> maxEvents;
     
-    protected EventEmitter2() {
+    public EventEmitter2() {
     	this.events = new Hashtable<String, List<Listener>>();
     	this.maxEvents = new Hashtable<String, Integer>();
     }

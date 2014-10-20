@@ -37,6 +37,10 @@ public final class NodeContext extends SimpleDebug {
 	public void execute() throws Throwable {
 		this.loop.run();
 	}
+
+	public void destroy() {
+		this.loop.destroy();
+	}
 	
 	/*
 	 * DOM-style timers

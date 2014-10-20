@@ -468,13 +468,20 @@ this.socket.setTimeout(msecs);
 		setHeader(name, v);
 	}
 	
-	public List<String> getHeader(String name) {
+	public List<String> getHeaders(String name) {
 		if (null==this._headers) return null;
 
 		String key = name.toLowerCase();
-		return this._headers.containsKey(key) ? this._headers.get(key) : null;
+		return this._headers.containsKey(key) && !this._headers.get(key).isEmpty() ? 
+			   this._headers.get(key) : null;
 	}
+	public String getHeader(String name) {
+		if (null==this._headers) return null;
 
+		String key = name.toLowerCase();
+		return this._headers.containsKey(key) && !this._headers.get(key).isEmpty() ? 
+			   this._headers.get(key).get(0) : null;
+	}
 
 	public void removeHeader(String name) throws Exception {
 		if (!Util.zeroString(this._header)) {

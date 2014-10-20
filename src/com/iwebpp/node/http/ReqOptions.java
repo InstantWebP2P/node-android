@@ -3,6 +3,7 @@
 
 package com.iwebpp.node.http;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,17 @@ public class ReqOptions {
 
 	public ReqOptions(){
 		this.headers = new Hashtable<String, List<String>>();
+	}
+
+	// owerride old value
+	public void setHeader(String name, String value) {
+		if (!this.headers.containsKey(name))
+			this.headers.put(name, new ArrayList<String>());
+
+		if (this.headers.get(name).isEmpty())
+			this.headers.get(name).add(value);
+		else 
+			this.headers.get(name).set(0, value);
 	}
 	
 }

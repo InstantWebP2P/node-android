@@ -5,9 +5,11 @@ import com.iwebpp.libuvpp.R.layout;
 import com.iwebpp.libuvpp.R.menu;
 import com.iwebpp.libuvpp.tests.*;
 import com.iwebpp.middleware.test.ConnectTest;
+import com.iwebpp.node.api.tests.SimpleApiTest;
 import com.iwebpp.node.js.tests.RhinoTest;
 import com.iwebpp.node.tests.DnsTest;
 import com.iwebpp.node.tests.EE2Test;
+import com.iwebpp.node.tests.EventHandlerTest;
 import com.iwebpp.node.tests.HttpParserTest;
 import com.iwebpp.node.tests.HttpTest;
 import com.iwebpp.node.tests.HttppTest;
@@ -65,6 +67,10 @@ public class MainActivity extends Activity {
 		
 		// JS engine tests
 		new RhinoTest().start();
+		
+		// NodeApi tests
+		new EventHandlerTest().start();
+		new SimpleApiTest().start();
 	}
 
 	@Override

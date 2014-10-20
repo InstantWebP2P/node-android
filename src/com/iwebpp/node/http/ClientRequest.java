@@ -141,7 +141,7 @@ extends OutgoingMessage {
 					  for (Map.Entry<String, List<String>> entry : options.headers.entrySet())
 						  self.setHeader(entry.getKey(), entry.getValue());
 
-				  if (host!=null && null==this.getHeader("host") && setHost) {
+				  if (host!=null && null==this.getHeaders("host") && setHost) {
 					  String hostHeader = host;
 					  if (port>0 && port != defaultPort) {
 						  hostHeader += ':' + port;
@@ -151,7 +151,7 @@ extends OutgoingMessage {
 			  }
 
 
-			  if (options.auth!=null && null==this.getHeader("Authorization")) {
+			  if (options.auth!=null && null==this.getHeaders("Authorization")) {
 				  //basic auth
 				  this.setHeader("Authorization", "Basic " +
 						  ///new ByteBuffer(options.auth).toString("base64"));
@@ -171,7 +171,7 @@ extends OutgoingMessage {
 			  if (null!=options.headers/*util.isArray(options.headers)*/) {
 				  self._storeHeader(self.method + " " + self.path + " HTTP/1.1\r\n",
 						  options.headers);
-			  } else if (self.getHeader("expect")!=null) {
+			  } else if (self.getHeaders("expect")!=null) {
 				  self._storeHeader(self.method + " " + self.path + " HTTP/1.1\r\n",
 						  self._renderHeaders());
 			  }

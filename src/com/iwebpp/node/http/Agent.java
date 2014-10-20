@@ -273,7 +273,7 @@ extends EventEmitter2 {
 
 		options.servername = options.host;
 		if (req!=null) {
-			List<String> hostHeader = req.getHeader("host");
+			List<String> hostHeader = req.getHeaders("host");
 			if (hostHeader!=null && hostHeader.size()>0) {
 				String hh = hostHeader.get(0);
 				options.servername = hh.replaceAll(":.*$", "");

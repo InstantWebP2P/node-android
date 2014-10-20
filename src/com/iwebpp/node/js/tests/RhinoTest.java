@@ -1,6 +1,9 @@
 package com.iwebpp.node.js.tests;
 
+import com.iwebpp.node.Util;
 import com.iwebpp.node.js.rhino.Host;
+import com.iwebpp.node.stream.Readable2;
+
 import android.util.Log;
 
 
@@ -425,6 +428,154 @@ public final class RhinoTest {
 		return true;
 	}
 	
+	private class EventEmitterTest extends Host {
+
+		@Override
+		public String content() {
+			// TODO Auto-generated method stub
+			String content = "Log.d('RhinoTest', 'EventEmitterTest, js');";
+			
+			// extends JS obj from java EventEmitter2 class
+			content += 
+					"var eventjs = {where: function(){return 'js';}};" +
+					"var event = new JavaAdapter(EventEmitter2, eventjs);" +
+					"" +
+					"event.on('js', function(data){" +
+					"  Log.d('RhinoTest', 'js event:'+data);" +
+					"});" +
+					"" +
+					"event.on('java', function(data){" +
+					"  Log.d('RhinoTest', 'java event:'+data);" +
+					"});" +
+					"" +
+					"event.emit('js', 'emit from js haha');" +
+					"" +
+					"event.emit('java', 'emit for java haha');" +
+					"";
+			
+			
+			return content;
+		}
+		
+	}
+	private boolean testEventEmitter() throws Exception {		
+		new Thread(new Runnable() {
+			public void run() {
+				Log.d(TAG, "start test");
+				
+				try {
+					new EventEmitterTest().execute();
+					
+					Log.d(TAG, "exit test");
+				} catch (Throwable e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}    
+			}
+		}).start();
+
+		return true;
+	}
+
+	private class StreamTest extends Host {
+
+		@Override
+		public String content() {
+			// TODO Auto-generated method stub
+			String content = "Log.d('RhinoTest', 'StreamTest, js');";
+			
+			// extends JS obj from java EventEmitter2 class
+			content += 
+					"var rcnt = 0;" +
+					"var readjs = {" +
+					"  _read: function(n){" +
+					"    if (rcnt < 68) " +
+					"      this.push(''+rcnt++, 'utf-8');" +
+					"    else " +
+					"      this.push(null, null);" +
+					"  }" +
+					"};" +
+					"" +
+					"var readobj = new JavaAdapter(Readable2, readjs, NCC, new Readable2.Options(16, 'utf8', false, 'utf8', true));" +
+					"" +
+					"readobj.on('readable', function(){" +
+					"  Log.d('RhinoTest', 'js testRead_less: start...');" +
+					"" +
+					"  var chunk;" +
+					"  while (null != (chunk = readobj.read(3))) {" +
+					"    Log.d(TAG, 'testRead_less:'+chunk.toString());" +
+					"  }" +
+                    "" +
+					"  Log.d('RhinoTest', 'js testRead_less: ...end');" +
+					"" +
+					"});" +
+					"";
+			
+			return content;
+		}
+		
+	}
+	private boolean testStream() throws Exception {		
+		new Thread(new Runnable() {
+			public void run() {
+				Log.d(TAG, "start test");
+				
+				try {
+					new StreamTest().execute();
+					
+					Log.d(TAG, "exit test");
+				} catch (Throwable e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}    
+			}
+		}).start();
+
+		return true;
+	}
+
+	private class ExtensionTest extends Host {
+
+		@Override
+		public String content() {
+			// TODO Auto-generated method stub
+			String content = "Log.d('RhinoTest', 'ExtensionTest, js');";
+
+			/*
+			 * js> // test non-empty constructor with protected field
+			 * js> x = JavaAdapter(java.util.Vector, {test: function() {return this.elementData.length;}}, 20);
+			 * []
+			 * js> x.test()
+			 * 
+			 * 20			
+			 * */
+			content += 
+					"var x = new JavaAdapter(java.util.Vector, {test: function() {return this.elementData.length;}}, 20);" +
+					"Log.d('RhinoTest', 'extension test:'+x.test());";
+
+			return content;
+		}
+		
+	}
+	private boolean testExtension() throws Exception {		
+		new Thread(new Runnable() {
+			public void run() {
+				Log.d(TAG, "start test");
+				
+				try {
+					new ExtensionTest().execute();
+					
+					Log.d(TAG, "exit test");
+				} catch (Throwable e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}    
+			}
+		}).start();
+
+		return true;
+	}
+	
 	public RhinoTest(){
 	}
 	
@@ -441,6 +592,12 @@ public final class RhinoTest {
 			testWebsocket();
 			
 			testRequire();
+			
+			// extends java class didn't work, TBD...
+			/*
+			testEventEmitter();
+			testStream();
+			testExtension();*/
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
