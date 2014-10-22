@@ -49,7 +49,7 @@ public class MainActivity extends Activity {
 		///new FileEventHandleTest().start();
 		
 		// Node Unit tests
-		new EE2Test().start();
+		/*new EE2Test().start();
 		new StreamTest().start();
         new TcpTest().start();
         new UdtTest().start();
@@ -69,7 +69,7 @@ public class MainActivity extends Activity {
 		new RhinoTest().start();
 		
 		// NodeApi tests
-		new EventHandlerTest().start();
+		new EventHandlerTest().start();*/
 		new SimpleApiTest().start();
 	}
 

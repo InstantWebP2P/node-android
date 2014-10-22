@@ -43,7 +43,7 @@ implements EventEmitter {
     		Object data = msg.obj;
 
     		if (events.containsKey(event)) {
-    			for (Listener cb : events.get(event))
+    			for (Listener cb : events.get(event))    				
     				try {
     					// always create new one to share in case ByteBuffer, etc
     					if (data!=null && data instanceof ByteBuffer) {
@@ -53,7 +53,7 @@ implements EventEmitter {
     						cb.onEvent(data);
     				} catch (Exception e) {
     					// TODO Auto-generated catch block
-    					///e.printStackTrace();
+    					e.printStackTrace();
     					error(TAG, "Exception event "+event+","+e);
     				}
     		} else {

@@ -96,8 +96,7 @@ implements JS {
 		    subctx.evaluateString(subscope, nodejs, "NodeJSAPI", 1, null);
 		    
 			// Evaluating module script source in one line
-		    ///String modulescript = ("with(NodeJS){(function(){var NCC=NodeCurrentContext;" + modulesrc + "})();}").replace("[\r\n]+", "");
-		    String modulescript = ("with(NodeJS){var NCC=NodeCurrentContext;" + modulesrc + "}").replace("[\r\n]+", "");
+		    String modulescript = ("with(NodeJS){(function(){var NCC=NodeCurrentContext;" + modulesrc + "})();}").replace("[\r\n]+", "");
 
 		    ///DebugLevel lvl = getDebugLevel();
 		    ///setDebugLevel(DebugLevel.INFO);
@@ -187,8 +186,7 @@ implements JS {
 		    jsctx.evaluateString(jsscope, nodejs, "NodeJSAPI", 1, null);
 		    
 			// Evaluating user authored script in one line
-		    ///String userscript = ("with(NodeJS){(function(){var NCC=NodeCurrentContext;" + content() + "})();}").replace("[\r\n]+", "");
-		    String userscript = ("with(NodeJS){var NCC=NodeCurrentContext;" + content() + "}").replace("[\r\n]+", "");
+		    String userscript = ("with(NodeJS){(function(){var NCC=NodeCurrentContext;" + content() + "})();}").replace("[\r\n]+", "");
 
 		    ///DebugLevel lvl = getDebugLevel();
 		    ///setDebugLevel(DebugLevel.INFO);

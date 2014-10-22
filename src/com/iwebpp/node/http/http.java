@@ -279,7 +279,7 @@ public final class http extends SimpleDebug {
 		options.httpp  = false;
 		
 		ClientRequest req = request(ctx, options, onres);
-		req.end(null, null, null);
+		req.end();
 		return req;
 	}
 	public static ClientRequest get(

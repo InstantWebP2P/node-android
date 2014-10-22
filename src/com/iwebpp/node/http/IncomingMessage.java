@@ -441,6 +441,11 @@ extends Readable2 {
 	public void setReq(ClientRequest req) {
 		this.req = req;
 	}
+	
+	public String getPath() {
+		return this.req!=null? this.req.getPath() : null;
+	}
+	
 	/**
 	 * @return the parser
 	 */

@@ -3,6 +3,11 @@ package com.iwebpp.node.api;
 import com.iwebpp.EventHandler;
 import com.iwebpp.node.NodeContext;
 
+/*
+ * @description
+ *    SimpleApi run node-android context in a separate thread,
+ *    and communicate with UI thread through EventHandler
+ * */
 public abstract class SimpleApi 
 extends EventHandler 
 implements NodeApi {

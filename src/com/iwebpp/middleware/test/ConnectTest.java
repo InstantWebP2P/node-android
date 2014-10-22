@@ -85,7 +85,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());					
+						Log.d(TAG, "got http response on " + res.getPath()  +", headers:"+res.headers());					
 					}
 
 				});
@@ -93,7 +93,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());				
+						Log.d(TAG, "got httpp response on " + res.getPath()  +", headers:"+res.headers());				
 					}
 
 				});
@@ -102,7 +102,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());				
+						Log.d(TAG, "got http response on " + res.getPath()  +", headers:"+res.headers());				
 					}
 
 				});
@@ -110,7 +110,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());			
+						Log.d(TAG, "got httpp response on " + res.getPath()  +", headers:"+res.headers());			
 					}
 
 				});
@@ -171,7 +171,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getReq().getPath() +", headers:"+res.headers());			
+						Log.d(TAG, "got http response on " + res.getPath() +", headers:"+res.headers());			
 					}
 
 				});
@@ -179,7 +179,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());		
+						Log.d(TAG, "got httpp response on " + res.getPath()  +", headers:"+res.headers());		
 					}
 
 				});
@@ -188,7 +188,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());		
+						Log.d(TAG, "got http response on " + res.getPath()  +", headers:"+res.headers());		
 					}
 
 				});
@@ -196,7 +196,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());			
+						Log.d(TAG, "got httpp response on " + res.getPath()  +", headers:"+res.headers());			
 					}
 
 				});
@@ -205,7 +205,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());	
+						Log.d(TAG, "got http response on " + res.getPath()  +", headers:"+res.headers());	
 					}
 
 				});
@@ -213,7 +213,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());		
+						Log.d(TAG, "got httpp response on " + res.getPath()  +", headers:"+res.headers());		
 					}
 
 				});
@@ -222,7 +222,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getReq().getPath()  +", headers:"+res.headers());	
+						Log.d(TAG, "got http response on " + res.getPath()  +", headers:"+res.headers());	
 					}
 
 				});
@@ -230,7 +230,7 @@ public final class ConnectTest {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getReq().getPath()  +", headers:"+res.headers());		
+						Log.d(TAG, "got httpp response on " + res.getPath()  +", headers:"+res.headers());		
 					}
 
 				});
