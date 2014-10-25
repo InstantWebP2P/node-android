@@ -99,8 +99,8 @@ public final class AsyncHttpClient {
 
 					// text body
 					if (ct.contains("text/") || 
-						ct.equalsIgnoreCase("application/json") ||
-						ct.equalsIgnoreCase("application/javascript")) {
+					    ct.equalsIgnoreCase("application/json") ||
+					    ct.equalsIgnoreCase("application/javascript")) {
 						String ret = "";
 						for (Object str : body)
 							ret += str.toString();
@@ -177,6 +177,9 @@ public final class AsyncHttpClient {
 
 				@Override
 				public void onResponse(IncomingMessage res) throws Exception {
+					// clear timeout
+					clearTimeout();
+					
 					Log.d(TAG, "got response: "+res.statusCode()+", headers:"+res.headers());
 
 					// response
@@ -191,7 +194,6 @@ public final class AsyncHttpClient {
 						    ct.equalsIgnoreCase("application/javascript"))
 							res.setEncoding("utf-8");
 					} else {
-						clearTimeout();
 						self.emit("error", "response miss content-type header");
 						return;
 					}
@@ -213,8 +215,6 @@ public final class AsyncHttpClient {
 						public void onEvent(Object data) throws Exception {
 							Log.d(TAG, "response got end\n");
 
-							clearTimeout();
-
 							if (data!=null) body.add(data);
 
 							self.emit("completed");
@@ -227,8 +227,6 @@ public final class AsyncHttpClient {
 						public void onEvent(Object error) throws Exception {
 							Log.d(TAG, "response got error:\n"+error);
 							
-							clearTimeout();
-
 							self.emit("error", "request error:"+error);
 						}
 
