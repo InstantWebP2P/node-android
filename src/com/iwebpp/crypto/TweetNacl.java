@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.iwebpp.node.others.BasicBean;
 
 public final class TweetNacl {
 
@@ -75,16 +74,28 @@ public final class TweetNacl {
 		 *   Returns an encrypted and authenticated message, 
 		 *   which is nacl.box.overheadLength longer than the original message.
 		 * */
-		public byte [] box(byte [] message) {
+		public ByteBuffer box(byte [] message) {
+			// check message
+			if (!(message!=null && message.length>0))
+				return null;
+
 			// generate nonce
 			byte [] n = generateNonce();
 
-			// cipher 
-			byte [] c = new byte[message.length + overheadLength];
-			
-			crypto_box(c, message, message.length, n, theirPublicKey, mySecretKey);
-			
-			return c;
+			// message buffer
+			byte [] m = new byte[message.length + zerobytesLength];
+
+			// cipher buffer
+			byte [] c = new byte[m.length];
+
+			for (int i = 0; i < message.length; i ++)
+				m[i+zerobytesLength] = message[i];
+
+			if (0 != crypto_box(c, m, m.length, n, theirPublicKey, mySecretKey))
+				return null;
+
+			// wrap ByteBuffer on c offset@boxzerobytesLength
+			return ByteBuffer.wrap(c, boxzerobytesLength, c.length-boxzerobytesLength);
 		}
 		
 		/*
@@ -94,21 +105,28 @@ public final class TweetNacl {
 		 *   
 		 *   Returns the original message, or null if authentication fails.
 		 * */
-		public byte [] open(byte [] box) {
+		public ByteBuffer open(byte [] box) {
+			// check message
+			if (!(box!=null && box.length>boxzerobytesLength))
+				return null;
+
 			// generate nonce
 			byte [] n = generateNonce();
 
-			// check cipher length
-			if (!(box!=null && box.length>overheadLength)) 
+			// cipher buffer
+			byte [] c = new byte[box.length + boxzerobytesLength];
+
+			// message buffer
+			byte [] m = new byte[c.length];
+
+			for (int i = 0; i < box.length; i++) 
+				c[i+boxzerobytesLength] = box[i];
+
+			if (0 != crypto_box_open(m, c, c.length, n, theirPublicKey, mySecretKey))
 				return null;
-			
-			// message
-			byte [] m = new byte[box.length-overheadLength];
-			
-			if (crypto_box_open(m, box, box.length, n, theirPublicKey, mySecretKey) != 0) 
-				return null;
-			
-			return m;
+
+			// wrap ByteBuffer on m offset@zerobytesLength
+			return ByteBuffer.wrap(m, zerobytesLength, m.length-zerobytesLength);
 		}
 		
 		/*
@@ -129,16 +147,27 @@ public final class TweetNacl {
 		 * @description 
 		 *   Same as nacl.box, but uses a shared key precomputed with nacl.box.before.
 		 * */
-		public byte [] after(byte [] message) {
+		public ByteBuffer after(byte [] message) {
+			// check message
+			if (!(message!=null && message.length>0))
+				return null;
+
 			// generate nonce
 			byte [] n = generateNonce();
 
-			// cipher 
-			byte [] c = new byte[message.length + overheadLength];
-			
-			crypto_box_afternm(c, message, message.length, n, sharedKey);
-			
-			return c;
+			// message buffer
+			byte [] m = new byte[message.length + zerobytesLength];
+
+			// cipher buffer
+			byte [] c = new byte[m.length];
+
+			for (int i = 0; i < message.length; i ++)
+				m[i+zerobytesLength] = message[i];
+
+			crypto_box_afternm(c, m, m.length, n, sharedKey);
+
+			// wrap ByteBuffer on c offset@boxzerobytesLength
+			return ByteBuffer.wrap(c, boxzerobytesLength, c.length-boxzerobytesLength);
 		}
 		
 		/*
@@ -146,21 +175,28 @@ public final class TweetNacl {
 		 *   Same as nacl.box.open, 
 		 *   but uses a shared key pre-computed with nacl.box.before.
 		 * */
-		public byte [] open_after(byte [] box) {
+		public ByteBuffer open_after(byte [] box) {
+			// check message
+			if (!(box!=null && box.length>boxzerobytesLength))
+				return null;
+
 			// generate nonce
 			byte [] n = generateNonce();
 
-			// check cipher length
-			if (!(box!=null && box.length>overheadLength)) 
+			// cipher buffer
+			byte [] c = new byte[box.length + boxzerobytesLength];
+
+			// message buffer
+			byte [] m = new byte[c.length];
+
+			for (int i = 0; i < box.length; i++) 
+				c[i+boxzerobytesLength] = box[i];
+
+			if (crypto_box_open_afternm(m, c, c.length, n, sharedKey) != 0) 
 				return null;
-			
-			// message
-			byte [] m = new byte[box.length-overheadLength];
-			
-			if (crypto_box_open_afternm(m, box, box.length, n, sharedKey) != 0) 
-				return null;
-			
-			return m;
+
+			// wrap ByteBuffer on m offset@zerobytesLength
+			return ByteBuffer.wrap(m, zerobytesLength, m.length-zerobytesLength);
 		}
 		
 		/*
@@ -186,6 +222,17 @@ public final class TweetNacl {
 		 *   Length of nonce in bytes.
 		 * */
 		public static final int nonceLength     = 24;
+
+		/*
+		 * @description
+		 *   zero bytes in case box
+		 * */
+		public static final int zerobytesLength    = 32;
+		/*
+		 * @description
+		 *   zero bytes in case open box
+		 * */
+		public static final int boxzerobytesLength = 16;
 		
 		/*
 		 * @description 
@@ -222,6 +269,18 @@ public final class TweetNacl {
 			crypto_box_keypair(kp.getPublicKey(), kp.getSecretKey());
 			return kp;
 		}
+		
+		public static KeyPair keyPair_fromSecretKey(byte [] secretKey) {
+			KeyPair kp = new KeyPair();
+			
+			// copy sk
+            for (int i = 0; i < kp.getSecretKey().length; i ++)
+            	kp.getSecretKey()[i] = secretKey[i];
+			
+            crypto_scalarmult_base(kp.getPublicKey(), kp.getSecretKey());
+			return kp;
+		}
+		
 	}
 	
 	/*
@@ -282,17 +341,28 @@ public final class TweetNacl {
 		 *   Returns an encrypted and authenticated message, 
 		 *   which is nacl.secretbox.overheadLength longer than the original message.
 		 * */
-		public byte [] box(byte [] message) {
+		public ByteBuffer box(byte [] message) {
+			// check message
+			if (!(message!=null && message.length>0))
+				return null;
+
 			// generate nonce
 			byte [] n = generateNonce();
 
-			// cipher 
-			byte [] c = new byte[message.length + overheadLength];
-			
-			if (0 != crypto_secretbox(c, message, message.length, n, key))
+			// message buffer
+			byte [] m = new byte[message.length + zerobytesLength];
+
+			// cipher buffer
+			byte [] c = new byte[m.length];
+
+			for (int i = 0; i < message.length; i ++)
+				m[i+zerobytesLength] = message[i];
+
+			if (0 != crypto_secretbox(c, m, m.length, n, key))
 				return null;
-			
-			return c;
+
+			// wrap ByteBuffer on c offset@boxzerobytesLength
+			return ByteBuffer.wrap(c, boxzerobytesLength, c.length-boxzerobytesLength);
 		}
 		
 		/*
@@ -302,21 +372,28 @@ public final class TweetNacl {
 		 *   
 		 *   Returns the original message, or null if authentication fails.
 		 * */
-		public byte [] open(byte [] box) {
+		public ByteBuffer open(byte [] box) {
+			// check message
+			if (!(box!=null && box.length>boxzerobytesLength))
+				return null;
+
 			// generate nonce
 			byte [] n = generateNonce();
 
-			// check cipher length
-			if (!(box!=null && box.length>overheadLength)) 
+			// cipher buffer
+			byte [] c = new byte[box.length + boxzerobytesLength];
+
+			// message buffer
+			byte [] m = new byte[c.length];
+
+			for (int i = 0; i < box.length; i++) 
+				c[i+boxzerobytesLength] = box[i];
+
+			if (0 != crypto_secretbox_open(m, c, c.length, n, key))
 				return null;
-			
-			// message
-			byte [] m = new byte[box.length-overheadLength];
-			
-			if (crypto_secretbox_open(m, box, box.length, n, key) != 0) 
-				return null;
-			
-			return m;
+
+			// wrap ByteBuffer on m offset@zerobytesLength
+			return ByteBuffer.wrap(m, zerobytesLength, m.length-zerobytesLength);
 		}
 		
 		/*
@@ -336,6 +413,17 @@ public final class TweetNacl {
 		 *   Length of overhead added to secret box compared to original message.
 		 * */
 		public static final int overheadLength = 16;
+		
+		/*
+		 * @description
+		 *   zero bytes in case box
+		 * */
+		public static final int zerobytesLength    = 32;
+		/*
+		 * @description
+		 *   zero bytes in case open box
+		 * */
+		public static final int boxzerobytesLength = 16;
 
 	}
 	
@@ -429,8 +517,12 @@ public final class TweetNacl {
     	 *   Signs the message using the secret key and returns a signed message.
     	 * */
 		public byte [] sign(byte [] message) {
-			
-			return null;
+			// signed message 
+			byte [] sm = new byte[message.length + signatureLength];
+
+			crypto_sign(sm, -1, message, message.length, mySecretKey);
+
+			return sm;
 		}
 		
 		/*
@@ -439,8 +531,22 @@ public final class TweetNacl {
     	 *   Returns null if verification failed.
     	 * */
 		public byte [] open(byte [] signedMessage) {
-			
-			return null;
+			// check sm length
+			if (!(signedMessage!=null && signedMessage.length>signatureLength))
+				return null;
+
+			// temp buffer 
+			byte [] tmp = new byte[signedMessage.length];
+
+			if (0 != crypto_sign_open(tmp, -1, signedMessage, signedMessage.length, theirPublicKey))
+				return null;
+
+			// message 
+			byte [] msg = new byte[signedMessage.length-signatureLength];
+			for (int i = 0; i < msg.length; i ++)
+				msg[i] = signedMessage[i+signatureLength];
+
+			return msg;
 		}
 		
 		/*
@@ -490,8 +596,23 @@ public final class TweetNacl {
 		 *   Signs the message using the secret key and returns a signed message.
 		 * */
 		public static KeyPair keyPair() {
+			KeyPair kp = new KeyPair();
+			
+			crypto_sign_keypair(kp.getPublicKey(), kp.getSecretKey());
+			return kp;
+		}
+		public static KeyPair keyPair_fromSecretKey(byte [] secretKey) {
+			KeyPair kp = new KeyPair();
 
-			return null;
+			// copy sk
+			for (int i = 0; i < kp.getSecretKey().length; i ++)
+				kp.getSecretKey()[i] = secretKey[i];
+
+			// copy pk from sk
+			for (int i = 0; i < kp.getPublicKey().length; i ++) 
+				kp.getPublicKey()[i] = secretKey[32+i]; // hard-copy
+
+			return kp;
 		}
 		
 		/*
@@ -788,7 +909,7 @@ private static int ld32(byte [] x)
 	{
 		int s,i,j,u;
 		int [] x = new int[17], r = new int [17], 
-				h = new int[17], c = new int [17], g = new int[17];
+			   h = new int[17], c = new int [17], g = new int[17];
 
 		///FOR(j,17) r[j]=h[j]=0;
 		for (j = 0; j < 17; j ++) r[j] = h[j] = 0;
@@ -1489,7 +1610,7 @@ private static int ld32(byte [] x)
 
 	// TBD... 64bits of n
 	///int crypto_sign(byte [] sm, long * smlen, byte [] m, long n, byte [] sk)
-	public static int crypto_sign(byte [] sm, BasicBean<Integer> smlen/*long * smlen*/, byte [] m, int/*long*/ n, byte [] sk)
+	public static int crypto_sign(byte [] sm, long dummy /* *smlen not used*/, byte [] m, int/*long*/ n, byte [] sk)
 	{
 		byte[] d = new byte[64], h = new byte[64], r = new byte[64];
 
@@ -1510,7 +1631,6 @@ private static int ld32(byte [] x)
 		d[31] |= 64;
 
 		///*smlen = n+64;
-		smlen.set(n+64);
 
 		///FOR(i,n) 
 		for (i = 0; i < n; i ++) sm[64 + i] = m[i];
@@ -1585,7 +1705,7 @@ private static int ld32(byte [] x)
 
 	/// TBD 64bits of mlen
 	///int crypto_sign_open(byte []m,long *mlen,byte []sm,long n,byte []pk)
-	public static int crypto_sign_open(byte [] m, BasicBean<Integer> mlen/*long *mlen*/, byte [] sm, int/*long*/ n, byte []pk)
+	public static int crypto_sign_open(byte [] m, long dummy /* *mlen not used*/, byte [] sm, int/*long*/ n, byte []pk)
 	{
 		int i;
 		byte[] t = new byte[32], h = new byte[64];
@@ -1603,7 +1723,6 @@ private static int ld32(byte [] x)
 		q[3] = new long [16];
 
 		///*mlen = -1;
-		mlen.set(-1);
 
 		if (n < 64) return -1;
 
@@ -1627,14 +1746,14 @@ private static int ld32(byte [] x)
 		n -= 64;
 		if (crypto_verify_32(ByteBuffer.wrap(sm), ByteBuffer.wrap(t))!=0) {
 			///FOR(i,n) 
-			for (i = 0; i < n; i ++) m[i] = 0;
+			///for (i = 0; i < n; i ++) m[i] = 0;
 			return -1;
 		}
 
+		// TBD optimizing ...
 		///FOR(i,n) 
-		for (i = 0; i < n; i ++) m[i] = sm[i + 64];
+		///for (i = 0; i < n; i ++) m[i] = sm[i + 64];
 		///*mlen = n;
-		mlen.set(n);
 		return 0;
 	}
 
