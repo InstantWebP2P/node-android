@@ -74,7 +74,9 @@ public final class TweetNacl {
 		 *   Returns an encrypted and authenticated message, 
 		 *   which is nacl.box.overheadLength longer than the original message.
 		 * */
-		public ByteBuffer box(byte [] message) {
+		///public ByteBuffer box(byte [] message) {
+		public byte [] box(byte [] message) {
+
 			// check message
 			if (!(message!=null && message.length>0))
 				return null;
@@ -95,7 +97,13 @@ public final class TweetNacl {
 				return null;
 
 			// wrap ByteBuffer on c offset@boxzerobytesLength
-			return ByteBuffer.wrap(c, boxzerobytesLength, c.length-boxzerobytesLength);
+			///return ByteBuffer.wrap(c, boxzerobytesLength, c.length-boxzerobytesLength).slice();
+			byte [] ret = new byte[c.length-boxzerobytesLength];
+
+			for (int i = 0; i < ret.length; i ++)
+				ret[i] = c[i+boxzerobytesLength];
+
+			return ret;
 		}
 		
 		/*
@@ -105,7 +113,7 @@ public final class TweetNacl {
 		 *   
 		 *   Returns the original message, or null if authentication fails.
 		 * */
-		public ByteBuffer open(byte [] box) {
+		public byte [] open(byte [] box) {
 			// check message
 			if (!(box!=null && box.length>boxzerobytesLength))
 				return null;
@@ -126,7 +134,13 @@ public final class TweetNacl {
 				return null;
 
 			// wrap ByteBuffer on m offset@zerobytesLength
-			return ByteBuffer.wrap(m, zerobytesLength, m.length-zerobytesLength);
+			///return ByteBuffer.wrap(m, zerobytesLength, m.length-zerobytesLength).slice();
+			byte [] ret = new byte[m.length-zerobytesLength];
+
+			for (int i = 0; i < ret.length; i ++)
+				ret[i] = m[i+zerobytesLength];
+
+			return ret;
 		}
 		
 		/*
@@ -147,7 +161,7 @@ public final class TweetNacl {
 		 * @description 
 		 *   Same as nacl.box, but uses a shared key precomputed with nacl.box.before.
 		 * */
-		public ByteBuffer after(byte [] message) {
+		public byte [] after(byte [] message) {
 			// check message
 			if (!(message!=null && message.length>0))
 				return null;
@@ -167,7 +181,13 @@ public final class TweetNacl {
 			crypto_box_afternm(c, m, m.length, n, sharedKey);
 
 			// wrap ByteBuffer on c offset@boxzerobytesLength
-			return ByteBuffer.wrap(c, boxzerobytesLength, c.length-boxzerobytesLength);
+			///return ByteBuffer.wrap(c, boxzerobytesLength, c.length-boxzerobytesLength).slice();
+			byte [] ret = new byte[c.length-boxzerobytesLength];
+
+			for (int i = 0; i < ret.length; i ++)
+				ret[i] = c[i+boxzerobytesLength];
+
+			return ret;
 		}
 		
 		/*
@@ -175,7 +195,7 @@ public final class TweetNacl {
 		 *   Same as nacl.box.open, 
 		 *   but uses a shared key pre-computed with nacl.box.before.
 		 * */
-		public ByteBuffer open_after(byte [] box) {
+		public byte [] open_after(byte [] box) {
 			// check message
 			if (!(box!=null && box.length>boxzerobytesLength))
 				return null;
@@ -196,7 +216,13 @@ public final class TweetNacl {
 				return null;
 
 			// wrap ByteBuffer on m offset@zerobytesLength
-			return ByteBuffer.wrap(m, zerobytesLength, m.length-zerobytesLength);
+			///return ByteBuffer.wrap(m, zerobytesLength, m.length-zerobytesLength).slice();
+			byte [] ret = new byte[m.length-zerobytesLength];
+
+			for (int i = 0; i < ret.length; i ++)
+				ret[i] = m[i+zerobytesLength];
+
+			return ret;
 		}
 		
 		/*
@@ -341,7 +367,8 @@ public final class TweetNacl {
 		 *   Returns an encrypted and authenticated message, 
 		 *   which is nacl.secretbox.overheadLength longer than the original message.
 		 * */
-		public ByteBuffer box(byte [] message) {
+		///public ByteBuffer box(byte [] message) {
+		public byte [] box(byte [] message) {
 			// check message
 			if (!(message!=null && message.length>0))
 				return null;
@@ -361,8 +388,15 @@ public final class TweetNacl {
 			if (0 != crypto_secretbox(c, m, m.length, n, key))
 				return null;
 
+			// TBD optimizing ...
 			// wrap ByteBuffer on c offset@boxzerobytesLength
-			return ByteBuffer.wrap(c, boxzerobytesLength, c.length-boxzerobytesLength);
+			///return ByteBuffer.wrap(c, boxzerobytesLength, c.length-boxzerobytesLength);
+			byte [] ret = new byte[c.length-boxzerobytesLength];
+			
+			for (int i = 0; i < ret.length; i ++)
+				ret[i] = c[i+boxzerobytesLength];
+				
+			return ret;
 		}
 		
 		/*
@@ -372,7 +406,7 @@ public final class TweetNacl {
 		 *   
 		 *   Returns the original message, or null if authentication fails.
 		 * */
-		public ByteBuffer open(byte [] box) {
+		public byte [] open(byte [] box) {
 			// check message
 			if (!(box!=null && box.length>boxzerobytesLength))
 				return null;
@@ -393,7 +427,13 @@ public final class TweetNacl {
 				return null;
 
 			// wrap ByteBuffer on m offset@zerobytesLength
-			return ByteBuffer.wrap(m, zerobytesLength, m.length-zerobytesLength);
+			///return ByteBuffer.wrap(m, zerobytesLength, m.length-zerobytesLength);
+			byte [] ret = new byte[m.length-zerobytesLength];
+
+			for (int i = 0; i < ret.length; i ++)
+				ret[i] = m[i+zerobytesLength];
+
+			return ret;
 		}
 		
 		/*
@@ -765,10 +805,10 @@ private static int ld32(byte [] x)
 
 		///FOR(i,4) {
 		for (i = 0; i < 4; i ++) {
-			x[5*i] = ld32(ByteBuffer.wrap(c, 4*i, 4));
-			x[1+i] = ld32(ByteBuffer.wrap(k, 4*i, 4));
-			x[6+i] = ld32(ByteBuffer.wrap(in, 4*i, 4));
-			x[11+i] = ld32(ByteBuffer.wrap(k, 16+4*i, 4));
+			x[5*i] = ld32(ByteBuffer.wrap(c, 4*i, 4).slice());
+			x[1+i] = ld32(ByteBuffer.wrap(k, 4*i, 4).slice());
+			x[6+i] = ld32(ByteBuffer.wrap(in, 4*i, 4).slice());
+			x[11+i] = ld32(ByteBuffer.wrap(k, 16+4*i, 4).slice());
 		}
 
 		///FOR(i,16) y[i] = x[i];
@@ -796,17 +836,17 @@ private static int ld32(byte [] x)
 			for (i = 0; i < 16; i ++) x[i] += y[i];
 			///FOR(i,4) {
 			for (i = 0; i < 4; i ++) {
-				x[5*i] -= ld32(ByteBuffer.wrap(c, 4*i, 4));///ld32(c+4*i);
-				x[6+i] -= ld32(ByteBuffer.wrap(in, 4*i, 4));///ld32(in+4*i);
+				x[5*i] -= ld32(ByteBuffer.wrap(c, 4*i, 4).slice());///ld32(c+4*i);
+				x[6+i] -= ld32(ByteBuffer.wrap(in, 4*i, 4).slice());///ld32(in+4*i);
 			}
 			///FOR(i,4) {
 			for (i = 0; i < 4; i ++) {
-				st32(ByteBuffer.wrap(out, 4*i, 4), x[5*i]);///st32(out+4*i, x[5*i]);
-				st32(ByteBuffer.wrap(out, 16+4*i, 4), x[6+i]);///st32(out+16+4*i, x[6+i]);
+				st32(ByteBuffer.wrap(out, 4*i, 4).slice(), x[5*i]);///st32(out+4*i, x[5*i]);
+				st32(ByteBuffer.wrap(out, 16+4*i, 4).slice(), x[6+i]);///st32(out+16+4*i, x[6+i]);
 			}
 		} else
 			///FOR(i,16) st32(out + 4 * i,x[i] + y[i]);
-			for (i = 0; i < 16; i ++) st32(ByteBuffer.wrap(out, 4*i, 4), x[i] + y[i]);///st32(out + 4 * i,x[i] + y[i]);
+			for (i = 0; i < 16; i ++) st32(ByteBuffer.wrap(out, 4*i, 4).slice(), x[i] + y[i]);///st32(out + 4 * i,x[i] + y[i]);
 	}
 
 	public static int crypto_core_salsa20(byte [] out, byte [] in, byte [] k, byte [] c)
@@ -880,14 +920,14 @@ private static int ld32(byte [] x)
 	{
 		byte[] s = new byte[32];///s[32];
 		crypto_core_hsalsa20(s,n,k,sigma);
-		return crypto_stream_salsa20(c,d,ByteBuffer.wrap(n, 16, n.length-16),s);///crypto_stream_salsa20(c,d,n+16,s);
+		return crypto_stream_salsa20(c,d,ByteBuffer.wrap(n, 16, n.length-16).slice(),s);///crypto_stream_salsa20(c,d,n+16,s);
 	}
 
 	public static int crypto_stream_xor(byte []c,byte []m,long d,byte []n,byte []k)
 	{
 		byte[] s = new byte[32];///s[32];
 		crypto_core_hsalsa20(s,n,k,sigma);
-		return crypto_stream_salsa20_xor(c,m,d,ByteBuffer.wrap(n, 16, n.length-16),s);///crypto_stream_salsa20_xor(c,m,d,n+16,s);
+		return crypto_stream_salsa20_xor(c,m,d,ByteBuffer.wrap(n, 16, n.length-16).slice(),s);///crypto_stream_salsa20_xor(c,m,d,n+16,s);
 	}
 
 	private static void add1305(int [] h,int [] c)
@@ -901,7 +941,7 @@ private static int ld32(byte [] x)
 		}
 	}
 
-	private static int minusp[] = {
+	private final static int minusp[] = {
 		5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252
 	} ;
 
@@ -997,7 +1037,7 @@ private static int ld32(byte [] x)
 		int i;
 		if (d < 32) return -1;
 		crypto_stream_xor(c,m,d,n,k);
-		crypto_onetimeauth(ByteBuffer.wrap(c, 16, c.length-16)/*c + 16*/, ByteBuffer.wrap(c, 32, c.length-32)/*c + 32*/, d - 32, c);
+		crypto_onetimeauth(ByteBuffer.wrap(c, 16, c.length-16).slice()/*c + 16*/, ByteBuffer.wrap(c, 32, c.length-32).slice()/*c + 32*/, d - 32, c);
 		for (i = 0; i < 16; i ++) c[i] = 0;
 		return 0;
 	}
@@ -1008,7 +1048,7 @@ private static int ld32(byte [] x)
 		byte[] x = new byte[32];
 		if (d < 32) return -1;
 		crypto_stream(x,32,n,k);
-		if (crypto_onetimeauth_verify(ByteBuffer.wrap(c, 16, 16)/*c + 16*/, ByteBuffer.wrap(c, 32, c.length-32)/*c + 32*/, d - 32, x) != 0) return -1;
+		if (crypto_onetimeauth_verify(ByteBuffer.wrap(c, 16, 16).slice()/*c + 16*/, ByteBuffer.wrap(c, 32, c.length-32).slice()/*c + 32*/, d - 32, x) != 0) return -1;
 		crypto_stream_xor(m,c,d,n,k);
 		///FOR(i,32)
 		for (i = 0; i < 32; i ++) m[i] = 0;
@@ -1251,9 +1291,9 @@ private static int ld32(byte [] x)
 			x[i+48]=b[i];
 			x[i+64]=d[i];
 		}
-		inv25519(LongBuffer.wrap(x, 32, x.length-32)/*x+32*/,LongBuffer.wrap(x, 32, x.length-32)/*x+32*/);
-		M(LongBuffer.wrap(x, 16, x.length-16)/*x+16*/,LongBuffer.wrap(x, 16, x.length-16)/*x+16*/,LongBuffer.wrap(x, 32, x.length-32)/*x+32*/);
-		pack25519(q,LongBuffer.wrap(x, 16, x.length-16)/*x+16*/);
+		inv25519(LongBuffer.wrap(x, 32, x.length-32).slice()/*x+32*/,LongBuffer.wrap(x, 32, x.length-32).slice()/*x+32*/);
+		M(LongBuffer.wrap(x, 16, x.length-16).slice()/*x+16*/,LongBuffer.wrap(x, 16, x.length-16).slice()/*x+16*/,LongBuffer.wrap(x, 32, x.length-32).slice()/*x+32*/);
+		pack25519(q,LongBuffer.wrap(x, 16, x.length-16).slice()/*x+16*/);
 		return 0;
 	}
 
@@ -1307,7 +1347,7 @@ private static int ld32(byte [] x)
 	private static long sigma0(long x) { return R(x, 1) ^ R(x, 8) ^ (x >> 7); }
 	private static long sigma1(long x) { return R(x,19) ^ R(x,61) ^ (x >> 6); }
 
-	private static long K[] = 
+	private static final long K[] = 
 		{
 		0x428a2f98d728ae22L, 0x7137449123ef65cdL, 0xb5c0fbcfec4d3b2fL, 0xe9b5dba58189dbbcL,
 		0x3956c25bf348b538L, 0x59f111f1b605d019L, 0x923f82a4af194f9bL, 0xab1c5ed5da6d8118L,
@@ -1340,13 +1380,13 @@ private static int ld32(byte [] x)
 		int i,j;
 
 		///FOR(i,8)
-		for (i = 0; i < 8; i ++) z[i] = a[i] = dl64(ByteBuffer.wrap(x, 8*i, x.length-8*i)/*x + 8 * i*/);
+		for (i = 0; i < 8; i ++) z[i] = a[i] = dl64(ByteBuffer.wrap(x, 8*i, x.length-8*i).slice()/*x + 8 * i*/);
 
 		byte[] marray = m.array();
-		int moffset = m.arrayOffset();
+		int moffset = m.arrayOffset() + m.position();
 		while (n >= 128) {
 			///FOR(i,16) 
-			for (i = 0; i < 16; i ++) w[i] = dl64(ByteBuffer.wrap(marray, 8*i+moffset, marray.length-8*i-moffset)/*m + 8 * i*/);
+			for (i = 0; i < 16; i ++) w[i] = dl64(ByteBuffer.wrap(marray, 8*i+moffset, marray.length-8*i-moffset).slice()/*m + 8 * i*/);
 
 			///FOR(i,80) {
 			for (i = 0; i < 80; i ++) {
@@ -1372,7 +1412,7 @@ private static int ld32(byte [] x)
 		}
 
 		///FOR(i,8) 
-		for (i = 0; i < 8; i ++) ts64(ByteBuffer.wrap(x,8*i,x.length-8*i)/*x+8*i*/,z[i]);
+		for (i = 0; i < 8; i ++) ts64(ByteBuffer.wrap(x,8*i,x.length-8*i).slice()/*x+8*i*/,z[i]);
 
 		return n;
 	}
@@ -1380,7 +1420,7 @@ private static int ld32(byte [] x)
     	return crypto_hashblocks(x, ByteBuffer.wrap(m), n);
     }
 	
-	private static byte iv[] = {
+	private final static byte iv[] = {
 		0x6a,0x09,(byte) 0xe6,0x67,(byte) 0xf3,(byte) 0xbc,(byte) 0xc9,0x08,
 		(byte) 0xbb,0x67,(byte) 0xae,(byte) 0x85,(byte) 0x84,(byte) 0xca,(byte) 0xa7,0x3b,
 		0x3c,0x6e,(byte) 0xf3,0x72,(byte) 0xfe,(byte) 0x94,(byte) 0xf8,0x2b,
@@ -1413,7 +1453,7 @@ private static int ld32(byte [] x)
 
 		n = 256-128*(n<112?1:0);
 		x[n-9] = (byte) (b >> 61);
-		ts64(ByteBuffer.wrap(x,n-8,x.length-(n-8))/*x+n-8*/,b<<3);
+		ts64(ByteBuffer.wrap(x,n-8,x.length-(n-8)).slice()/*x+n-8*/,b<<3);
 		crypto_hashblocks(h,ByteBuffer.wrap(x),n);
 
 		///FOR(i,64) 
@@ -1563,7 +1603,7 @@ private static int ld32(byte [] x)
 		return 0;
 	}
 
-	private static long L[] = {0xed, 0xd3, 0xf5, 0x5c, 0x1a, 0x63, 0x12, 0x58, 0xd6, 0x9c, 0xf7, 0xa2, 0xde, 0xf9, 0xde, 0x14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x10};
+	private static final long L[] = {0xed, 0xd3, 0xf5, 0x5c, 0x1a, 0x63, 0x12, 0x58, 0xd6, 0x9c, 0xf7, 0xa2, 0xde, 0xf9, 0xde, 0x14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x10};
 
 	///private static void modL(byte []r, long x[64])
 	private static void modL(ByteBuffer r, long x[])
@@ -1637,7 +1677,7 @@ private static int ld32(byte [] x)
 		///FOR(i,32)
 		for (i = 0; i < 32; i ++) sm[32 + i] = d[32 + i];
 
-		crypto_hash(r, ByteBuffer.wrap(sm, 32, sm.length-32)/*sm+32*/, n+32);
+		crypto_hash(r, ByteBuffer.wrap(sm, 32, sm.length-32).slice()/*sm+32*/, n+32);
 		reduce(r);
 		scalarbase(p,ByteBuffer.wrap(r));
 		pack(sm,p);
@@ -1653,7 +1693,7 @@ private static int ld32(byte [] x)
 		for (i = 0; i < 32; i ++) x[i] = (long) r[i];
 		///FOR(i,32) FOR(j,32) 
 		for (i = 0; i < 32; i ++) for (j = 0; j < 32; j ++) x[i+j] += h[i] * (long) d[j];
-		modL(ByteBuffer.wrap(sm, 32, sm.length-32)/*sm+32*/,x);
+		modL(ByteBuffer.wrap(sm, 32, sm.length-32).slice()/*sm+32*/,x);
 
 		return 0;
 	}
@@ -1739,7 +1779,7 @@ private static int ld32(byte [] x)
 		reduce(h);
 		scalarmult(p,q,ByteBuffer.wrap(h));
 
-		scalarbase(q,ByteBuffer.wrap(sm, 32, sm.length-32)/*sm + 32*/);
+		scalarbase(q,ByteBuffer.wrap(sm, 32, sm.length-32).slice()/*sm + 32*/);
 		add(p,q);
 		pack(t,p);
 
@@ -1759,7 +1799,8 @@ private static int ld32(byte [] x)
 
 	// TBD...
 	private static void randombytes(byte [] x, int len) {
-
+        for (int i = 0; i < len; i ++)
+        	x[i] = (byte) i;
 	}
 
 }

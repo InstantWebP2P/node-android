@@ -1,5 +1,6 @@
 package com.iwebpp;
 
+import com.iwebpp.crypto.tests.TweetNaclTest;
 import com.iwebpp.libuvpp.R;
 import com.iwebpp.libuvpp.R.layout;
 import com.iwebpp.libuvpp.R.menu;
@@ -70,7 +71,10 @@ public class MainActivity extends Activity {
 		
 		// NodeApi tests
 		new EventHandlerTest().start();*/
-		new SimpleApiTest().start();
+		///new SimpleApiTest().start();
+		
+		// Crypto tests
+		new TweetNaclTest().start();
 	}
 
 	@Override
