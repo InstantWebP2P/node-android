@@ -1919,9 +1919,11 @@ private static int ld32(byte [] x)
 			x[i+7] = (byte) (rnd >> 56);
 		}
 
-		rnd = jrandom.nextLong();
-		for (int i = len-ret; i < len; i ++)
-			x[i] = (byte) (rnd >> 8*i);
+                if (ret > 0) {         
+		    rnd = jrandom.nextLong();
+		    for (int i = len-ret; i < len; i ++)
+		        x[i] = (byte) (rnd >> 8*i);
+                }
 	}
 
 }
