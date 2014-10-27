@@ -41,17 +41,39 @@ public final class AsyncHttpClient {
 
 		private List<Object> body;
 
-		private int timeout; // ms
-
-		private TimerHandle tmohdl;
-
+		// response timeout
+		private int resp_timeout; // ms
+		private TimerHandle resp_tmohdl;
+		
+		// content timeout
+		private int cont_timeout; // ms
+		private TimerHandle cont_tmohdl;
+		
+		protected HttpClient(
+				String method,
+				String url,
+				Map<String, String> headers, 
+				Object data,
+				final HttpClientCallback cb) {
+			this(method, url, headers, data, cb, 2000, -1);
+		}
 		protected HttpClient(
 				String method,
 				String url,
 				Map<String, String> headers, 
 				Object data,
 				final HttpClientCallback cb,
-				int timeout) {
+				int resp_timeout) {
+			this(method, url, headers, data, cb, resp_timeout, -1);
+		}
+		protected HttpClient(
+				String method,
+				String url,
+				Map<String, String> headers, 
+				Object data,
+				final HttpClientCallback cb,
+				int resp_timeout,
+				int cont_timeout) {
 			this.method = method;
 			this.url = url;
 
@@ -79,9 +101,12 @@ public final class AsyncHttpClient {
 			// user data
 			this.data = data;
 
-			// default timeout 2s
-			this.timeout = 2000;
-			
+			// default response timeout 2s
+			this.resp_timeout = resp_timeout>0? resp_timeout : 2000;
+
+			// default content timeout unlimited
+			this.cont_timeout = cont_timeout>0? cont_timeout : -1;
+
 			// response body
 			this.body = new LinkedList<Object>();
 
@@ -113,11 +138,23 @@ public final class AsyncHttpClient {
 				}
 				
 			});	
-			this.once("timeout", new Listener(){
+			this.once("resp_timeout", new Listener(){
 
 				@Override
 				public void onEvent(Object data) throws Exception {
-					cb.onResponse("Operation timeout", -1, null, null);					
+					HttpClient.this.removeListener("completed");
+					
+					cb.onResponse("Operation resp_timeout", -1, null, null);					
+				}
+
+			});	
+			this.once("cont_timeout", new Listener(){
+
+				@Override
+				public void onEvent(Object data) throws Exception {
+					HttpClient.this.removeListener("completed");
+
+					cb.onResponse("Operation cont_timeout", -1, null, null);					
 				}
 
 			});	
@@ -125,21 +162,26 @@ public final class AsyncHttpClient {
 
 				@Override
 				public void onEvent(Object data) throws Exception {
+					HttpClient.this.removeListener("completed");
+
 					cb.onResponse("Operation error:"+data!=null? data.toString() : "", -1, null, null);					
 				}
 
 			});	
 		}
-		// clear timeout
-		private void clearTimeout() {
-			if (timeout>0 && tmohdl!=null)
-				tmohdl.close();
+		// clear response timeout
+		private void clearRespTimeout() {
+			if (resp_timeout>0 && resp_tmohdl!=null)
+				resp_tmohdl.close();
 		}
-		
+		// clear content timeout
+		private void clearContTimeout() {
+			if (cont_timeout>0 && cont_tmohdl!=null)
+				cont_tmohdl.close();
+		}
+				
 		@Override
 		public void content() throws Exception {
-			final HttpClient self = this;
-
 			ReqOptions options = new ReqOptions();
 
 			// request method
@@ -162,23 +204,33 @@ public final class AsyncHttpClient {
 			for (Map.Entry<String, String> el : headers.entrySet())
 				options.setHeader(el.getKey(), el.getValue());
 
-			// make http request with timeout
-			if (timeout > 0) 
-				this.tmohdl = getNodeContext().setTimeout(new TimeoutListener(){
+			// make http request with resp_timeout
+			if (resp_timeout > 0) 
+				this.resp_tmohdl = getNodeContext().setTimeout(new TimeoutListener(){
 
 					@Override
 					public void onTimeout() throws Exception {
-						self.emit("timeout");
+						HttpClient.this.emit("resp_timeout");
 					}
 
-				}, timeout);
+				}, resp_timeout);
+			// make http request with cont_timeout
+			if (cont_timeout > 0) 
+				this.cont_tmohdl = getNodeContext().setTimeout(new TimeoutListener(){
 
+					@Override
+					public void onTimeout() throws Exception {
+						HttpClient.this.emit("cont_timeout");
+					}
+
+				}, cont_timeout);
+						
 			ClientRequest req = http.request(getNodeContext(), options, new ClientRequest.responseListener(){
 
 				@Override
 				public void onResponse(IncomingMessage res) throws Exception {
-					// clear timeout
-					clearTimeout();
+					// clear response timeout
+					clearRespTimeout();
 					
 					Log.d(TAG, "got response: "+res.statusCode()+", headers:"+res.headers());
 
@@ -194,7 +246,7 @@ public final class AsyncHttpClient {
 						    ct.equalsIgnoreCase("application/javascript"))
 							res.setEncoding("utf-8");
 					} else {
-						self.emit("error", "response miss content-type header");
+						HttpClient.this.emit("error", "response miss content-type header");
 						return;
 					}
 
@@ -213,11 +265,14 @@ public final class AsyncHttpClient {
 
 						@Override
 						public void onEvent(Object data) throws Exception {
+							// clear content timeout
+							clearContTimeout();
+							
 							Log.d(TAG, "response got end\n");
 
 							if (data!=null) body.add(data);
 
-							self.emit("completed");
+							HttpClient.this.emit("completed");
 						}
 
 					});
@@ -225,9 +280,12 @@ public final class AsyncHttpClient {
 
 						@Override
 						public void onEvent(Object error) throws Exception {
+							// clear content timeout
+							clearContTimeout();
+							
 							Log.d(TAG, "response got error:\n"+error);
 							
-							self.emit("error", "request error:"+error);
+							HttpClient.this.emit("error", "request error:"+error);
 						}
 
 					});
@@ -252,6 +310,9 @@ public final class AsyncHttpClient {
 			this.type = type;
 			this.content = content;
 		}
+		@SuppressWarnings("unused")
+		private http_content_b() {}
+		
 		public String getType() {
 			return this.type;
 		}
@@ -262,12 +323,12 @@ public final class AsyncHttpClient {
 
 	// HEAD
 	public static void head(String url, HttpClientCallback cb) throws Exception {
-		new HttpClient("HEAD", url, null, null, cb, 2000).execute();
+		new HttpClient("HEAD", url, null, null, cb).execute();
 	}
 
 	// GET
 	public static void get(String url, HttpClientCallback cb) throws Exception {
-		new HttpClient("GET", url, null, null, cb, 2000).execute();
+		new HttpClient("GET", url, null, null, cb).execute();
 	}
 
 	// PUT
