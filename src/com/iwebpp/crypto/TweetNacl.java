@@ -1,5 +1,6 @@
 package com.iwebpp.crypto;
 
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 
@@ -114,7 +115,7 @@ public final class TweetNacl {
 	public static final class Box {
 
 		private final static String TAG = "Box";
-
+		
 		private AtomicLong nonce;
 
 		private byte [] theirPublicKey;
@@ -1895,10 +1896,32 @@ private static int ld32(byte [] x)
 		return 0;
 	}
 
-	// TBD...
+	/*
+	 * @description
+	 *   Java Random
+	 * */
+	private static final Random jrandom = new Random();
+	
 	private static void randombytes(byte [] x, int len) {
-        for (int i = 0; i < len; i ++)
-        	x[i] = (byte) i;
+		int ret = len % 8;
+		long rnd;
+
+		for (int i = 0; i < len-ret; i += 8) {
+			rnd = jrandom.nextLong();
+
+			x[i+0] = (byte) (rnd >>  0);
+			x[i+1] = (byte) (rnd >>  8);
+			x[i+2] = (byte) (rnd >> 16);
+			x[i+3] = (byte) (rnd >> 24);
+			x[i+4] = (byte) (rnd >> 32);
+			x[i+5] = (byte) (rnd >> 40);
+			x[i+6] = (byte) (rnd >> 48);
+			x[i+7] = (byte) (rnd >> 56);
+		}
+
+		rnd = jrandom.nextLong();
+		for (int i = len-ret; i < len; i ++)
+			x[i] = (byte) (rnd >> 8*i);
 	}
 
 }

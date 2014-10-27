@@ -78,7 +78,82 @@ implements JS {
 		    subctx.evaluateString(subscope, exports, "ExportsVariable", 1, null);
 		    
 		    // Create require function
-		    String require = "var require = function(module){return NodeHostEnv.require(module);};";
+		    // - return built-in module directly with NodeCurrentContext injection
+		    // - ask framework for local/remote Js module, TBD ... security/permission check
+		    String require = 
+		    		"var require = function(module){" +
+		    		"    if (module.toLowerCase() === 'http')  return {" +
+		    		"        createServer: function(requestListener) {" +
+		    		"            return http.createServer(NCC, requestListener);" +
+		    		"        }," +
+		    		"" +
+		    		"        request: function(options, responseListener) {" +
+		    		"            // parse ReqOptions" +
+		    		"            ReqOptions reqopt = new ReqOptions();" +
+		    		"            return http.request(NCC, reqopt, responseListener);" +
+		    		"        }," +
+		    		"" +
+		    		"        request: function(url, responseListener) {" +
+		    		"            return http.request(NCC, url, responseListener);" +
+		    		"        }," +
+		    		"" +
+		    		"        get: function(options, responseListener) {" +
+		    		"            // parse ReqOptions" +
+		    		"            ReqOptions reqopt = new ReqOptions();" +
+		    		"            return http.get(NCC, reqopt, responseListener);" +
+		    		"        }," +
+		    		"" +
+		    		"        get: function(url, responseListener) {" +
+		    		"            return http.get(NCC, url, responseListener);" +
+		    		"        }," +
+		    		"    };" +
+		    		"" +
+		    		"    if (module.toLowerCase() === 'httpp')  return {" +
+		    		"        createServer: function(requestListener) {" +
+		    		"            return httpp.createServer(NCC, requestListener);" +
+		    		"        }," +
+		    		"" +
+		    		"        request: function(options, responseListener) {" +
+		    		"            // parse ReqOptions" +
+		    		"            ReqOptions reqopt = new ReqOptions();" +
+		    		"            return httpp.request(NCC, reqopt, responseListener);" +
+		    		"        }," +
+		    		"" +
+		    		"        request: function(url, responseListener) {" +
+		    		"            return httpp.request(NCC, url, responseListener);" +
+		    		"        }," +
+		    		"" +
+		    		"        get: function(options, responseListener) {" +
+		    		"            // parse ReqOptions" +
+		    		"            ReqOptions reqopt = new ReqOptions();" +
+		    		"            return http.get(NCC, reqopt, responseListener);" +
+		    		"        }," +
+		    		"" +
+		    		"        get: function(url, responseListener) {" +
+		    		"            return httpp.get(NCC, url, responseListener);" +
+		    		"        }," +
+		    		"    };" +
+		    		"" +
+		    		"    if (module.toLowerCase() === 'websocket')       return Websocket;" +
+		    		"    if (module.toLowerCase() === 'websocketserver') return WebSocketServer;" +
+
+		    		"" +
+		    		"    if (module.toLowerCase() === 'net') return TCP;" +
+		    		"    if (module.toLowerCase() === 'tcp') return TCP;" +
+		    		"    if (module.toLowerCase() === 'udt') return UDT;" +
+		    		"" +
+		    		"    if (module.toLowerCase() === 'readable')    return Readable2;" +
+		    		"    if (module.toLowerCase() === 'writable')    return Writable2;" +
+		    		"    if (module.toLowerCase() === 'duplex')      return Duplex;" +
+		    		"    if (module.toLowerCase() === 'transform')   return Transform;" +
+		    		"    if (module.toLowerCase() === 'passthrough') return PassThrough;" +
+		    		"" +
+		    		"    if (module.toLowerCase() === 'dns') return Dns;" +
+		    		"    if (module.toLowerCase() === 'url') return Url;" +
+
+		    		"" +
+		    		"    return NodeHostEnv.require(module);" +
+		    		"};";
 		    subctx.evaluateString(subscope, require, "RequireFunction", 1, null);
 
 		    // Expose node-android API in js
@@ -104,7 +179,7 @@ implements JS {
 		    ///setDebugLevel(lvl);
 		    
 		    subctx.evaluateString(subscope, modulescript, "ModuleContent", 1, null);
-
+		    
 		    // Retrieve exports variable
 		    ret = subscope.get("exports", subscope);
 		} catch (Throwable e) {			
@@ -168,7 +243,31 @@ implements JS {
 		    jsctx.evaluateString(jsscope, exports, "ExportsVariable", 1, null);
 		    
 		    // Create require function
-		    String require = "var require = function(module){return NodeHostEnv.require(module);};";
+		    String require = 
+		    		"var require = function(module){" +
+		    		"    if (module.toLowerCase() === 'http')  return http;" +
+		    		"    if (module.toLowerCase() === 'httpp') return httpp;" +
+		    		"" +
+		    		"    if (module.toLowerCase() === 'websocket')       return Websocket;" +
+		    		"    if (module.toLowerCase() === 'websocketserver') return WebSocketServer;" +
+
+		    		"" +
+		    		"    if (module.toLowerCase() === 'net') return TCP;" +
+		    		"    if (module.toLowerCase() === 'tcp') return TCP;" +
+		    		"    if (module.toLowerCase() === 'udt') return UDT;" +
+		    		"" +
+		    		"    if (module.toLowerCase() === 'readable')    return Readable2;" +
+		    		"    if (module.toLowerCase() === 'writable')    return Writable2;" +
+		    		"    if (module.toLowerCase() === 'duplex')      return Duplex;" +
+		    		"    if (module.toLowerCase() === 'transform')   return Transform;" +
+		    		"    if (module.toLowerCase() === 'passthrough') return PassThrough;" +
+		    		"" +
+		    		"    if (module.toLowerCase() === 'dns') return Dns;" +
+		    		"    if (module.toLowerCase() === 'url') return Url;" +
+
+		    		"" +
+		    		"    return NodeHostEnv.require(module);" +
+		    		"};";
 		    jsctx.evaluateString(jsscope, require, "RequireFunction", 1, null);
 
 		    // Expose node-android API in js
