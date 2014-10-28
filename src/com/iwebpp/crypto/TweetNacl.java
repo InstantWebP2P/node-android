@@ -1,13 +1,15 @@
 package com.iwebpp.crypto;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+
 
 
 public final class TweetNacl {
 
 	private final static String TAG = "TweetNacl";
-	
+
 	/*
 	 * @description
 	 *   C-like raw buffer
@@ -16,12 +18,12 @@ public final class TweetNacl {
 		private final byte [] buffer;
 		private final int offset;
 		private final int length;
-		
+
 		public static byte_buf_t allocate(int capacity) {
 			byte [] buffer = new byte[capacity];
 			return new byte_buf_t(buffer);
 		}
-		
+
 		public byte_buf_t(byte [] buffer) {
 			this(buffer, 0, buffer.length);
 		}
@@ -47,9 +49,10 @@ public final class TweetNacl {
 			return this.length;
 		}
 		public byte get(int idx) {
-			if (idx >= length)
+			if (idx >= length) {
+				///L/og.d(TAG, "byte_buf_t error");
 				return -1;
-			else
+			} else
 				return buffer[offset+idx];
 		}
 		public void put(int idx, byte val) {
@@ -59,17 +62,17 @@ public final class TweetNacl {
 				buffer[offset+idx] = val;
 		}
 	}
-	
+
 	public static final class long_buf_t {
 		private final long [] buffer;
 		private final int offset;
 		private final int length;
-		
+
 		public static long_buf_t allocate(int capacity) {
 			long [] buffer = new long[capacity];
 			return new long_buf_t(buffer);
 		}
-		
+
 		public long_buf_t(long [] buffer) {
 			this(buffer, 0, buffer.length);
 		}
@@ -95,9 +98,10 @@ public final class TweetNacl {
 			return this.length;
 		}
 		public long get(int idx) {
-			if (idx >= length)
+			if (idx >= length) {
+				///L/og.d(TAG, "long_buf_t error");
 				return -1;
-			else
+			} else
 				return buffer[offset+idx];
 		}
 		public void put(int idx, long val) {
@@ -107,7 +111,7 @@ public final class TweetNacl {
 				buffer[offset+idx] = val;
 		}
 	}
-	
+
 	/*
 	 * @description 
 	 *   Box algorithm, Public-key authenticated encryption 
@@ -115,7 +119,7 @@ public final class TweetNacl {
 	public static final class Box {
 
 		private final static String TAG = "Box";
-		
+
 		private AtomicLong nonce;
 
 		private byte [] theirPublicKey;
@@ -131,11 +135,11 @@ public final class TweetNacl {
 			this.mySecretKey = mySecretKey;
 
 			this.nonce = new AtomicLong(nonce);
-			
+
 			// generate pre-computed shared key
 			before();
 		}
-		
+
 		public void setNonce(long nonce) {
 			this.nonce.set(nonce);
 		}
@@ -148,22 +152,22 @@ public final class TweetNacl {
 		private byte[] generateNonce() {
 			// generate nonce 
 			long nonce = this.nonce.get();
-			
+
 			byte [] n = new byte[nonceLength];
 			for (int i = 0; i < nonceLength; i += 8) {
-				n[i+0] = (byte) (nonce>> 0);
-				n[i+1] = (byte) (nonce>> 8);
-				n[i+2] = (byte) (nonce>>16);
-				n[i+3] = (byte) (nonce>>24);
-				n[i+4] = (byte) (nonce>>32);
-				n[i+5] = (byte) (nonce>>40);
-				n[i+6] = (byte) (nonce>>48);
-				n[i+7] = (byte) (nonce>>56);
+				n[i+0] = (byte) (nonce>>> 0);
+				n[i+1] = (byte) (nonce>>> 8);
+				n[i+2] = (byte) (nonce>>>16);
+				n[i+3] = (byte) (nonce>>>24);
+				n[i+4] = (byte) (nonce>>>32);
+				n[i+5] = (byte) (nonce>>>40);
+				n[i+6] = (byte) (nonce>>>48);
+				n[i+7] = (byte) (nonce>>>56);
 			}
-			
+
 			return n;
 		}
-		
+
 		/*
 		 * @description 
 		 *   Encrypt and authenticates message using peer's public key, 
@@ -204,7 +208,7 @@ public final class TweetNacl {
 
 			return ret;
 		}
-		
+
 		/*
 		 * @description 
 		 *   Authenticates and decrypts the given box with peer's public key, 
@@ -241,7 +245,7 @@ public final class TweetNacl {
 
 			return ret;
 		}
-		
+
 		/*
 		 * @description 
 		 *   Returns a precomputed shared key 
@@ -255,7 +259,7 @@ public final class TweetNacl {
 
 			return this.sharedKey;
 		}
-		
+
 		/*
 		 * @description 
 		 *   Same as nacl.box, but uses a shared key precomputed with nacl.box.before.
@@ -288,7 +292,7 @@ public final class TweetNacl {
 
 			return ret;
 		}
-		
+
 		/*
 		 * @description 
 		 *   Same as nacl.box.open, 
@@ -323,25 +327,25 @@ public final class TweetNacl {
 
 			return ret;
 		}
-		
+
 		/*
 		 * @description 
 		 *   Length of public key in bytes.
 		 * */
 		public static final int publicKeyLength = 32;
-		
+
 		/*
 		 * @description 
 		 *   Length of secret key in bytes.
 		 * */
 		public static final int secretKeyLength = 32;
-		
+
 		/*
 		 * @description 
 		 *   Length of precomputed shared key in bytes.
 		 * */
 		public static final int sharedKeyLength = 32;
-		
+
 		/*
 		 * @description 
 		 *   Length of nonce in bytes.
@@ -358,13 +362,13 @@ public final class TweetNacl {
 		 *   zero bytes in case open box
 		 * */
 		public static final int boxzerobytesLength = 16;
-		
+
 		/*
 		 * @description 
 		 *   Length of overhead added to box compared to original message.
 		 * */
 		public static final int overheadLength  = 16;
-		
+
 		public static class KeyPair {
 			private byte [] publicKey;
 			private byte [] secretKey;
@@ -382,7 +386,7 @@ public final class TweetNacl {
 				return secretKey;
 			}
 		}
-		
+
 		/*
 		 * @description
 		 *   Generates a new random key pair for box and 
@@ -390,43 +394,45 @@ public final class TweetNacl {
 		 * */
 		public static KeyPair keyPair() {
 			KeyPair kp = new KeyPair();
-			
+
 			crypto_box_keypair(kp.getPublicKey(), kp.getSecretKey());
 			return kp;
 		}
-		
+
 		public static KeyPair keyPair_fromSecretKey(byte [] secretKey) {
 			KeyPair kp = new KeyPair();
-			
+			byte [] sk = kp.getSecretKey();
+			byte [] pk = kp.getPublicKey();
+
 			// copy sk
-            for (int i = 0; i < kp.getSecretKey().length; i ++)
-            	kp.getSecretKey()[i] = secretKey[i];
-			
-            crypto_scalarmult_base(kp.getPublicKey(), kp.getSecretKey());
+			for (int i = 0; i < sk.length; i ++)
+				sk[i] = secretKey[i];
+
+			crypto_scalarmult_base(pk, sk);
 			return kp;
 		}
-		
+
 	}
-	
+
 	/*
 	 * @description 
 	 *   Secret Box algorithm, secret key
 	 * */
 	public static class SecretBox {
-		
+
 		private final static String TAG = "SecretBox";
 
 		private AtomicLong nonce;
 
 		private byte [] key;
-		
+
 		public SecretBox(byte [] key) {
 			this(key, 68);
 		}
-		
+
 		public SecretBox(byte [] key, long nonce) {
 			this.key = key;
-			
+
 			this.nonce = new AtomicLong(nonce);
 		}
 
@@ -442,22 +448,22 @@ public final class TweetNacl {
 		private byte[] generateNonce() {
 			// generate nonce 
 			long nonce = this.nonce.get();
-			
+
 			byte [] n = new byte[nonceLength];
 			for (int i = 0; i < nonceLength; i += 8) {
-				n[i+0] = (byte) (nonce>> 0);
-				n[i+1] = (byte) (nonce>> 8);
-				n[i+2] = (byte) (nonce>>16);
-				n[i+3] = (byte) (nonce>>24);
-				n[i+4] = (byte) (nonce>>32);
-				n[i+5] = (byte) (nonce>>40);
-				n[i+6] = (byte) (nonce>>48);
-				n[i+7] = (byte) (nonce>>56);
+				n[i+0] = (byte) (nonce>>> 0);
+				n[i+1] = (byte) (nonce>>> 8);
+				n[i+2] = (byte) (nonce>>>16);
+				n[i+3] = (byte) (nonce>>>24);
+				n[i+4] = (byte) (nonce>>>32);
+				n[i+5] = (byte) (nonce>>>40);
+				n[i+6] = (byte) (nonce>>>48);
+				n[i+7] = (byte) (nonce>>>56);
 			}
-			
+
 			return n;
 		}
-		
+
 		/*
 		 * @description 
 		 *   Encrypt and authenticates message using the key and the nonce. 
@@ -491,13 +497,13 @@ public final class TweetNacl {
 			// wrap byte_buf_t on c offset@boxzerobytesLength
 			///return new byte_buf_t(c, boxzerobytesLength, c.length-boxzerobytesLength);
 			byte [] ret = new byte[c.length-boxzerobytesLength];
-			
+
 			for (int i = 0; i < ret.length; i ++)
 				ret[i] = c[i+boxzerobytesLength];
-				
+
 			return ret;
 		}
-		
+
 		/*
 		 * @description 
 		 *   Authenticates and decrypts the given secret box 
@@ -534,25 +540,25 @@ public final class TweetNacl {
 
 			return ret;
 		}
-		
+
 		/*
 		 * @description 
 		 *   Length of key in bytes.
 		 * */
 		public static final int keyLength      = 32;
-		
+
 		/*
 		 * @description 
 		 *   Length of nonce in bytes.
 		 * */
 		public static final int nonceLength    = 24;
-		
+
 		/*
 		 * @description 
 		 *   Length of overhead added to secret box compared to original message.
 		 * */
 		public static final int overheadLength = 16;
-		
+
 		/*
 		 * @description
 		 *   zero bytes in case box
@@ -565,96 +571,105 @@ public final class TweetNacl {
 		public static final int boxzerobytesLength = 16;
 
 	}
-	
+
 	/*
 	 * @description
 	 *   Scalar multiplication, Implements curve25519.
 	 * */
-    public static final class ScalarMult {
-    	
-    	private final static String TAG = "ScalarMult";
+	public static final class ScalarMult {
 
-    	/*
-    	 * @description
-    	 *   Multiplies an integer n by a group element p and 
-    	 *   returns the resulting group element.
-    	 * */
-    	public static byte [] scalseMult(int n, byte [] p) {
-    		
-    		return null;
-    	}
-    	
-    	/*
-    	 * @description
-    	 *   Multiplies an integer n by a standard group element and 
-    	 *   returns the resulting group element.    	 
-    	 * */
-    	public static byte [] scalseMult_base(int n) {
-    		
-    		return null;
-    	}
-    	
-    	/*
-    	 * @description
-    	 *   Length of scalar in bytes.
-    	 * */
-		public static final int scalarLength        = 32;
-		
+		private final static String TAG = "ScalarMult";
+
 		/*
-    	 * @description
-    	 *   Length of group element in bytes.
-    	 * */
+		 * @description
+		 *   Multiplies an integer n by a group element p and 
+		 *   returns the resulting group element.
+		 * */
+		public static byte [] scalseMult(int n, byte [] p) {
+
+			return null;
+		}
+
+		/*
+		 * @description
+		 *   Multiplies an integer n by a standard group element and 
+		 *   returns the resulting group element.    	 
+		 * */
+		public static byte [] scalseMult_base(int n) {
+
+			return null;
+		}
+
+		/*
+		 * @description
+		 *   Length of scalar in bytes.
+		 * */
+		public static final int scalarLength        = 32;
+
+		/*
+		 * @description
+		 *   Length of group element in bytes.
+		 * */
 		public static final int groupElementLength  = 32;
 
-    }
-	
-	
+	}
+
+
 	/*
 	 * @description 
 	 *   Hash algorithm, Implements SHA-512.
 	 * */
-    public static final class Hashing {
-    	
-    	private final static String TAG = "Hashing";
+	public static final class Hashing {
 
-    	/*
-    	 * @description
-    	 *   Returns SHA-512 hash of the message.
-    	 * */
-    	public static byte[] hash(byte [] message) {
-    		
-    		return null;
-    	}
-    	
-    	/*
-    	 * @description
-    	 *   Length of hash in bytes.
-    	 * */
+		private final static String TAG = "Hashing";
+
+		/*
+		 * @description
+		 *   Returns SHA-512 hash of the message.
+		 * */
+		public static byte[] hash(byte [] message) {
+			if (!(message!=null && message.length>0))
+				return null;
+
+			byte [] out = new byte[hashLength];
+
+			crypto_hash(out, message);
+
+			return out;
+		}
+		public static byte[] hash(String message) throws UnsupportedEncodingException {
+			return hash(message.getBytes("utf-8"));
+		}
+		
+		/*
+		 * @description
+		 *   Length of hash in bytes.
+		 * */
 		public static final int hashLength       = 64;
-    	
-    }
-	
-	
+
+	}
+
+
 	/*
 	 * @description 
 	 *   Signature algorithm, Implements ed25519.
 	 * */
-    public static final class Signature {
-    	
-    	private final static String TAG = "Signature";
+	public static final class Signature {
+
+		private final static String TAG = "Signature";
 
 		private byte [] theirPublicKey;
 		private byte [] mySecretKey;
-		
+
 		public Signature(byte [] theirPublicKey, byte [] mySecretKey) {
 			this.theirPublicKey = theirPublicKey;
 			this.mySecretKey = mySecretKey;
 		}
 
 		/*
-    	 * @description
-    	 *   Signs the message using the secret key and returns a signed message.
-    	 * */
+		 * @description
+		 *   Signs the message using the secret key and returns a signed message.
+		 * */
 		public byte [] sign(byte [] message) {
 			// signed message 
 			byte [] sm = new byte[message.length + signatureLength];
@@ -663,12 +678,12 @@ public final class TweetNacl {
 
 			return sm;
 		}
-		
+
 		/*
-    	 * @description
-    	 *   Verifies the signed message and returns the message without signature.
-    	 *   Returns null if verification failed.
-    	 * */
+		 * @description
+		 *   Verifies the signed message and returns the message without signature.
+		 *   Returns null if verification failed.
+		 * */
 		public byte [] open(byte [] signedMessage) {
 			// check sm length
 			if (!(signedMessage!=null && signedMessage.length>signatureLength))
@@ -687,23 +702,23 @@ public final class TweetNacl {
 
 			return msg;
 		}
-		
+
 		/*
-    	 * @description
-    	 *   Signs the message using the secret key and returns a signature.
-    	 * */
+		 * @description
+		 *   Signs the message using the secret key and returns a signature.
+		 * */
 		public byte [] detached(byte [] message) {
-			
+
 			return null;
 		}
-		
+
 		/*
-    	 * @description
-    	 *   Verifies the signature for the message and 
-    	 *   returns true if verification succeeded or false if it failed.
-    	 * */
+		 * @description
+		 *   Verifies the signature for the message and 
+		 *   returns true if verification succeeded or false if it failed.
+		 * */
 		public boolean detached_verify(byte [] message, byte [] signature) {
-			
+
 			return false;
 		}
 
@@ -736,7 +751,7 @@ public final class TweetNacl {
 		 * */
 		public static KeyPair keyPair() {
 			KeyPair kp = new KeyPair();
-			
+
 			crypto_sign_keypair(kp.getPublicKey(), kp.getSecretKey());
 			return kp;
 		}
@@ -753,39 +768,39 @@ public final class TweetNacl {
 
 			return kp;
 		}
-		
+
 		/*
-    	 * @description
-    	 *   Length of signing public key in bytes.
-    	 * */
+		 * @description
+		 *   Length of signing public key in bytes.
+		 * */
 		public static final int publicKeyLength = 32;
-		
+
 		/*
-    	 * @description
-    	 *   Length of signing secret key in bytes.
-    	 * */
+		 * @description
+		 *   Length of signing secret key in bytes.
+		 * */
 		public static final int secretKeyLength = 64;
-		
+
 		/*
-    	 * @description
-    	 *   Length of seed for nacl.sign.keyPair.fromSeed in bytes.
-    	 * */
+		 * @description
+		 *   Length of seed for nacl.sign.keyPair.fromSeed in bytes.
+		 * */
 		public static final int seedLength      = 32;
-		
+
 		/*
-    	 * @description
-    	 *   Length of signature in bytes.
-    	 * */
+		 * @description
+		 *   Length of signature in bytes.
+		 * */
 		public static final int signatureLength = 64;
-    }
-	
-	
+	}
+
+
 	////////////////////////////////////////////////////////////////////////////////////
 	/*
 	 * @description
 	 *   Codes below are ported from TweetNacl.c/TweetNacl.h
 	 * */
-	
+
 	/*
 static byte
   _0[16],
@@ -795,7 +810,8 @@ static byte
 	private static final byte [] _9 = new byte[32];
 	static {
 		for (int i = 0; i < _0.length; i ++) _0[i] = 0;
-		for (int i = 0; i < _9.length; i ++) _9[i] = 9;
+
+		for (int i = 0; i < _9.length; i ++) _9[i] = 0; _9[0] = 9;
 	}
 
 	/*
@@ -814,11 +830,13 @@ static gf
 	private static final long [] _121665 = new long[16];
 	static {
 		for (int i = 0; i < gf0.length; i ++) gf0[i] = 0;
-		for (int i = 0; i < gf1.length; i ++) gf1[i] = 1;
-		for (int i = 0; i < _121665.length; i += 2) {
-			_121665[i] = 0xDB41;
-			_121665[i+1] = 1;
-		}
+
+		for (int i = 0; i < gf1.length; i ++) gf1[i] = 0; gf1[0] = 1;
+
+		for (int i = 0; i < _121665.length; i ++) _121665[i] = 0;
+
+		_121665[0] = 0xDB41;
+		_121665[1] = 1;
 	}
 
 	private static final long []  D = new long [] {0x78a3, 0x1359, 0x4dca, 0x75eb, 0xd8ab, 0x4141, 0x0a4d, 0x0070, 0xe898, 0x7779, 0x4079, 0x8cc7, 0xfe73, 0x2b6f, 0x6cee, 0x5203};
@@ -829,8 +847,8 @@ static gf
 
 
 
-	///static int L32(int x,int c) { return (x << c) | ((x&0xffffffff) >> (32 - c)); }
-	private static int L32(int x, int c) { return (x << c) | ((x&0xffffffff) >> (32 - c)); }
+	///static int L32(int x,int c) { return (x << c) | ((x&0xffffffff) >>> (32 - c)); }
+	private static int L32(int x, int c) { return (x << c) | ((x&0xffffffff) >>> (32 - c)); }
 
 	/*
 private static int ld32(byte [] x)
@@ -861,21 +879,21 @@ private static int ld32(byte [] x)
 	private static void st32(byte_buf_t x, int u)
 	{
 		int i;
-		for (i = 0; i < 4; i ++) { x.put(i, (byte) u); u >>= 8; }
+		for (i = 0; i < 4; i ++) { x.put(i, (byte)(u&0xff)); u >>>= 8; }
 	}
 
 	///private static void ts64(byte []x,long u)
 	private static void ts64(byte_buf_t x,long u)
 	{
 		int i;
-		for (i = 7;i >= 0;--i) { x.put(i, (byte) u)/*x[i] = (byte) u*/; u >>= 8; }
+		for (i = 7;i >= 0;--i) { x.put(i, (byte)(u&0xff))/*x[i] = (byte) u*/; u >>>= 8; }
 	}
 
 	private static int vn(byte_buf_t x, byte_buf_t y,int n)
 	{
 		int i,d = 0;
 		for (i = 0; i < n; i ++) d |= x.get(i)^y.get(i);///x[i]^y[i];
-		return (1 & ((d - 1) >> 8)) - 1;
+		return (1 & ((d - 1) >>> 8)) - 1;
 	}
 
 	private static int crypto_verify_16(byte_buf_t x, byte_buf_t y)
@@ -895,7 +913,7 @@ private static int ld32(byte [] x)
 	{
 		return crypto_verify_32(new byte_buf_t(x), new byte_buf_t(y));
 	}
-	
+
 	private static void core(byte [] out, byte [] in, byte [] k, byte [] c, int h)
 	{
 		///int w[16],x[16],y[16],t[4];
@@ -946,17 +964,31 @@ private static int ld32(byte [] x)
 		} else
 			///FOR(i,16) st32(out + 4 * i,x[i] + y[i]);
 			for (i = 0; i < 16; i ++) st32(new byte_buf_t(out, 4*i, 4), x[i] + y[i]);///st32(out + 4 * i,x[i] + y[i]);
+
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < out.length; dbg ++) dbgt += " "+out[dbg];
+		///L/og.d(TAG, "core -> "+dbgt);
 	}
 
 	public static int crypto_core_salsa20(byte [] out, byte [] in, byte [] k, byte [] c)
 	{
 		core(out,in,k,c,0);
+
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < out.length; dbg ++) dbgt += " "+out[dbg];
+		///L/og.d(TAG, "crypto_core_salsa20 -> "+dbgt);
+
 		return 0;
 	}
 
 	public static int crypto_core_hsalsa20(byte [] out, byte [] in, byte [] k, byte [] c)
 	{
 		core(out,in,k,c,1);
+
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < out.length; dbg ++) dbgt += " "+out[dbg];
+		///L/og.d(TAG, "crypto_core_hsalsa20 -> "+dbgt);
+
 		return 0;
 	}
 
@@ -985,12 +1017,12 @@ private static int ld32(byte [] x)
 		int moffset = 0;
 		while (b >= 64) {
 			crypto_core_salsa20(x,z,k,sigma);
-			for (i = 0; i < 64; i ++) c[i+coffset] = (byte) ((m!=null?m[i+moffset]:0) ^ x[i]);
+			for (i = 0; i < 64; i ++) c[i+coffset] = (byte) (((m!=null?m[i+moffset]:0) ^ x[i]) & 0xff);
 			u = 1;
 			for (i = 8;i < 16;++i) {
-				u += (int) z[i];
-				z[i] = (byte) u;
-				u >>= 8;
+				u += (int) (z[i]&0xff);
+				z[i] = (byte) (u&0xff);
+				u >>>= 8;
 			}
 			b -= 64;
 			///c += 64;
@@ -999,7 +1031,7 @@ private static int ld32(byte [] x)
 		}
 		if (b!=0) {
 			crypto_core_salsa20(x,z,k,sigma);
-			for (i = 0; i < b; i ++) c[i+coffset] = (byte) ((m!=null?m[i+moffset]:0) ^ x[i]);
+			for (i = 0; i < b; i ++) c[i+coffset] = (byte) (((m!=null?m[i+moffset]:0) ^ x[i]) & 0xff);
 		}
 		return 0;
 	}
@@ -1036,7 +1068,7 @@ private static int ld32(byte [] x)
 		for (j = 0; j < 17; j ++) {
 			u += h[j] + c[j];
 			h[j] = u & 255;
-			u >>= 8;
+			u >>>= 8;
 		}
 	}
 
@@ -1048,7 +1080,7 @@ private static int ld32(byte [] x)
 	{
 		int s,i,j,u;
 		int [] x = new int[17], r = new int [17], 
-			   h = new int[17], c = new int [17], g = new int[17];
+				h = new int[17], c = new int [17], g = new int[17];
 
 		///FOR(j,17) r[j]=h[j]=0;
 		for (j = 0; j < 17; j ++) r[j] = h[j] = 0;
@@ -1086,15 +1118,15 @@ private static int ld32(byte [] x)
 			for (j = 0; j < 16; j ++) {
 				u += h[j];
 				h[j] = u & 255;
-				u >>= 8;
+				u >>>= 8;
 			}
 			u += h[16]; h[16] = u & 3;
-			u = 5 * (u >> 2);
+			u = 5 * (u >>> 2);
 			///FOR(j,16) {
 			for (j = 0; j < 16; j ++) {
 				u += h[j];
 				h[j] = u & 255;
-				u >>= 8;
+				u >>>= 8;
 			}
 			u += h[16]; h[16] = u;
 		}
@@ -1102,7 +1134,7 @@ private static int ld32(byte [] x)
 		///FOR(j,17) 
 		for (j = 0; j < 17; j ++) g[j] = h[j];
 		add1305(h,minusp);
-		s = -(h[16] >> 7);
+		s = -(h[16] >>> 7);
 		///FOR(j,17) 
 		for (j = 0; j < 17; j ++) h[j] ^= s & (g[j] ^ h[j]);
 
@@ -1111,7 +1143,7 @@ private static int ld32(byte [] x)
 		c[16] = 0;
 		add1305(h,c);
 		///FOR(j,16) 
-		for (j = 0; j < 16; j ++) out.put(j, (byte) h[j]);///out[j] = h[j];
+		for (j = 0; j < 16; j ++) out.put(j, (byte) (h[j]&0xff));///out[j] = h[j];
 		return 0;
 	}
 	public static int crypto_onetimeauth(byte [] out, byte [] m, long n , byte [] k) {
@@ -1128,9 +1160,9 @@ private static int ld32(byte [] x)
 		return crypto_onetimeauth_verify(new byte_buf_t(h), new byte_buf_t(m), n, k);
 	}
 	public static int crypto_onetimeauth_verify(byte [] h, byte [] m, byte [] k) {
-	    return crypto_onetimeauth_verify(h, m, m!=null? m.length:0, k);
+		return crypto_onetimeauth_verify(h, m, m!=null? m.length:0, k);
 	}
-	
+
 	public static int crypto_secretbox(byte [] c, byte [] m, long d, byte [] n, byte [] k)
 	{
 		int i;
@@ -1167,6 +1199,11 @@ private static int ld32(byte [] x)
 	{
 		int i;
 		long c;
+
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o.get(dbg);
+		///L/og.d(TAG, "car25519 pre -> "+dbgt);
+
 		///FOR(i,16) 
 		for (i = 0; i < 16; i ++) {
 			///o[i]+=(1L<<16);
@@ -1175,13 +1212,18 @@ private static int ld32(byte [] x)
 			///c=o[i]>>16;
 			c = o.get(i)>>16;
 
-			///o[(i+1)*((i<15) ? 1 : 0)]+=c-1+37*(c-1)*((i==15) ? 1 : 0);
+			///o[(i+1)*(i<15)]+=c-1+37*(c-1)*(i==15);
 			int idx = (i+1)*((i<15) ? 1 : 0);
-			o.put(idx, o.get(idx) + c-1+37*(c-1)*((i==15) ? 1 : 0));
+			o.put(idx, o.get(idx) + (c-1+37*(c-1)*((i==15) ? 1 : 0)));
 
 			///o[i]-=c<<16;
-			o.put(i, o.get(i) - c<<16);
+			o.put(i, o.get(i) - (c<<16));
 		}
+
+		///dbgt = "";
+		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o.get(dbg);
+		///L/og.d(TAG, "car25519 -> "+dbgt);
+
 	}
 
 	///private static void sel25519(gf p,gf q,int b)
@@ -1200,6 +1242,11 @@ private static int ld32(byte [] x)
 			///q[i]^=t;
 			q.put(i, q.get(i) ^ t);
 		}
+
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < p.length; dbg ++) dbgt += " "+p.get(dbg);
+		///L/og.d(TAG, "sel25519 -> "+dbgt);
+
 	}
 
 	///private static void pack25519(byte [] o, gf n)
@@ -1219,19 +1266,23 @@ private static int ld32(byte [] x)
 		for (j = 0; j < 2; j ++) {
 			m[0]=t[0]-0xffed;
 			for(i=1;i<15;i++) {
-				m[i]=t[i]-0xffff-((m[i-1]>>16)&1);
+				m[i]=t[i]-0xffff-((m[i-1] >> 16)&1);
 				m[i-1]&=0xffff;
 			}
-			m[15]=t[15]-0x7fff-((m[14]>>16)&1);
-			b=(int) ((m[15]>>16)&1);
+			m[15]=t[15]-0x7fff-((m[14] >> 16)&1);
+			b=(int) ((m[15] >> 16)&1);
 			m[14]&=0xffff;
 			sel25519(new long_buf_t(t),new long_buf_t(m),1-b);
 		}
 		///FOR(i,16) {
 		for (i = 0; i < 16; i ++) {
 			o[2*i]=(byte) (t[i]&0xff);
-			o[2*i+1]=(byte) (t[i]>>8);
+			o[2*i+1]=(byte) (t[i] >> 8);
 		}
+
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o[dbg];
+		///L/og.d(TAG, "pack25519 -> "+dbgt);
 	}
 
 	///static int neq25519(gf a, gf b)
@@ -1256,8 +1307,12 @@ private static int ld32(byte [] x)
 	{
 		int i;
 		///FOR(i,16) 
-		for (i = 0; i < 16; i ++) o[i]=n[2*i]+((long)n[2*i+1]<<8);
+		for (i = 0; i < 16; i ++) o[i]=(n[2*i]&0xff)+((long)((n[2*i+1]<<8)&0xffff));
 		o[15]&=0x7fff;
+
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o[dbg];
+		///L/og.d(TAG, "unpack25519 -> "+dbgt);
 	}
 
 	///private static void A(gf o,gf a,gf b)
@@ -1289,6 +1344,11 @@ private static int ld32(byte [] x)
 		for (i = 0; i < 16; i ++) o.put(i, t[i]);///o[i]=t[i];
 		car25519(o);
 		car25519(o);
+
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o.get(dbg);
+		///L/og.d(TAG, "M -> "+dbgt);
+
 	}
 
 	private static void S(long_buf_t o, long_buf_t a)
@@ -1310,6 +1370,11 @@ private static int ld32(byte [] x)
 		}
 		///FOR(a,16) 
 		for (a = 0; a < 16; a ++) o.put(a, c[a]);//o[a]=c[a];
+
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o.get(dbg);
+		///L/og.d(TAG, "inv25519 -> "+dbgt);
+
 	}
 
 	private static void pow2523(long [] o,long [] i)
@@ -1348,7 +1413,7 @@ private static int ld32(byte [] x)
 
 		///FOR(i,31) 
 		for (i = 0; i < 31; i ++) z[i]=n[i];
-		z[31]=(byte) ((n[31]&127)|64);
+		z[31]=(byte) (((n[31]&127)|64) & 0xff);
 		z[0]&=248;
 		unpack25519(x,p);
 		///FOR(i,16) {
@@ -1359,7 +1424,7 @@ private static int ld32(byte [] x)
 		a[0]=d[0]=1;
 
 		for(i=254;i>=0;--i) {
-			r=(z[i>>3]>>(i&7))&1;
+			r=(z[i>>>3]>>>(i&7))&1;
 			sel25519(ab,bb,r);
 			sel25519(cb,db,r);
 			A(eb,ab,cb);
@@ -1393,6 +1458,11 @@ private static int ld32(byte [] x)
 		inv25519(new long_buf_t(x, 32, x.length-32)/*x+32*/,new long_buf_t(x, 32, x.length-32)/*x+32*/);
 		M(new long_buf_t(x, 16, x.length-16)/*x+16*/,new long_buf_t(x, 16, x.length-16)/*x+16*/,new long_buf_t(x, 32, x.length-32)/*x+32*/);
 		pack25519(q,new long_buf_t(x, 16, x.length-16)/*x+16*/);
+
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < q.length; dbg ++) dbgt += " "+q[dbg];
+		///L/og.d(TAG, "crypto_scalarmult -> "+dbgt);
+
 		return 0;
 	}
 
@@ -1411,6 +1481,11 @@ private static int ld32(byte [] x)
 	{
 		byte[] s = new byte[32];
 		crypto_scalarmult(s,x,y);
+
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < s.length; dbg ++) dbgt += " "+s[dbg];
+		///L/og.d(TAG, "crypto_box_beforenm -> "+dbgt);
+
 		return crypto_core_hsalsa20(k,_0,s,sigma);
 	}
 
@@ -1427,6 +1502,9 @@ private static int ld32(byte [] x)
 	public static int crypto_box(byte []c,byte []m,long d,byte []n,byte []y,byte []x)
 	{
 		byte[] k = new byte[32];
+
+		///L/og.d(TAG, "crypto_box start ...");
+
 		crypto_box_beforenm(k,y,x);
 		return crypto_box_afternm(c,m,d,n,k);
 	}
@@ -1438,13 +1516,13 @@ private static int ld32(byte [] x)
 		return crypto_box_open_afternm(m,c,d,n,k);
 	}
 
-	private static long R(long x,int c) { return (x >> c) | (x << (64 - c)); }
+	private static long R(long x,int c) { return (x >>> c) | (x << (64 - c)); }
 	private static long Ch(long x,long y,long z) { return (x & y) ^ (~x & z); }
 	private static long Maj(long x,long y,long z) { return (x & y) ^ (x & z) ^ (y & z); }
 	private static long Sigma0(long x) { return R(x,28) ^ R(x,34) ^ R(x,39); }
 	private static long Sigma1(long x) { return R(x,14) ^ R(x,18) ^ R(x,41); }
-	private static long sigma0(long x) { return R(x, 1) ^ R(x, 8) ^ (x >> 7); }
-	private static long sigma1(long x) { return R(x,19) ^ R(x,61) ^ (x >> 6); }
+	private static long sigma0(long x) { return R(x, 1) ^ R(x, 8) ^ (x >>> 7); }
+	private static long sigma1(long x) { return R(x,19) ^ R(x,61) ^ (x >>> 6); }
 
 	private static final long K[] = 
 		{
@@ -1515,10 +1593,10 @@ private static int ld32(byte [] x)
 
 		return n;
 	}
-    public static int crypto_hashblocks(byte [] x, byte [] m, int n) {
-    	return crypto_hashblocks(x, new byte_buf_t(m), n);
-    }
-	
+	public static int crypto_hashblocks(byte [] x, byte [] m, int n) {
+		return crypto_hashblocks(x, new byte_buf_t(m), n);
+	}
+
 	private final static byte iv[] = {
 		0x6a,0x09,(byte) 0xe6,0x67,(byte) 0xf3,(byte) 0xbc,(byte) 0xc9,0x08,
 		(byte) 0xbb,0x67,(byte) 0xae,(byte) 0x85,(byte) 0x84,(byte) 0xca,(byte) 0xa7,0x3b,
@@ -1535,7 +1613,8 @@ private static int ld32(byte [] x)
 	private static int crypto_hash(byte [] out, byte_buf_t m, int n)
 	{
 		byte[] h = new byte[64], x = new byte [256];
-		int /*long*/ i,b = n;
+		long b = n;
+		int i;
 		///FOR(i,64)
 		for (i = 0; i < 64; i ++) h[i] = iv[i];
 
@@ -1551,7 +1630,7 @@ private static int ld32(byte [] x)
 		x[n] = (byte) 128;
 
 		n = 256-128*(n<112?1:0);
-		x[n-9] = (byte) (b >> 61);
+		x[n-9] = (byte) (b >>> 61);
 		ts64(new byte_buf_t(x,n-8,x.length-(n-8))/*x+n-8*/,b<<3);
 		crypto_hashblocks(h,new byte_buf_t(x),n);
 
@@ -1564,9 +1643,9 @@ private static int ld32(byte [] x)
 		return crypto_hash(out, new byte_buf_t(m), n);
 	}
 	public static int crypto_hash(byte [] out, byte [] m) {
-	    return crypto_hash(out, m, m!=null? m.length : 0);
+		return crypto_hash(out, m, m!=null? m.length : 0);
 	}
-	
+
 	// gf: long[16]
 	///private static void add(gf p[4],gf q[4])
 	private static void add(long [] p[], long [] q[])
@@ -1651,12 +1730,16 @@ private static int ld32(byte [] x)
 		set25519(p[3],gf0);
 
 		for (i = 255;i >= 0;--i) {
-			byte b = (byte) ((s.get(i/8)>>(i&7))&1);///(byte) ((s[i/8]>>(i&7))&1);
+			byte b = (byte) ((s.get(i/8) >> (i&7))&1);///(byte) ((s[i/8]>>(i&7))&1);
 			cswap(p,q,b);
 			add(q,p);
 			add(p,p);
 			cswap(p,q,b);
 		}
+
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < p.length; dbg ++) for (int dd = 0; dd < p[dbg].length; dd ++) dbgt += " "+p[dbg][dd];
+		///L/og.d(TAG, "scalarmult -> "+dbgt);
 	}
 
 	///private static void scalarbase(gf p[4],byte []s)
@@ -1741,7 +1824,7 @@ private static int ld32(byte [] x)
 		long[] x = new long [64];///,i;
 		int i;
 		///FOR(i,64)
-		for (i = 0; i < 64; i ++) x[i] = (long) r[i];
+		for (i = 0; i < 64; i ++) x[i] = (long) (r[i]&0xff);
 		///FOR(i,64)
 		for (i = 0; i < 64; i ++) r[i] = 0;
 		modL(new byte_buf_t(r),x);
@@ -1789,9 +1872,9 @@ private static int ld32(byte [] x)
 		///FOR(i,64) 
 		for (i = 0; i < 64; i ++) x[i] = 0;
 		///FOR(i,32) 
-		for (i = 0; i < 32; i ++) x[i] = (long) r[i];
+		for (i = 0; i < 32; i ++) x[i] = (long) (r[i]&0xff);
 		///FOR(i,32) FOR(j,32) 
-		for (i = 0; i < 32; i ++) for (j = 0; j < 32; j ++) x[i+j] += h[i] * (long) d[j];
+		for (i = 0; i < 32; i ++) for (j = 0; j < 32; j ++) x[i+j] += (h[i]&0xff) * (long) (d[j]&0xff);
 		modL(new byte_buf_t(sm, 32, sm.length-32)/*sm+32*/,x);
 
 		return 0;
@@ -1901,7 +1984,7 @@ private static int ld32(byte [] x)
 	 *   Java Random
 	 * */
 	private static final Random jrandom = new Random();
-	
+
 	private static void randombytes(byte [] x, int len) {
 		int ret = len % 8;
 		long rnd;
@@ -1909,21 +1992,21 @@ private static int ld32(byte [] x)
 		for (int i = 0; i < len-ret; i += 8) {
 			rnd = jrandom.nextLong();
 
-			x[i+0] = (byte) (rnd >>  0);
-			x[i+1] = (byte) (rnd >>  8);
-			x[i+2] = (byte) (rnd >> 16);
-			x[i+3] = (byte) (rnd >> 24);
-			x[i+4] = (byte) (rnd >> 32);
-			x[i+5] = (byte) (rnd >> 40);
-			x[i+6] = (byte) (rnd >> 48);
-			x[i+7] = (byte) (rnd >> 56);
+			x[i+0] = (byte) (rnd >>>  0);
+			x[i+1] = (byte) (rnd >>>  8);
+			x[i+2] = (byte) (rnd >>> 16);
+			x[i+3] = (byte) (rnd >>> 24);
+			x[i+4] = (byte) (rnd >>> 32);
+			x[i+5] = (byte) (rnd >>> 40);
+			x[i+6] = (byte) (rnd >>> 48);
+			x[i+7] = (byte) (rnd >>> 56);
 		}
 
-                if (ret > 0) {         
-		    rnd = jrandom.nextLong();
-		    for (int i = len-ret; i < len; i ++)
-		        x[i] = (byte) (rnd >> 8*i);
-                }
+		if (ret > 0) {         
+			rnd = jrandom.nextLong();
+			for (int i = len-ret; i < len; i ++)
+				x[i] = (byte) (rnd >>> 8*i);
+		}
 	}
 
 }

@@ -12,11 +12,33 @@ public final class TweetNaclTest {
 
 	private boolean testBox() throws UnsupportedEncodingException {
 		// keypair A
-		TweetNacl.Box.KeyPair ka = TweetNacl.Box.keyPair();
+		byte [] ska = new byte[32]; for (int i = 0; i < 32; i ++) ska[i] = 0;
+		TweetNacl.Box.KeyPair ka = TweetNacl.Box.keyPair_fromSecretKey(ska);
+		
+		String skat = "";
+		for (int i = 0; i < ka.getSecretKey().length; i ++)
+			skat += " "+ka.getSecretKey()[i];
+		Log.d(TAG, "skat: "+skat);
+		
+		String pkat = "";
+		for (int i = 0; i < ka.getPublicKey().length; i ++)
+			pkat += " "+ka.getPublicKey()[i];
+		Log.d(TAG, "pkat: "+pkat);
 		
 		// keypair B
-		TweetNacl.Box.KeyPair kb = TweetNacl.Box.keyPair();
-
+		byte [] skb = new byte[32]; for (int i = 0; i < 32; i ++) skb[i] = 1;
+		TweetNacl.Box.KeyPair kb = TweetNacl.Box.keyPair_fromSecretKey(skb);
+		
+		String skbt = "";
+		for (int i = 0; i < kb.getSecretKey().length; i ++)
+			skbt += " "+kb.getSecretKey()[i];
+		Log.d(TAG, "skbt: "+skbt);
+		
+		String pkbt = "";
+		for (int i = 0; i < kb.getPublicKey().length; i ++)
+			pkbt += " "+kb.getPublicKey()[i];
+		Log.d(TAG, "pkbt: "+pkbt);
+		
 		// peer A -> B
 		TweetNacl.Box pab = new TweetNacl.Box(kb.getPublicKey(), ka.getSecretKey(), 0);
 
@@ -28,8 +50,16 @@ public final class TweetNaclTest {
 		
 		// cipher A -> B
 		byte [] cab = pab.box(m0.getBytes("utf-8"));
+		String cabt = "";
+		for (int i = 0; i < cab.length; i ++)
+			cabt += " "+cab[i];
+		Log.d(TAG, "cabt: "+cabt);
 		
 		byte [] mba = pba.open(cab);
+		String mbat = "";
+		for (int i = 0; i < mba.length; i ++)
+			mbat += " "+mba[i];
+		Log.d(TAG, "mbat: "+mbat);
 		
 		String nm0 = new String(mba, "utf-8");
 		if (nm0.equals(m0)) {
@@ -39,7 +69,7 @@ public final class TweetNaclTest {
 		}
 		
 		// cipher B -> A
-        byte [] b0 = new byte[1518];
+        byte [] b0 = new byte[6];
         
         Log.d(TAG, "box@" + System.currentTimeMillis());
         byte [] cba = pba.box(b0);
@@ -130,8 +160,18 @@ public final class TweetNaclTest {
 		String m0 = "Helloword, TweetNacl...";
 
 		// signature A -> B
+        Log.d(TAG, "sign...@" + System.currentTimeMillis());
 		byte [] sab = pab.sign(m0.getBytes("utf-8"));
+        Log.d(TAG, "...sign@" + System.currentTimeMillis());
+
+		String sgt = "sign@"+m0 + ": ";
+		for (int i = 0; i < TweetNacl.Signature.signatureLength; i ++)
+			sgt += " "+sab[i];
+		Log.d(TAG, sgt);
+		
+        Log.d(TAG, "verify...@" + System.currentTimeMillis());
 		byte [] oba = pba.open(sab);
+        Log.d(TAG, "...verify@" + System.currentTimeMillis());
 
 		if (oba == null) {
 			Log.e(TAG, "verify failed @" + m0);
@@ -143,6 +183,24 @@ public final class TweetNaclTest {
 				Log.e(TAG, "sign failed @" + m0 + " / " + nm0);
 			}
 		}
+		
+		return true;
+	}
+	
+	/*
+	 * SHA-512
+	 * */
+	private boolean testHash() throws UnsupportedEncodingException {
+		String m0 = "Helloword, TweetNacl...";
+		
+        Log.d(TAG, "hash...@" + System.currentTimeMillis());
+		byte [] hash = TweetNacl.Hashing.hash(m0);
+        Log.d(TAG, "...hash@" + System.currentTimeMillis());
+
+		String hst = "hash@"+m0 + ": ";
+		for (int i = 0; i < hash.length; i ++)
+			hst += " "+hash[i];
+		Log.d(TAG, hst);
 		
 		return true;
 	}
@@ -164,8 +222,9 @@ public final class TweetNaclTest {
 					testSign();
 					testSecretBox();
 					testBox();
+					testHash();
 					
-					testBench();
+					///testBench();
 				} catch (UnsupportedEncodingException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
