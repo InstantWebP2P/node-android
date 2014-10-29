@@ -1,3 +1,6 @@
+// Copyright (c) 2014 Tom Zhou<iwebpp@gmail.com>
+
+
 package com.iwebpp.node.js.rhino;
 
 import org.mozilla.javascript.Context;
