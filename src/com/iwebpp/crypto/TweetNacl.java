@@ -1,3 +1,6 @@
+// Copyright (c) 2014 Tom Zhou<iwebpp@gmail.com>
+
+
 package com.iwebpp.crypto;
 
 import java.io.UnsupportedEncodingException;
@@ -5,112 +8,13 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 
-
+/*
+ * @description 
+ *   TweetNacl.c Java porting
+ * */
 public final class TweetNacl {
 
 	private final static String TAG = "TweetNacl";
-
-	/*
-	 * @description
-	 *   C-like raw buffer
-	 * */
-	public static final class byte_buf_t {
-		private final byte [] buffer;
-		private final int offset;
-		private final int length;
-
-		public static byte_buf_t allocate(int capacity) {
-			byte [] buffer = new byte[capacity];
-			return new byte_buf_t(buffer);
-		}
-
-		public byte_buf_t(byte [] buffer) {
-			this(buffer, 0, buffer.length);
-		}
-		public byte_buf_t(byte [] buffer, int offset, int length) {
-			this.buffer = buffer;
-			this.offset = offset;
-			this.length = length;
-		}
-		@SuppressWarnings("unused")
-		private byte_buf_t() {
-			buffer = null;
-			offset = 0;
-			length = 0;
-		}
-
-		public byte [] buf() {
-			return this.buffer;
-		}
-		public int off() {
-			return this.offset;
-		}
-		public int len() {
-			return this.length;
-		}
-		public byte get(int idx) {
-			if (idx >= length) {
-				///L/og.d(TAG, "byte_buf_t error");
-				return -1;
-			} else
-				return buffer[offset+idx];
-		}
-		public void put(int idx, byte val) {
-			if (idx >= length)
-				return;
-			else
-				buffer[offset+idx] = val;
-		}
-	}
-
-	public static final class long_buf_t {
-		private final long [] buffer;
-		private final int offset;
-		private final int length;
-
-		public static long_buf_t allocate(int capacity) {
-			long [] buffer = new long[capacity];
-			return new long_buf_t(buffer);
-		}
-
-		public long_buf_t(long [] buffer) {
-			this(buffer, 0, buffer.length);
-		}
-		public long_buf_t(long [] buffer, int offset, int length) {
-			this.buffer = buffer;
-			this.offset = offset;
-			this.length = length;
-		}
-		@SuppressWarnings("unused")
-		private long_buf_t() {
-			buffer = null;
-			offset = 0;
-			length = 0;
-		}
-
-		public long [] buf() {
-			return this.buffer;
-		}
-		public int off() {
-			return this.offset;
-		}
-		public int len() {
-			return this.length;
-		}
-		public long get(int idx) {
-			if (idx >= length) {
-				///L/og.d(TAG, "long_buf_t error");
-				return -1;
-			} else
-				return buffer[offset+idx];
-		}
-		public void put(int idx, long val) {
-			if (idx >= length)
-				return;
-			else
-				buffer[offset+idx] = val;
-		}
-	}
 
 	/*
 	 * @description 
@@ -869,56 +773,63 @@ public final class TweetNacl {
 		return (x << c) | ((x&0xffffffff) >>> (32 - c));
 	}
 
-	private static int ld32(byte_buf_t x)
+	private static int ld32(byte [] x, final int xoff, final int xlen)
 	{
-		int u = x.get(3);
-		u = (u<<8)|x.get(2);
-		u = (u<<8)|x.get(1);
-		return (u<<8)|x.get(0);
+		int u = x[3+xoff];
+		u = (u<<8)|x[2+xoff];
+		u = (u<<8)|x[1+xoff];
+		return (u<<8)|x[0+xoff];
 	}
 
-	private static long dl64(byte_buf_t x) {
+	private static long dl64(byte [] x, final int xoff, final int xlen) {
 		int i;
 		long u=0;
-		for (i = 0; i < 8; i ++) u=(u<<8)|x.get(i);
+		for (i = 0; i < 8; i ++) u=(u<<8)|x[i+xoff];
 		return u;
 	}
 
-	private static void st32(byte_buf_t x, int u)
+	private static void st32(byte [] x, final int xoff, final int xlen, int u)
 	{
 		int i;
-		for (i = 0; i < 4; i ++) { x.put(i, (byte)(u&0xff)); u >>>= 8; }
+		for (i = 0; i < 4; i ++) { x[i+xoff] = (byte)(u&0xff); u >>>= 8; }
 	}
 
-	private static void ts64(byte_buf_t x,long u)
+	private static void ts64(byte [] x, final int xoff, final int xlen, long u)
 	{
 		int i;
-		for (i = 7;i >= 0;--i) { x.put(i, (byte)(u&0xff)); u >>>= 8; }
+		for (i = 7;i >= 0;--i) { x[i+xoff] = (byte)(u&0xff); u >>>= 8; }
 	}
 
-	private static int vn(byte_buf_t x, byte_buf_t y,int n)
+	private static int vn(
+			byte [] x, final int xoff, final int xlen, 
+			byte [] y, final int yoff, final int ylen,
+			int n)
 	{
 		int i,d = 0;
-		for (i = 0; i < n; i ++) d |= x.get(i)^y.get(i);
+		for (i = 0; i < n; i ++) d |= x[i+xoff]^y[i+yoff];
 		return (1 & ((d - 1) >>> 8)) - 1;
 	}
 
-	private static int crypto_verify_16(byte_buf_t x, byte_buf_t y)
+	private static int crypto_verify_16(
+			byte [] x, final int xoff, final int xlen, 
+			byte [] y, final int yoff, final int ylen)
 	{
-		return vn(x,y,16);
+		return vn(x,xoff,xlen,y,yoff,ylen,16);
 	}
 	public static int crypto_verify_16(byte [] x, byte [] y)
 	{
-		return crypto_verify_16(new byte_buf_t(x, 0, x.length),new byte_buf_t(y, 0, y.length));
+		return crypto_verify_16(x, 0, x.length, y, 0, y.length);
 	}
 
-	private static int crypto_verify_32(byte_buf_t x, byte_buf_t y)
+	private static int crypto_verify_32(
+			byte [] x, final int xoff, final int xlen, 
+			byte [] y, final int yoff, final int ylen)
 	{
-		return vn(x,y,32);
+		return vn(x,xoff,xlen,y,yoff,ylen,32);
 	}
 	public static int crypto_verify_32(byte [] x, byte [] y)
 	{
-		return crypto_verify_32(new byte_buf_t(x), new byte_buf_t(y));
+		return crypto_verify_32(x, 0, x.length, y, 0, y.length);
 	}
 
 	private static void core(byte [] out, byte [] in, byte [] k, byte [] c, int h)
@@ -927,10 +838,10 @@ public final class TweetNacl {
 		int i,j,m;
 
 		for (i = 0; i < 4; i ++) {
-			x[5*i] = ld32(new byte_buf_t(c, 4*i, 4));
-			x[1+i] = ld32(new byte_buf_t(k, 4*i, 4));
-			x[6+i] = ld32(new byte_buf_t(in, 4*i, 4));
-			x[11+i] = ld32(new byte_buf_t(k, 16+4*i, 4));
+			x[5*i]  = ld32(c,  4*i,    4);
+			x[1+i]  = ld32(k,  4*i,    4);
+			x[6+i]  = ld32(in, 4*i,    4);
+			x[11+i] = ld32(k,  16+4*i, 4);
 		}
 
 		for (i = 0; i < 16; i ++) y[i] = x[i];
@@ -950,15 +861,15 @@ public final class TweetNacl {
 		if (h != 0) {
 			for (i = 0; i < 16; i ++) x[i] += y[i];
 			for (i = 0; i < 4; i ++) {
-				x[5*i] -= ld32(new byte_buf_t(c, 4*i, 4));
-				x[6+i] -= ld32(new byte_buf_t(in, 4*i, 4));
+				x[5*i] -= ld32(c, 4*i, 4);
+				x[6+i] -= ld32(in, 4*i, 4);
 			}
 			for (i = 0; i < 4; i ++) {
-				st32(new byte_buf_t(out, 4*i, 4), x[5*i]);
-				st32(new byte_buf_t(out, 16+4*i, 4), x[6+i]);
+				st32(out, 4*i, 4, x[5*i]);
+				st32(out, 16+4*i, 4, x[6+i]);
 			}
 		} else
-			for (i = 0; i < 16; i ++) st32(new byte_buf_t(out, 4*i, 4), x[i] + y[i]);
+			for (i = 0; i < 16; i ++) st32(out, 4*i, 4, x[i] + y[i]);
 
 		///String dbgt = "";
 		///for (int dbg = 0; dbg < out.length; dbg ++) dbgt += " "+out[dbg];
@@ -997,14 +908,14 @@ public final class TweetNacl {
 		}
 	}*/
 
-	private static int crypto_stream_salsa20_xor(byte [] c, byte [] m, long b, byte_buf_t n, byte [] k)
+	private static int crypto_stream_salsa20_xor(byte [] c, byte [] m, long b, byte [] n,final int noff,final int nlen, byte [] k)
 	{
 		byte[] z = new byte[16], x = new byte[64];
 		int u,i;
 		if (0==b) return 0;
 
 		for (i = 0; i < 16; i ++) z[i] = 0;
-		for (i = 0; i < 8; i ++) z[i] = n.get(i);
+		for (i = 0; i < 8; i ++) z[i] = n[i+noff];
 
 		int coffset = 0;
 		int moffset = 0;
@@ -1028,29 +939,29 @@ public final class TweetNacl {
 		return 0;
 	}
 	public static int crypto_stream_salsa20_xor(byte [] c, byte [] m, long b, byte [] n, byte [] k) {
-		return crypto_stream_salsa20_xor(c, m, b, new byte_buf_t(n), k);
+		return crypto_stream_salsa20_xor(c, m, b, n,0,n.length, k);
 	}
 
-	private static int crypto_stream_salsa20(byte [] c, long d, byte_buf_t n, byte [] k)
+	private static int crypto_stream_salsa20(byte [] c, long d, byte [] n,final int noff,final int nlen, byte [] k)
 	{
-		return crypto_stream_salsa20_xor(c,null,d,n,k);
+		return crypto_stream_salsa20_xor(c,null,d, n,noff,nlen, k);
 	}
 	public static int crypto_stream_salsa20(byte [] c, long d, byte [] n, byte [] k) {
-		return crypto_stream_salsa20(c, d, new byte_buf_t(n), k);
+		return crypto_stream_salsa20(c, d, n,0,n.length, k);
 	}
 
 	public static int crypto_stream(byte [] c, long d, byte [] n, byte [] k)
 	{
 		byte[] s = new byte[32];
 		crypto_core_hsalsa20(s,n,k,sigma);
-		return crypto_stream_salsa20(c,d,new byte_buf_t(n, 16, n.length-16),s);
+		return crypto_stream_salsa20(c,d, n,16,n.length-16, s);
 	}
 
 	public static int crypto_stream_xor(byte []c,byte []m,long d,byte []n,byte []k)
 	{
 		byte[] s = new byte[32];
 		crypto_core_hsalsa20(s,n,k,sigma);
-		return crypto_stream_salsa20_xor(c,m,d,new byte_buf_t(n, 16, n.length-16),s);
+		return crypto_stream_salsa20_xor(c,m,d, n,16,n.length-16, s);
 	}
 
 	private static void add1305(int [] h,int [] c)
@@ -1065,7 +976,11 @@ public final class TweetNacl {
 
 	private final static int minusp[] = { 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252 };
 
-	private static int crypto_onetimeauth(byte_buf_t out, byte_buf_t m, long n , byte [] k)
+	private static int crypto_onetimeauth(
+			byte[] out,final int outoff,final int outlen,
+			byte[] m,final int moff,final int mlen,
+			long n,
+			byte [] k)
 	{
 		int s,i,j,u;
 		int [] x = new int[17], r = new int [17], 
@@ -1083,10 +998,10 @@ public final class TweetNacl {
 		r[12]&=252;
 		r[15]&=15;
 
-		int moffset = 0;
+		int moffset = moff;
 		while (n > 0) {
 			for (j = 0; j < 17; j ++) c[j] = 0;
-			for (j = 0;(j < 16) && (j < n);++j) c[j] = m.get(j+moffset);
+			for (j = 0;(j < 16) && (j < n);++j) c[j] = m[j+moffset];
 			c[j] = 1;
 
 			moffset += j;
@@ -1122,22 +1037,26 @@ public final class TweetNacl {
 		for (j = 0; j < 16; j ++) c[j] = k[j + 16];
 		c[16] = 0;
 		add1305(h,c);
-		for (j = 0; j < 16; j ++) out.put(j, (byte) (h[j]&0xff));
+		for (j = 0; j < 16; j ++) out[j+outoff] = (byte) (h[j]&0xff);
 		
 		return 0;
 	}
 	public static int crypto_onetimeauth(byte [] out, byte [] m, long n , byte [] k) {
-		return crypto_onetimeauth(new byte_buf_t(out), new byte_buf_t(m), n, k);
+		return crypto_onetimeauth(out,0,out.length, m,0,m.length, n, k);
 	}
 
-	private static int crypto_onetimeauth_verify(byte_buf_t h, byte_buf_t m, long n, byte [] k)
+	private static int crypto_onetimeauth_verify(
+			byte[] h,final int hoff,final int hlen,
+			byte[] m,final int moff,final int mlen,
+			long n,
+			byte [] k)
 	{
 		byte[] x = new byte[16];
-		crypto_onetimeauth(new byte_buf_t(x),m,n,k);
-		return crypto_verify_16(h,new byte_buf_t(x));
+		crypto_onetimeauth(x,0,x.length, m,moff,mlen, n,k);
+		return crypto_verify_16(h,hoff,hlen, x,0,x.length);
 	}
 	public static int crypto_onetimeauth_verify(byte [] h, byte [] m, long n, byte [] k) {
-		return crypto_onetimeauth_verify(new byte_buf_t(h), new byte_buf_t(m), n, k);
+		return crypto_onetimeauth_verify(h,0,h.length, m,0,m.length, n, k);
 	}
 	public static int crypto_onetimeauth_verify(byte [] h, byte [] m, byte [] k) {
 		return crypto_onetimeauth_verify(h, m, m!=null? m.length:0, k);
@@ -1150,7 +1069,7 @@ public final class TweetNacl {
 		if (d < 32) return -1;
 		
 		crypto_stream_xor(c,m,d,n,k);
-		crypto_onetimeauth(new byte_buf_t(c, 16, c.length-16), new byte_buf_t(c, 32, c.length-32), d - 32, c);
+		crypto_onetimeauth(c,16,c.length-16, c,32,c.length-32, d - 32, c);
 		
 		for (i = 0; i < 16; i ++) c[i] = 0;
 		
@@ -1165,7 +1084,7 @@ public final class TweetNacl {
 		if (d < 32) return -1;
 		
 		crypto_stream(x,32,n,k);
-		if (crypto_onetimeauth_verify(new byte_buf_t(c, 16, 16), new byte_buf_t(c, 32, c.length-32), d - 32, x) != 0) return -1;
+		if (crypto_onetimeauth_verify(c,16,16, c,32,c.length-32, d-32, x) != 0) return -1;
 		crypto_stream_xor(m,c,d,n,k);
 		
 		for (i = 0; i < 32; i ++) m[i] = 0;
@@ -1179,7 +1098,7 @@ public final class TweetNacl {
 		for (i = 0; i < 16; i ++) r[i]=a[i];
 	}
 
-	private static void car25519(long_buf_t o)
+	private static void car25519(long [] o,final int ooff,final int olen)
 	{
 		int i;
 		long c;
@@ -1189,14 +1108,13 @@ public final class TweetNacl {
 		///L/og.d(TAG, "car25519 pre -> "+dbgt);
 
 		for (i = 0; i < 16; i ++) {
-			o.put(i, o.get(i)+(1L<<16));
+			o[i+ooff] += (1L<<16);
 
-			c = o.get(i)>>16;
+			c = o[i+ooff]>>16;
 
-			int idx = (i+1)*((i<15) ? 1 : 0);
-			o.put(idx, o.get(idx) + (c-1+37*(c-1)*((i==15) ? 1 : 0)));
+			o[(i+1)*((i<15) ? 1 : 0)+ooff] += c-1+37*(c-1)*((i==15) ? 1 : 0);
 
-			o.put(i, o.get(i) - (c<<16));
+			o[i+ooff] -= (c<<16);
 		}
 
 		///dbgt = "";
@@ -1205,17 +1123,18 @@ public final class TweetNacl {
 
 	}
 
-	private static void sel25519(long_buf_t p, long_buf_t q, int b)
+	private static void sel25519(
+			long[] p,final int poff,final int plen,
+			long[] q,final int qoff,final int qlen,
+			int b)
 	{
 		int i;
 		long t,c=~(b-1);
 		
 		for (i = 0; i < 16; i ++) {
-			t = c & (p.get(i) ^ q.get(i));
-
-			p.put(i, p.get(i) ^ t);
-
-			q.put(i, q.get(i) ^ t);
+			t = c & (p[i+poff] ^ q[i+qoff]);
+			p[i+poff] ^= t;
+			q[i+qoff] ^= t;
 		}
 
 		///String dbgt = "";
@@ -1224,18 +1143,16 @@ public final class TweetNacl {
 
 	}
 
-	private static void pack25519(byte [] o, long_buf_t n)
+	private static void pack25519(byte [] o, long [] n,final int noff,final int nlen)
 	{
 		int i,j,b;
 		long [] m = new long[16], t = new long[16];
 		
-		for (i = 0; i < 16; i ++) t[i] = n.get(i);
-
-		long_buf_t tb = new long_buf_t(t);
+		for (i = 0; i < 16; i ++) t[i] = n[i+noff];
 		
-		car25519(tb);
-		car25519(tb);
-		car25519(tb);
+		car25519(t,0,t.length);
+		car25519(t,0,t.length);
+		car25519(t,0,t.length);
 		
 		for (j = 0; j < 2; j ++) {
 			m[0]=t[0]-0xffed;
@@ -1249,7 +1166,7 @@ public final class TweetNacl {
 			b=(int) ((m[15] >> 16)&1);
 			m[14]&=0xffff;
 			
-			sel25519(new long_buf_t(t),new long_buf_t(m),1-b);
+			sel25519(t,0,t.length, m,0,m.length, 1-b);
 		}
 		
 		for (i = 0; i < 16; i ++) {
@@ -1266,17 +1183,17 @@ public final class TweetNacl {
 	{
 		byte[] c = new byte[32], d = new byte[32];
 		
-		pack25519(c,new long_buf_t(a));
-		pack25519(d,new long_buf_t(b));
+		pack25519(c, a,0,a.length);
+		pack25519(d, b,0,b.length);
 		
-		return crypto_verify_32(new byte_buf_t(c), new byte_buf_t(d));
+		return crypto_verify_32(c,0,c.length, d,0,d.length);
 	}
 
 	private static byte par25519(long [] a)
 	{
 		byte[] d = new byte[32];
 		
-		pack25519(d,new long_buf_t(a));
+		pack25519(d, a,0,a.length);
 		
 		return (byte) (d[0]&1);
 	}
@@ -1294,57 +1211,70 @@ public final class TweetNacl {
 		///L/og.d(TAG, "unpack25519 -> "+dbgt);
 	}
 
-	private static void A(long_buf_t o, long_buf_t a, long_buf_t b)
+	private static void A(
+			long [] o,final int ooff,final int olen,
+			long [] a,final int aoff,final int alen,
+			long [] b,final int boff,final int blen)
 	{
 		int i;
-		for (i = 0; i < 16; i ++) o.put(i, a.get(i) + b.get(i));
+		for (i = 0; i < 16; i ++) o[i+ooff] = a[i+aoff] + b[i+boff];
 	}
 
-	private static void Z(long_buf_t o, long_buf_t a, long_buf_t b)
+	private static void Z(
+			long [] o,final int ooff,final int olen,
+			long [] a,final int aoff,final int alen,
+			long [] b,final int boff,final int blen)
 	{
 		int i;
-		for (i = 0; i < 16; i ++) o.put(i, a.get(i) - b.get(i));
+		for (i = 0; i < 16; i ++) o[i+ooff] = a[i+aoff] - b[i+boff];
 	}
 
-	private static void M(long_buf_t o, long_buf_t a, long_buf_t b)
+	private static void M(
+			long [] o,final int ooff,final int olen,
+			long [] a,final int aoff,final int alen,
+			long [] b,final int boff,final int blen)
 	{
 		int i,j;
 		long [] t = new long[31];
 		
 		for (i = 0; i < 31; i ++) t[i]=0;
 		
-		for (i = 0; i < 16; i ++) for (j = 0; j < 16; j ++) t[i+j]+=a.get(i)*b.get(j);
+		for (i = 0; i < 16; i ++) for (j = 0; j < 16; j ++) t[i+j]+=a[i+aoff]*b[j+boff];
 		
 		for (i = 0; i < 15; i ++) t[i]+=38*t[i+16];
 		
-		for (i = 0; i < 16; i ++) o.put(i, t[i]);
+		for (i = 0; i < 16; i ++) o[i+ooff]=t[i];
 		
-		car25519(o);
-		car25519(o);
+		car25519(o,ooff,olen);
+		car25519(o,ooff,olen);
 
 		///String dbgt = "";
 		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o.get(dbg);
 		///L/og.d(TAG, "M -> "+dbgt);
 	}
 
-	private static void S(long_buf_t o, long_buf_t a)
+	private static void S(
+			long [] o,final int ooff,final int olen,
+			long [] a,final int aoff,final int alen)
 	{
-		M(o,a,a);
+		M(o,ooff,olen, a,aoff,alen, a,aoff,alen);
 	}
 
-	private static void inv25519(long_buf_t o, long_buf_t i)
+	private static void inv25519(
+			long [] o,final int ooff,final int olen,
+			long [] i,final int ioff,final int ilen)
 	{
 		long [] c = new long[16];
 		int a;
 		
-		for (a = 0; a < 16; a ++) c[a]=i.get(a);
+		for (a = 0; a < 16; a ++) c[a]=i[a+ioff];
 		
 		for(a=253;a>=0;a--) {
-			S(new long_buf_t(c),new long_buf_t(c));
-			if(a!=2&&a!=4) M(new long_buf_t(c),new long_buf_t(c),i);
+			S(c,0,c.length, c,0,c.length);
+			if(a!=2&&a!=4) M(c,0,c.length, c,0,c.length, i,ioff,ilen);
 		}
 		
-		for (a = 0; a < 16; a ++) o.put(a, c[a]);
+		for (a = 0; a < 16; a ++) o[a+ooff] = c[a];
 
 		///String dbgt = "";
 		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o.get(dbg);
@@ -1359,8 +1289,8 @@ public final class TweetNacl {
 		for (a = 0; a < 16; a ++) c[a]=i[a];
 		
 		for(a=250;a>=0;a--) {
-			S(new long_buf_t(c),new long_buf_t(c));
-			if(a!=1) M(new long_buf_t(c),new long_buf_t(c),new long_buf_t(i));
+			S(c,0,c.length, c,0,c.length);
+			if(a!=1) M(c,0,c.length, c,0,c.length, i,0,i.length);
 		}
 		
 		for (a = 0; a < 16; a ++) o[a]=c[a];
@@ -1375,16 +1305,6 @@ public final class TweetNacl {
 		long [] a = new long[16], b = new long[16], c = new long[16],
 				d = new long[16], e = new long[16], f = new long[16];
 		
-		long_buf_t ab = new long_buf_t(a);
-		long_buf_t bb = new long_buf_t(b);
-		long_buf_t cb = new long_buf_t(c);
-		long_buf_t db = new long_buf_t(d);
-		long_buf_t eb = new long_buf_t(e);
-		long_buf_t fb = new long_buf_t(f);
-
-		long_buf_t xb = new long_buf_t(x);
-		long_buf_t _121665b = new long_buf_t(_121665);
-
 		for (i = 0; i < 31; i ++) z[i]=n[i];
 		
 		z[31]=(byte) (((n[31]&127)|64) & 0xff);
@@ -1400,28 +1320,28 @@ public final class TweetNacl {
 
 		for(i=254;i>=0;--i) {
 			r=(z[i>>>3]>>>(i&7))&1;
-			sel25519(ab,bb,r);
-			sel25519(cb,db,r);
-			A(eb,ab,cb);
-			Z(ab,ab,cb);
-			A(cb,bb,db);
-			Z(bb,bb,db);
-			S(db,eb);
-			S(fb,ab);
-			M(ab,cb,ab);
-			M(cb,bb,eb);
-			A(eb,ab,cb);
-			Z(ab,ab,cb);
-			S(bb,ab);
-			Z(cb,db,fb);
-			M(ab,cb,_121665b);
-			A(ab,ab,db);
-			M(cb,cb,ab);
-			M(ab,db,fb);
-			M(db,bb,xb);
-			S(bb,eb);
-			sel25519(ab,bb,r);
-			sel25519(cb,db,r);
+			sel25519(a,0,a.length, b,0,b.length, r);
+			sel25519(c,0,c.length, d,0,d.length, r);
+			A(e,0,e.length, a,0,a.length, c,0,c.length);
+			Z(a,0,a.length, a,0,a.length, c,0,c.length);
+			A(c,0,c.length, b,0,b.length, d,0,d.length);
+			Z(b,0,b.length, b,0,b.length, d,0,d.length);
+			S(d,0,d.length, e,0,e.length);
+			S(f,0,f.length, a,0,a.length);
+			M(a,0,a.length, c,0,c.length, a,0,a.length);
+			M(c,0,c.length, b,0,b.length, e,0,e.length);
+			A(e,0,e.length, a,0,a.length, c,0,c.length);
+			Z(a,0,a.length, a,0,a.length, c,0,c.length);
+			S(b,0,b.length, a,0,a.length);
+			Z(c,0,c.length, d,0,d.length, f,0,f.length);
+			M(a,0,a.length, c,0,c.length, _121665,0,_121665.length);
+			A(a,0,a.length, a,0,a.length, d,0,d.length);
+			M(c,0,c.length, c,0,c.length, a,0,a.length);
+			M(a,0,a.length, d,0,d.length, f,0,f.length);
+			M(d,0,d.length, b,0,b.length, x,0,x.length);
+			S(b,0,b.length, e,0,e.length);
+			sel25519(a,0,a.length, b,0,b.length, r);
+			sel25519(c,0,c.length, d,0,d.length, r);
 		}
 		
 		for (i = 0; i < 16; i ++) {
@@ -1431,11 +1351,11 @@ public final class TweetNacl {
 			x[i+64]=d[i];
 		}
 		
-		inv25519(new long_buf_t(x, 32, x.length-32),new long_buf_t(x, 32, x.length-32));
+		inv25519(x, 32, x.length-32, x, 32, x.length-32);
 		
-		M(new long_buf_t(x, 16, x.length-16),new long_buf_t(x, 16, x.length-16),new long_buf_t(x, 32, x.length-32));
+		M(x,16,x.length-16, x,16,x.length-16, x,32,x.length-32);
 		
-		pack25519(q,new long_buf_t(x, 16, x.length-16));
+		pack25519(q, x,16,x.length-16);
 
 		///String dbgt = "";
 		///for (int dbg = 0; dbg < q.length; dbg ++) dbgt += " "+q[dbg];
@@ -1529,19 +1449,18 @@ public final class TweetNacl {
 
 	// TBD... long length n
 	///int crypto_hashblocks(byte [] x, byte [] m, long n)
-	private static int crypto_hashblocks(byte [] x, byte_buf_t m, int n)
+	private static int crypto_hashblocks(byte [] x, byte [] m,final int moff,final int mlen, int n)
 	{
 		long [] z = new long [8], b = new long [8], a = new long [8], w = new long [16];
 		long t;
 		int i,j;
 
-		for (i = 0; i < 8; i ++) z[i] = a[i] = dl64(new byte_buf_t(x, 8*i, x.length-8*i));
+		for (i = 0; i < 8; i ++) z[i] = a[i] = dl64(x, 8*i, x.length-8*i);
 
-		byte[] marray = m.buf();
-		int moffset = m.off();
+		int moffset = moff;
 		
 		while (n >= 128) {
-			for (i = 0; i < 16; i ++) w[i] = dl64(new byte_buf_t(marray, 8*i+moffset, marray.length-8*i-moffset));
+			for (i = 0; i < 16; i ++) w[i] = dl64(m, 8*i+moffset, mlen-8*i);
 
 			for (i = 0; i < 80; i ++) {
 				for (j = 0; j < 8; j ++) b[j] = a[j];
@@ -1563,12 +1482,12 @@ public final class TweetNacl {
 			n -= 128;
 		}
 
-		for (i = 0; i < 8; i ++) ts64(new byte_buf_t(x,8*i,x.length-8*i),z[i]);
+		for (i = 0; i < 8; i ++) ts64(x,8*i,x.length-8*i, z[i]);
 
 		return n;
 	}
 	public static int crypto_hashblocks(byte [] x, byte [] m, int n) {
-		return crypto_hashblocks(x, new byte_buf_t(m), n);
+		return crypto_hashblocks(x, m,0,m.length, n);
 	}
 
 	private final static byte iv[] = {
@@ -1584,7 +1503,7 @@ public final class TweetNacl {
 
 	// TBD 64bits of n
 	///int crypto_hash(byte [] out, byte [] m, long n)
-	private static int crypto_hash(byte [] out, byte_buf_t m, int n)
+	private static int crypto_hash(byte [] out, byte [] m,final int moff,final int mlen, int n)
 	{
 		byte[] h = new byte[64], x = new byte [256];
 		long b = n;
@@ -1592,27 +1511,27 @@ public final class TweetNacl {
 		
 		for (i = 0; i < 64; i ++) h[i] = iv[i];
 
-		crypto_hashblocks(h,m,n);
+		crypto_hashblocks(h, m,moff,mlen, n);
 		///m += n;
 		n &= 127;
 		///m -= n;
 
 		for (i = 0; i < 256; i ++) x[i] = 0;
 		
-		for (i = 0; i < n; i ++) x[i] = m.get(i);
+		for (i = 0; i < n; i ++) x[i] = m[i+moff];
 		x[n] = (byte) 128;
 
 		n = 256-128*(n<112?1:0);
 		x[n-9] = (byte) (b >>> 61);
-		ts64(new byte_buf_t(x,n-8,x.length-(n-8)),b<<3);
-		crypto_hashblocks(h,new byte_buf_t(x),n);
+		ts64(x,n-8,x.length-(n-8), b<<3);
+		crypto_hashblocks(h, x,0,x.length, n);
 
 		for (i = 0; i < 64; i ++) out[i] = h[i];
 
 		return 0;
 	}
 	public static int crypto_hash(byte [] out, byte [] m, int n) {
-		return crypto_hash(out, new byte_buf_t(m), n);
+		return crypto_hash(out, m,0,m.length, n);
 	}
 	public static int crypto_hash(byte [] out, byte [] m) {
 		return crypto_hash(out, m, m!=null? m.length : 0);
@@ -1622,48 +1541,47 @@ public final class TweetNacl {
 	///private static void add(gf p[4],gf q[4])
 	private static void add(long [] p[], long [] q[])
 	{
-		long_buf_t a = long_buf_t.allocate(16);
-		long_buf_t b = long_buf_t.allocate(16);
-		long_buf_t c = long_buf_t.allocate(16);
-		long_buf_t d = long_buf_t.allocate(16);
-		long_buf_t t = long_buf_t.allocate(16);
-		long_buf_t e = long_buf_t.allocate(16);
-		long_buf_t f = long_buf_t.allocate(16);
-		long_buf_t g = long_buf_t.allocate(16);
-		long_buf_t h = long_buf_t.allocate(16);
+		long [] a = new long[16];
+		long [] b = new long[16];
+		long [] c = new long[16];
+		long [] d = new long[16];
+		long [] t = new long[16];
+		long [] e = new long[16];
+		long [] f = new long[16];
+		long [] g = new long[16];
+		long [] h = new long[16];
 
-		long_buf_t pb0 = new long_buf_t(p[0]);
-		long_buf_t pb1 = new long_buf_t(p[1]);
-		long_buf_t pb2 = new long_buf_t(p[2]);
-		long_buf_t pb3 = new long_buf_t(p[3]);
 
-		long_buf_t qb0 = new long_buf_t(q[0]);
-		long_buf_t qb1 = new long_buf_t(q[1]);
-		long_buf_t qb2 = new long_buf_t(q[2]);
-		long_buf_t qb3 = new long_buf_t(q[3]);
+		long [] p0 = p[0];
+		long [] p1 = p[1];
+		long [] p2 = p[2];
+		long [] p3 = p[3];
 
-		long_buf_t D2b = new long_buf_t(D2);
+		long [] q0 = q[0];
+		long [] q1 = q[1];
+		long [] q2 = q[2];
+		long [] q3 = q[3];
 
-		Z(a, pb1, pb0);
-		Z(t, qb1, qb0);
-		M(a, a,     t);
-		A(b, pb0, pb1);
-		A(t, qb0, qb1);
-		M(b, b,     t);
-		M(c, pb3, qb3);
-		M(c, c,   D2b);
-		M(d, pb2, qb2);
+		Z(a,0,a.length, p1,0,p1.length, p0,0,p0.length);
+		Z(t,0,t.length, q1,0,q1.length, q0,0,q0.length);
+		M(a,0,a.length, a,0,a.length,   t,0,t.length);
+		A(b,0,b.length, p0,0,p0.length, p1,0,p1.length);
+		A(t,0,t.length, q0,0,q0.length, q1,0,q1.length);
+		M(b,0,b.length, b,0,b.length,   t,0,t.length);
+		M(c,0,c.length, p3,0,p3.length, q3,0,q3.length);
+		M(c,0,c.length, c,0,c.length,   D2,0,D2.length);
+		M(d,0,d.length, p2,0,p2.length, q2,0,q2.length);
 		
-		A(d, d, d);
-		Z(e, b, a);
-		Z(f, d, c);
-		A(g, d, c);
-		A(h, b, a);
+		A(d,0,d.length, d,0,d.length, d,0,d.length);
+		Z(e,0,e.length, b,0,b.length, a,0,a.length);
+		Z(f,0,f.length, d,0,d.length, c,0,c.length);
+		A(g,0,g.length, d,0,d.length, c,0,c.length);
+		A(h,0,h.length, b,0,b.length, a,0,a.length);
 
-		M(pb0, e, f);
-		M(pb1, h, g);
-		M(pb2, g, f);
-		M(pb3, e, h);
+		M(p0,0,p0.length, e,0,e.length, f,0,f.length);
+		M(p1,0,p1.length, h,0,h.length, g,0,g.length);
+		M(p2,0,p2.length, g,0,g.length, f,0,f.length);
+		M(p3,0,p3.length, e,0,e.length, h,0,h.length);
 	}
 
 	private static void cswap(long [] p[], long [] q[], byte b)
@@ -1671,26 +1589,26 @@ public final class TweetNacl {
 		int i;
 
 		for (i = 0; i < 4; i ++)
-			sel25519(new long_buf_t(p[i]), new long_buf_t(q[i]), b);  
+			sel25519(p[i],0,p[i].length, q[i],0,q[i].length, b);  
 	}
 
 	private static void pack(byte [] r, long [] p[])
 	{
-		long_buf_t tx = long_buf_t.allocate(16);
-		long_buf_t ty = long_buf_t.allocate(16);
-		long_buf_t zi = long_buf_t.allocate(16);
+		long [] tx = new long[16];
+		long [] ty = new long[16];
+		long [] zi = new long[16];
 
-		inv25519(zi, new long_buf_t(p[2])); 
+		inv25519(zi,0,zi.length, p[2],0,p[2].length); 
 
-		M(tx, new long_buf_t(p[0]), zi);
-		M(ty, new long_buf_t(p[1]), zi);
+		M(tx,0,tx.length, p[0],0,p[0].length, zi,0,zi.length);
+		M(ty,0,ty.length, p[1],0,p[1].length, zi,0,zi.length);
 
-		pack25519(r, ty);
+		pack25519(r, ty,0,ty.length);
 
-		r[31] ^= par25519(tx.buf()) << 7;
+		r[31] ^= par25519(tx) << 7;
 	}
 
-	private static void scalarmult(long [] p[], long [] q[], byte_buf_t s)
+	private static void scalarmult(long [] p[], long [] q[], byte[] s,final int soff,final int slen)
 	{
 		int i;
 
@@ -1700,7 +1618,7 @@ public final class TweetNacl {
 		set25519(p[3],gf0);
 
 		for (i = 255;i >= 0;--i) {
-			byte b = (byte) ((s.get(i/8) >> (i&7))&1);
+			byte b = (byte) ((s[i/8+soff] >> (i&7))&1);
 
 			cswap(p,q,b);
 			add(q,p);
@@ -1713,7 +1631,7 @@ public final class TweetNacl {
 		///L/og.d(TAG, "scalarmult -> "+dbgt);
 	}
 
-	private static void scalarbase(long [] p[], byte_buf_t s)
+	private static void scalarbase(long [] p[], byte[] s,final int soff,final int slen)
 	{
 		long [] [] q = new long [4] [];
 		
@@ -1725,8 +1643,8 @@ public final class TweetNacl {
 		set25519(q[0],X);
 		set25519(q[1],Y);
 		set25519(q[2],gf1);
-		M(new long_buf_t(q[3]),new long_buf_t(X),new long_buf_t(Y));
-		scalarmult(p,q,s);
+		M(q[3],0,q[3].length, X,0,X.length, Y,0,Y.length);
+		scalarmult(p,q, s,soff,slen);
 	}
 
 	public static int crypto_sign_keypair(byte [] pk, byte [] sk)
@@ -1742,12 +1660,12 @@ public final class TweetNacl {
 		int i;
 
 		randombytes(sk, 32);
-		crypto_hash(d, new byte_buf_t(sk), 32);
+		crypto_hash(d, sk,0,sk.length, 32);
 		d[0] &= 248;
 		d[31] &= 127;
 		d[31] |= 64;
 
-		scalarbase(p,new byte_buf_t(d));
+		scalarbase(p, d,0,d.length);
 		pack(pk,p);
 
 		for (i = 0; i < 32; i ++) sk[32 + i] = pk[i];
@@ -1762,7 +1680,7 @@ public final class TweetNacl {
 		0,    0,    0,    0,    0,    0,    0,    0x10
 	};
 
-	private static void modL(byte_buf_t r, long x[])
+	private static void modL(byte[] r,final int roff,final int rlen, long x[])
 	{
 		long carry;
 		int i, j;
@@ -1789,7 +1707,7 @@ public final class TweetNacl {
 
 		for (i = 0; i < 32; i ++) {
 			x[i+1] += x[i] >> 8;
-		    r.put(i, (byte) (x[i] & 255));
+		    r[i+roff] = (byte) (x[i] & 255);
 		}
 	}
 
@@ -1802,7 +1720,7 @@ public final class TweetNacl {
 		
 		for (i = 0; i < 64; i ++) r[i] = 0;
 		
-		modL(new byte_buf_t(r),x);
+		modL(r,0,r.length, x);
 	}
 
 	// TBD... 64bits of n
@@ -1820,7 +1738,7 @@ public final class TweetNacl {
 		p[2] = new long [16];
 		p[3] = new long [16];
 
-		crypto_hash(d, new byte_buf_t(sk), 32);
+		crypto_hash(d, sk,0,sk.length, 32);
 		d[0] &= 248;
 		d[31] &= 127;
 		d[31] |= 64;
@@ -1831,13 +1749,13 @@ public final class TweetNacl {
 		
 		for (i = 0; i < 32; i ++) sm[32 + i] = d[32 + i];
 
-		crypto_hash(r, new byte_buf_t(sm, 32, sm.length-32), n+32);
+		crypto_hash(r, sm,32,sm.length-32, n+32);
 		reduce(r);
-		scalarbase(p,new byte_buf_t(r));
+		scalarbase(p, r,0,r.length);
 		pack(sm,p);
 
 		for (i = 0; i < 32; i ++) sm[i+32] = sk[i+32];
-		crypto_hash(h,new byte_buf_t(sm),n + 64);
+		crypto_hash(h, sm,0,sm.length, n + 64);
 		reduce(h);
 
 		for (i = 0; i < 64; i ++) x[i] = 0;
@@ -1846,51 +1764,51 @@ public final class TweetNacl {
 		
 		for (i = 0; i < 32; i ++) for (j = 0; j < 32; j ++) x[i+j] += (h[i]&0xff) * (long) (d[j]&0xff);
 		
-		modL(new byte_buf_t(sm, 32, sm.length-32),x);
+		modL(sm,32,sm.length-32, x);
 
 		return 0;
 	}
 
 	private static int unpackneg(long [] r[], byte p[])
 	{
-		long_buf_t t = long_buf_t.allocate(16);
-		long_buf_t chk = long_buf_t.allocate(16);
-		long_buf_t num = long_buf_t.allocate(16);
-		long_buf_t den = long_buf_t.allocate(16);
-		long_buf_t den2 = long_buf_t.allocate(16);
-		long_buf_t den4 = long_buf_t.allocate(16);
-		long_buf_t den6 = long_buf_t.allocate(16);
+		long []    t = new long [16];
+		long []  chk = new long [16];
+		long []  num = new long [16];
+		long []  den = new long [16];
+		long [] den2 = new long [16];
+		long [] den4 = new long [16];
+		long [] den6 = new long [16];
 
 		set25519(r[2],gf1);
-		unpack25519(r[1],p);
-		S(num,new long_buf_t(r[1]));
-		M(den,num,new long_buf_t(D)/*D*/);
-		Z(num,num,new long_buf_t(r[2]));
-		A(den,new long_buf_t(r[2]),den);
+		unpack25519(r[1], p);
+		S(num,0,num.length, r[1],0,r[1].length);
+		M(den,0,den.length, num,0,num.length, D,0,D.length);
+		Z(num,0,num.length, num,0,num.length, r[2],0,r[2].length);
+		A(den,0,den.length, r[2],0,r[2].length, den,0,den.length);
 
-		S(den2,den);
-		S(den4,den2);
-		M(den6,den4,den2);
-		M(t,den6,num);
-		M(t,t,den);
+		S(den2,0,den2.length, den,0,den.length);
+		S(den4,0,den4.length, den2,0,den2.length);
+		M(den6,0,den6.length, den4,0,den4.length, den2,0,den2.length);
+		M(t,0,t.length, den6,0,den6.length, num,0,num.length);
+		M(t,0,t.length, t,0,t.length, den,0,den.length);
 
-		pow2523(t.buf(),t.buf());
-		M(t,t,num);
-		M(t,t,den);
-		M(t,t,den);
-		M(new long_buf_t(r[0]),t,den);
+		pow2523(t, t);
+		M(t,0,t.length, t,0,t.length, num,0,num.length);
+		M(t,0,t.length, t,0,t.length, den,0,den.length);
+		M(t,0,t.length, t,0,t.length, den,0,den.length);
+		M(r[0],0,r[0].length, t,0,t.length, den,0,den.length);
 
-		S(chk,new long_buf_t(r[0]));
-		M(chk,chk,den);
-		if (neq25519(chk.buf(), num.buf())!=0) M(new long_buf_t(r[0]),new long_buf_t(r[0]),new long_buf_t(I));
+		S(chk,0,chk.length, r[0],0,r[0].length);
+		M(chk,0,chk.length, chk,0,chk.length, den,0,den.length);
+		if (neq25519(chk, num)!=0) M(r[0],0,r[0].length, r[0],0,r[0].length, I,0,I.length);
 
-		S(chk,new long_buf_t(r[0]));
-		M(chk,chk,den);
-		if (neq25519(chk.buf(), num.buf())!=0) return -1;
+		S(chk,0,chk.length, r[0],0,r[0].length);
+		M(chk,0,chk.length, chk,0,chk.length, den,0,den.length);
+		if (neq25519(chk, num)!=0) return -1;
 
-		if (par25519(r[0]) == (p[31]>>7)) Z(new long_buf_t(r[0]),new long_buf_t(gf0),new long_buf_t(r[0]));
+		if (par25519(r[0]) == (p[31]>>7)) Z(r[0],0,r[0].length, gf0,0,gf0.length, r[0],0,r[0].length);
 
-		M(new long_buf_t(r[3]),new long_buf_t(r[0]),new long_buf_t(r[1]));
+		M(r[3],0,r[3].length, r[0],0,r[0].length, r[1],0,r[1].length);
 		return 0;
 	}
 
@@ -1923,17 +1841,17 @@ public final class TweetNacl {
 
 		for (i = 0; i < 32; i ++) m[i+32] = pk[i];
 
-		crypto_hash(h,new byte_buf_t(m),n);
+		crypto_hash(h, m,0,m.length, n);
 
 		reduce(h);
-		scalarmult(p,q,new byte_buf_t(h));
+		scalarmult(p,q, h,0,h.length);
 
-		scalarbase(q,new byte_buf_t(sm, 32, sm.length-32));
+		scalarbase(q, sm,32,sm.length-32);
 		add(p,q);
 		pack(t,p);
 
 		n -= 64;
-		if (crypto_verify_32(new byte_buf_t(sm), new byte_buf_t(t))!=0) {
+		if (crypto_verify_32(sm,0,sm.length, t,0,t.length)!=0) {
 			// optimizing it
 			///for (i = 0; i < n; i ++) m[i] = 0;
 			return -1;

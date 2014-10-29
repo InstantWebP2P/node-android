@@ -1,8 +1,9 @@
+// Copyright (c) 2014 Tom Zhou<iwebpp@gmail.com>
+
+
 package com.iwebpp.crypto.tests;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-
 import com.iwebpp.crypto.TweetNacl;
 
 import android.util.Log;
