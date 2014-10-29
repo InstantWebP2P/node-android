@@ -110,36 +110,45 @@ public final class TweetNaclTest {
 		String m0 = "Helloword, TweetNacl...";
 		
 		// cipher A -> B
-		byte [] mb0 = m0.getBytes("utf-8");
-
-		String mb0t = "mb0/"+mb0.length + ": ";
-		for (int i = 0; i < mb0.length; i ++)
-			mb0t += " "+mb0[i];
-		Log.d(TAG, mb0t);
-
-        Log.d(TAG, "box@" + System.currentTimeMillis());
-		byte [] cab = pab.box(mb0);
+		Log.d(TAG, "streess on secret box@"+m0);
 		
-		String cabt = "cab/"+cab.length + ": ";
-		for (int i = 0; i < cab.length; i ++)
-			cabt += " "+cab[i];
-		Log.d(TAG, cabt);
-		
-		byte [] mba = pba.open(cab);
-        Log.d(TAG, "open@" + System.currentTimeMillis());
+		for (int t = 0; t < 19; t ++, m0 += m0) {
+			byte [] mb0 = m0.getBytes("utf-8");
+			
+			Log.d(TAG, "\n\n\tstreess/"+(mb0.length/1000.0) +"kB: " + t + " times");
 
-		String mbat = "mba/"+mba.length + ": ";
-		for (int i = 0; i < mba.length; i ++)
-			mbat += " "+mba[i];
-		Log.d(TAG, mbat);
-		
-		String nm0 = new String(mba, "utf-8");
-		if (nm0.equals(m0)) {
-			Log.d(TAG, "secret box/open success @" + m0);
-		} else {
-			Log.e(TAG, "secret box/open failed @" + m0 + " / " + nm0);
+			///String mb0t = "mb0/"+mb0.length + ": ";
+			//for (int i = 0; i < mb0.length; i ++)
+			///	mb0t += " "+mb0[i];
+			///Log.d(TAG, mb0t);
+
+			Log.d(TAG, "secret box ...@" + System.currentTimeMillis());
+			byte [] cab = pab.box(mb0);
+			Log.d(TAG, "... secret box@" + System.currentTimeMillis());
+
+			///String cabt = "cab/"+cab.length + ": ";
+			///for (int i = 0; i < cab.length; i ++)
+			///	cabt += " "+cab[i];
+			///Log.d(TAG, cabt);
+
+			Log.d(TAG, "\nsecret box open ...@" + System.currentTimeMillis());
+			byte [] mba = pba.open(cab);
+			Log.d(TAG, "... secret box open@" + System.currentTimeMillis());
+
+			///String mbat = "mba/"+mba.length + ": ";
+			///for (int i = 0; i < mba.length; i ++)
+			///	mbat += " "+mba[i];
+			///Log.d(TAG, mbat);
+
+			String nm0 = new String(mba, "utf-8");
+			if (nm0.equals(m0)) {
+				Log.d(TAG, "\tsecret box/open succes");
+			} else {
+				Log.e(TAG, "\tsecret box/open failed @" + m0 + " / " + nm0);
+				return false;
+			}
 		}
-				
+		
 		return true;
 	}
 	
