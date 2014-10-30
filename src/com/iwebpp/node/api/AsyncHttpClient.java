@@ -36,8 +36,8 @@ public final class AsyncHttpClient {
 		private String url;
 
 		private Map<String, String> headers;
-
-		private Object data;
+		
+		private http_content_b data;
 
 		// response content
 		private IncomingMessage response;
@@ -56,7 +56,7 @@ public final class AsyncHttpClient {
 				String method,
 				String url,
 				Map<String, String> headers, 
-				Object data,
+				http_content_b data,
 				final HttpClientCallback cb) {
 			this(method, url, headers, data, cb, 2000, -1);
 		}
@@ -64,7 +64,7 @@ public final class AsyncHttpClient {
 				String method,
 				String url,
 				Map<String, String> headers, 
-				Object data,
+				http_content_b data,
 				final HttpClientCallback cb,
 				int resp_timeout) {
 			this(method, url, headers, data, cb, resp_timeout, -1);
@@ -73,7 +73,7 @@ public final class AsyncHttpClient {
 				String method,
 				String url,
 				Map<String, String> headers, 
-				Object data,
+				http_content_b data,
 				final HttpClientCallback cb,
 				int resp_timeout,
 				int cont_timeout) {
@@ -296,7 +296,7 @@ public final class AsyncHttpClient {
 
 			});
 			
-			if (data!=null) req.write(data);
+			if (data!=null) req.write(data.getContent(), data.getEncoding());
 			req.end();
 		}
 
@@ -308,19 +308,27 @@ public final class AsyncHttpClient {
 	public static class http_content_b {
 		private String type;
 		private Object content;
-		
+
 		public http_content_b(String type, Object content) {
 			this.type = type;
 			this.content = content;
 		}
 		@SuppressWarnings("unused")
 		private http_content_b() {}
-		
+
 		public String getType() {
 			return this.type;
 		}
 		public Object getContent(){
 			return this.content;
+		}
+
+		// Only support utf-8 string for now
+		public boolean isString() {
+			return content instanceof String;
+		}
+		public String getEncoding() {
+			return isString() ? "utf-8" : null;
 		}
 	} 
 
