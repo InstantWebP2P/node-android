@@ -536,15 +536,15 @@ public final class TweetNacl {
 	 * @description 
 	 *   Hash algorithm, Implements SHA-512.
 	 * */
-	public static final class Hashing {
+	public static final class Hash {
 
-		private final static String TAG = "Hashing";
+		private final static String TAG = "Hash";
 
 		/*
 		 * @description
 		 *   Returns SHA-512 hash of the message.
 		 * */
-		public static byte[] hash(byte [] message) {
+		public static byte[] sha512(byte [] message) {
 			if (!(message!=null && message.length>0))
 				return null;
 
@@ -554,8 +554,8 @@ public final class TweetNacl {
 
 			return out;
 		}
-		public static byte[] hash(String message) throws UnsupportedEncodingException {
-			return hash(message.getBytes("utf-8"));
+		public static byte[] sha512(String message) throws UnsupportedEncodingException {
+			return sha512(message.getBytes("utf-8"));
 		}
 		
 		/*
@@ -1071,7 +1071,7 @@ public final class TweetNacl {
 		crypto_stream_xor(c,m,d,n,k);
 		crypto_onetimeauth(c,16,c.length-16, c,32,c.length-32, d - 32, c);
 		
-		for (i = 0; i < 16; i ++) c[i] = 0;
+		///for (i = 0; i < 16; i ++) c[i] = 0;
 		
 		return 0;
 	}
@@ -1087,7 +1087,7 @@ public final class TweetNacl {
 		if (crypto_onetimeauth_verify(c,16,16, c,32,c.length-32, d-32, x) != 0) return -1;
 		crypto_stream_xor(m,c,d,n,k);
 		
-		for (i = 0; i < 32; i ++) m[i] = 0;
+		///for (i = 0; i < 32; i ++) m[i] = 0;
 		
 		return 0;
 	}

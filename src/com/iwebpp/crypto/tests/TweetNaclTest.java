@@ -203,11 +203,11 @@ public final class TweetNaclTest {
 	private boolean testHash() throws UnsupportedEncodingException {
 		String m0 = "Helloword, TweetNacl...";
 		
-        Log.d(TAG, "hash...@" + System.currentTimeMillis());
-		byte [] hash = TweetNacl.Hashing.hash(m0);
-        Log.d(TAG, "...hash@" + System.currentTimeMillis());
+        Log.d(TAG, "sha512...@" + System.currentTimeMillis());
+		byte [] hash = TweetNacl.Hash.sha512(m0);
+        Log.d(TAG, "...sha512@" + System.currentTimeMillis());
 
-		String hst = "hash@"+m0 + ": ";
+		String hst = "sha512@"+m0 + ": ";
 		for (int i = 0; i < hash.length; i ++)
 			hst += " "+hash[i];
 		Log.d(TAG, hst);
@@ -216,7 +216,7 @@ public final class TweetNaclTest {
 	}
 	
 	/*
-	 * bench test using tweetnacl.c, libsoldium result
+	 * bench test using tweetnacl.c, tweetnacl.js result
 	 * */
 	private boolean testBench() {
 		
