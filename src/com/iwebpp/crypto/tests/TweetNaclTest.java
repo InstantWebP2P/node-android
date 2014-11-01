@@ -196,6 +196,37 @@ public final class TweetNaclTest {
 			}
 		}
 		
+		// keypair C
+		byte [] seed = new byte[TweetNaclFast.Signature.seedLength]; for (int i = 0; i < seed.length; i ++) seed[i] = 0x66;
+		TweetNaclFast.Signature.KeyPair kc = TweetNaclFast.Signature.keyPair_fromSeed(seed);
+
+		// self-signed
+		TweetNaclFast.Signature pcc = new TweetNaclFast.Signature(kc.getPublicKey(), kc.getSecretKey());
+
+		Log.d(TAG, "self-sign...@" + System.currentTimeMillis());
+		byte [] scc = pcc.sign(m0.getBytes("utf-8"));
+		Log.d(TAG, "...self-sign@" + System.currentTimeMillis());
+
+		String ssc = "self-sign@"+m0 + ": ";
+		for (int i = 0; i < TweetNaclFast.Signature.signatureLength; i ++)
+			ssc += " "+scc[i];
+		Log.d(TAG, ssc);
+
+		Log.d(TAG, "self-verify...@" + System.currentTimeMillis());
+		byte [] occ = pcc.open(scc);
+		Log.d(TAG, "...self-verify@" + System.currentTimeMillis());
+		
+		if (occ == null) {
+			Log.e(TAG, "self-verify failed @" + m0);
+		} else {
+			String nm0 = new String(occ, "utf-8");
+			if (nm0.equals(m0)) {
+				Log.d(TAG, "self-sign success @" + m0);
+			} else {
+				Log.e(TAG, "self-sign failed @" + m0 + " / " + nm0);
+			}
+		}
+		
 		return true;
 	}
 	
@@ -204,12 +235,13 @@ public final class TweetNaclTest {
 	 * */
 	private boolean testHash() throws UnsupportedEncodingException {
 		String m0 = "Helloword, TweetNaclFast...";
+		byte [] b0 = m0.getBytes("utf-8");
 		
         Log.d(TAG, "sha512...@" + System.currentTimeMillis());
-		byte [] hash = TweetNaclFast.Hash.sha512(m0);
+		byte [] hash = TweetNaclFast.Hash.sha512(b0);
         Log.d(TAG, "...sha512@" + System.currentTimeMillis());
 
-		String hst = "sha512@"+m0 + ": ";
+		String hst = "sha512@"+m0 + "/"+b0.length + ": ";
 		for (int i = 0; i < hash.length; i ++)
 			hst += " "+hash[i];
 		Log.d(TAG, hst);

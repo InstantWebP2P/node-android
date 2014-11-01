@@ -671,23 +671,40 @@ public final class TweetNaclFast {
 		public static KeyPair keyPair() {
 			KeyPair kp = new KeyPair();
 
-			crypto_sign_keypair(kp.getPublicKey(), kp.getSecretKey());
+			crypto_sign_keypair(kp.getPublicKey(), kp.getSecretKey(), false);
 			return kp;
 		}
 		public static KeyPair keyPair_fromSecretKey(byte [] secretKey) {
 			KeyPair kp = new KeyPair();
+			byte [] pk = kp.getPublicKey();
+			byte [] sk = kp.getSecretKey();
 
 			// copy sk
 			for (int i = 0; i < kp.getSecretKey().length; i ++)
-				kp.getSecretKey()[i] = secretKey[i];
+				sk[i] = secretKey[i];
 
 			// copy pk from sk
 			for (int i = 0; i < kp.getPublicKey().length; i ++) 
-				kp.getPublicKey()[i] = secretKey[32+i]; // hard-copy
+				pk[i] = secretKey[32+i]; // hard-copy
 
 			return kp;
 		}
 
+		public static KeyPair keyPair_fromSeed(byte [] seed) {
+			KeyPair kp = new KeyPair();
+			byte [] pk = kp.getPublicKey();
+			byte [] sk = kp.getSecretKey();
+
+			// copy sk
+			for (int i = 0; i < seedLength; i ++)
+				sk[i] = seed[i];
+
+			// generate pk from sk 
+			crypto_sign_keypair(pk, sk, true);
+
+			return kp;
+		}
+		
 		/*
 		 * @description
 		 *   Length of signing public key in bytes.
@@ -785,7 +802,7 @@ public final class TweetNaclFast {
 		x[3+xoff] = (byte)(u&0xff); u >>>= 8;
 		x[2+xoff] = (byte)(u&0xff); u >>>= 8;
 		x[1+xoff] = (byte)(u&0xff); u >>>= 8;
-		x[0+xoff] = (byte)(u&0xff); u >>>= 8;
+		x[0+xoff] = (byte)(u&0xff); ///u >>>= 8;
 	}
 
 	private static int vn(
@@ -2401,36 +2418,40 @@ public final class TweetNaclFast {
 	};
 
 	private static int crypto_hashblocks_hl(int [] hh,int [] hl, byte [] m,final int moff, int n) {
-		long [] wh = new long[16], wl = new long[16];
-		long bh0, bh1, bh2, bh3, bh4, bh5, bh6, bh7,
-		     bl0, bl1, bl2, bl3, bl4, bl5, bl6, bl7,
-		     th, tl, h, l, a, b, c, d;
-		int i, j;
+		
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < n; dbg ++) dbgt += " "+m[dbg+moff];
+		///Log.d(TAG, "crypto_hashblocks_hl m/"+n + "-> "+dbgt);
+		
+		int []  wh = new int[16], wl = new int[16];
+		int     bh0, bh1, bh2, bh3, bh4, bh5, bh6, bh7,
+		        bl0, bl1, bl2, bl3, bl4, bl5, bl6, bl7,
+	  	        th, tl, h, l, i, j, a, b, c, d;
 
-		long    ah0 = hh[0] & 0xffffffff,
-				ah1 = hh[1] & 0xffffffff,
-				ah2 = hh[2] & 0xffffffff,
-				ah3 = hh[3] & 0xffffffff,
-				ah4 = hh[4] & 0xffffffff,
-				ah5 = hh[5] & 0xffffffff,
-				ah6 = hh[6] & 0xffffffff,
-				ah7 = hh[7] & 0xffffffff,
+		int     ah0 = hh[0],
+			    ah1 = hh[1],
+				ah2 = hh[2],
+				ah3 = hh[3],
+				ah4 = hh[4],
+				ah5 = hh[5],
+				ah6 = hh[6],
+				ah7 = hh[7],
 
-				al0 = hl[0] & 0xffffffff,
-				al1 = hl[1] & 0xffffffff,
-				al2 = hl[2] & 0xffffffff,
-				al3 = hl[3] & 0xffffffff,
-				al4 = hl[4] & 0xffffffff,
-				al5 = hl[5] & 0xffffffff,
-				al6 = hl[6] & 0xffffffff,
-				al7 = hl[7] & 0xffffffff;
+				al0 = hl[0],
+				al1 = hl[1],
+				al2 = hl[2],
+				al3 = hl[3],
+				al4 = hl[4],
+				al5 = hl[5],
+				al6 = hl[6],
+				al7 = hl[7];
 
 		int pos = 0;
 		while (n >= 128) {
 			for (i = 0; i < 16; i++) {
 				j = 8 * i + pos;
-				wh[i] = (m[j+0+moff] << 24) | (m[j+1+moff] << 16) | (m[j+2+moff] << 8) | m[j+3+moff];
-				wl[i] = (m[j+4+moff] << 24) | (m[j+5+moff] << 16) | (m[j+6+moff] << 8) | m[j+7+moff];
+				wh[i] = ((m[j+0+moff]&0xff) << 24) | ((m[j+1+moff]&0xff) << 16) | ((m[j+2+moff]&0xff) << 8) | ((m[j+3+moff]&0xff) << 0);
+				wl[i] = ((m[j+4+moff]&0xff) << 24) | ((m[j+5+moff]&0xff) << 16) | ((m[j+6+moff]&0xff) << 8) | ((m[j+7+moff]&0xff) << 0);
 			}
 			for (i = 0; i < 80; i++) {
 				bh0 = ah0;
@@ -2468,140 +2489,142 @@ public final class TweetNaclFast {
 				// Ch
 				h = (ah4 & ah5) ^ (~ah4 & ah6);
 				l = (al4 & al5) ^ (~al4 & al6);
-				
+
 				a += l & 0xffff; b += l >>> 16;
 				c += h & 0xffff; d += h >>> 16;
 
-			// K
-			///h = K[i*2];
-			///l = K[i*2+1];
-			h = ((K[i]>>>32) & 0xffffffff);
-			l = ((K[i]>>> 0) & 0xffffffff);
+				// K
+				///h = K[i*2];
+				///l = K[i*2+1];
+				h = (int) ((K[i]>>>32) & 0xffffffff);
+				l = (int) ((K[i]>>> 0) & 0xffffffff);
+				
+				///Log.d(TAG, "i"+i + ",h:0x"+Integer.toHexString(h) + ",l:0x"+Integer.toHexString(l));
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			// w
-			h = wh[i%16];
-			l = wl[i%16];
+				// w
+				h = wh[i%16];
+				l = wl[i%16];
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			b += a >>> 16;
-			c += b >>> 16;
-			d += c >>> 16;
+				b += a >>> 16;
+				c += b >>> 16;
+				d += c >>> 16;
 
-			th = c & 0xffff | d << 16;
-			tl = a & 0xffff | b << 16;
+				th = c & 0xffff | d << 16;
+				tl = a & 0xffff | b << 16;
 
-			// add
-			h = th;
-			l = tl;
+				// add
+				h = th;
+				l = tl;
 
-			a = l & 0xffff; b = l >>> 16;
-			c = h & 0xffff; d = h >>> 16;
+				a = l & 0xffff; b = l >>> 16;
+				c = h & 0xffff; d = h >>> 16;
 
-			// Sigma0
-			h = ((ah0 >>> 28) | (al0 << (32-28))) ^ ((al0 >>> (34-32)) | (ah0 << (32-(34-32)))) ^ ((al0 >>> (39-32)) | (ah0 << (32-(39-32))));
-			l = ((al0 >>> 28) | (ah0 << (32-28))) ^ ((ah0 >>> (34-32)) | (al0 << (32-(34-32)))) ^ ((ah0 >>> (39-32)) | (al0 << (32-(39-32))));
+				// Sigma0
+				h = ((ah0 >>> 28) | (al0 << (32-28))) ^ ((al0 >>> (34-32)) | (ah0 << (32-(34-32)))) ^ ((al0 >>> (39-32)) | (ah0 << (32-(39-32))));
+				l = ((al0 >>> 28) | (ah0 << (32-28))) ^ ((ah0 >>> (34-32)) | (al0 << (32-(34-32)))) ^ ((ah0 >>> (39-32)) | (al0 << (32-(39-32))));
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			// Maj
-			h = (ah0 & ah1) ^ (ah0 & ah2) ^ (ah1 & ah2);
-			l = (al0 & al1) ^ (al0 & al2) ^ (al1 & al2);
+				// Maj
+				h = (ah0 & ah1) ^ (ah0 & ah2) ^ (ah1 & ah2);
+				l = (al0 & al1) ^ (al0 & al2) ^ (al1 & al2);
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			b += a >>> 16;
-			c += b >>> 16;
-			d += c >>> 16;
+				b += a >>> 16;
+				c += b >>> 16;
+				d += c >>> 16;
 
-			bh7 = (c & 0xffff) | (d << 16);
-			bl7 = (a & 0xffff) | (b << 16);
+				bh7 = (c & 0xffff) | (d << 16);
+				bl7 = (a & 0xffff) | (b << 16);
 
-			// add
-			h = bh3;
-			l = bl3;
+				// add
+				h = bh3;
+				l = bl3;
 
-			a = l & 0xffff; b = l >>> 16;
-			c = h & 0xffff; d = h >>> 16;
+				a = l & 0xffff; b = l >>> 16;
+				c = h & 0xffff; d = h >>> 16;
 
-			h = th;
-			l = tl;
+				h = th;
+				l = tl;
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			b += a >>> 16;
-			c += b >>> 16;
-			d += c >>> 16;
+				b += a >>> 16;
+				c += b >>> 16;
+				d += c >>> 16;
 
-			bh3 = (c & 0xffff) | (d << 16);
-			bl3 = (a & 0xffff) | (b << 16);
+				bh3 = (c & 0xffff) | (d << 16);
+				bl3 = (a & 0xffff) | (b << 16);
 
-			ah1 = bh0;
-			ah2 = bh1;
-			ah3 = bh2;
-			ah4 = bh3;
-			ah5 = bh4;
-			ah6 = bh5;
-			ah7 = bh6;
-			ah0 = bh7;
+				ah1 = bh0;
+				ah2 = bh1;
+				ah3 = bh2;
+				ah4 = bh3;
+				ah5 = bh4;
+				ah6 = bh5;
+				ah7 = bh6;
+				ah0 = bh7;
 
-			al1 = bl0;
-			al2 = bl1;
-			al3 = bl2;
-			al4 = bl3;
-			al5 = bl4;
-			al6 = bl5;
-			al7 = bl6;
-			al0 = bl7;
+				al1 = bl0;
+				al2 = bl1;
+				al3 = bl2;
+				al4 = bl3;
+				al5 = bl4;
+				al6 = bl5;
+				al7 = bl6;
+				al0 = bl7;
 
-			if (i%16 == 15) {
-				for (j = 0; j < 16; j++) {
-					// add
-					h = wh[j];
-					l = wl[j];
+				if (i%16 == 15) {
+					for (j = 0; j < 16; j++) {
+						// add
+						h = wh[j];
+						l = wl[j];
 
-					a = l & 0xffff; b = l >>> 16;
-			c = h & 0xffff; d = h >>> 16;
+						a = l & 0xffff; b = l >>> 16;
+				c = h & 0xffff; d = h >>> 16;
 
-			h = wh[(j+9)%16];
-			l = wl[(j+9)%16];
+				h = wh[(j+9)%16];
+				l = wl[(j+9)%16];
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			// sigma0
-			th = wh[(j+1)%16];
-			tl = wl[(j+1)%16];
-			h = ((th >>> 1) | (tl << (32-1))) ^ ((th >>> 8) | (tl << (32-8))) ^ (th >>> 7);
-			l = ((tl >>> 1) | (th << (32-1))) ^ ((tl >>> 8) | (th << (32-8))) ^ ((tl >>> 7) | (th << (32-7)));
+				// sigma0
+				th = wh[(j+1)%16];
+				tl = wl[(j+1)%16];
+				h = ((th >>> 1) | (tl << (32-1))) ^ ((th >>> 8) | (tl << (32-8))) ^ (th >>> 7);
+				l = ((tl >>> 1) | (th << (32-1))) ^ ((tl >>> 8) | (th << (32-8))) ^ ((tl >>> 7) | (th << (32-7)));
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			// sigma1
-			th = wh[(j+14)%16];
-			tl = wl[(j+14)%16];
-			h = ((th >>> 19) | (tl << (32-19))) ^ ((tl >>> (61-32)) | (th << (32-(61-32)))) ^ (th >>> 6);
-			l = ((tl >>> 19) | (th << (32-19))) ^ ((th >>> (61-32)) | (tl << (32-(61-32)))) ^ ((tl >>> 6) | (th << (32-6)));
+				// sigma1
+				th = wh[(j+14)%16];
+				tl = wl[(j+14)%16];
+				h = ((th >>> 19) | (tl << (32-19))) ^ ((tl >>> (61-32)) | (th << (32-(61-32)))) ^ (th >>> 6);
+				l = ((tl >>> 19) | (th << (32-19))) ^ ((th >>> (61-32)) | (tl << (32-(61-32)))) ^ ((tl >>> 6) | (th << (32-6)));
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			b += a >>> 16;
-			c += b >>> 16;
-			d += c >>> 16;
+				b += a >>> 16;
+				c += b >>> 16;
+				d += c >>> 16;
 
-			wh[j] = (c & 0xffff) | (d << 16);
-			wl[j] = (a & 0xffff) | (b << 16);
+				wh[j] = (c & 0xffff) | (d << 16);
+				wl[j] = (a & 0xffff) | (b << 16);
+					}
 				}
-			}
 			}
 
 			// add
@@ -2609,207 +2632,216 @@ public final class TweetNaclFast {
 			l = al0;
 
 			a = l & 0xffff; b = l >>> 16;
-			c = h & 0xffff; d = h >>> 16;
+				c = h & 0xffff; d = h >>> 16;
 
-			h = hh[0];
-			l = hl[0];
+				h = hh[0];
+				l = hl[0];
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			b += a >>> 16;
-			c += b >>> 16;
-			d += c >>> 16;
+				b += a >>> 16;
+				c += b >>> 16;
+				d += c >>> 16;
 
-			hh[0] = (int) ((ah0 = (c & 0xffff) | (d << 16)) & 0xffffffff);
-			hl[0] = (int) ((al0 = (a & 0xffff) | (b << 16)) & 0xffffffff);
+				hh[0] = ah0 = (c & 0xffff) | (d << 16);
+				hl[0] = al0 = (a & 0xffff) | (b << 16);
 
-			h = ah1;
-			l = al1;
+				h = ah1;
+				l = al1;
 
-			a = l & 0xffff; b = l >>> 16;
-			c = h & 0xffff; d = h >>> 16;
+				a = l & 0xffff; b = l >>> 16;
+				c = h & 0xffff; d = h >>> 16;
 
-			h = hh[1];
-			l = hl[1];
+				h = hh[1];
+				l = hl[1];
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			b += a >>> 16;
-			c += b >>> 16;
-			d += c >>> 16;
+				b += a >>> 16;
+				c += b >>> 16;
+				d += c >>> 16;
 
-			hh[1] = (int) ((ah1 = (c & 0xffff) | (d << 16)) & 0xffffffff);
-			hl[1] = (int) ((al1 = (a & 0xffff) | (b << 16)) & 0xffffffff);
+				hh[1] = ah1 = (c & 0xffff) | (d << 16);
+				hl[1] = al1 = (a & 0xffff) | (b << 16);
 
-			h = ah2;
-			l = al2;
+				h = ah2;
+				l = al2;
 
-			a = l & 0xffff; b = l >>> 16;
-			c = h & 0xffff; d = h >>> 16;
+				a = l & 0xffff; b = l >>> 16;
+				c = h & 0xffff; d = h >>> 16;
 
-			h = hh[2];
-			l = hl[2];
+				h = hh[2];
+				l = hl[2];
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			b += a >>> 16;
-			c += b >>> 16;
-			d += c >>> 16;
-			
-			hh[2] = (int) ((ah2 = (c & 0xffff) | (d << 16)) & 0xffffffff);
-			hl[2] = (int) ((al2 = (a & 0xffff) | (b << 16)) & 0xffffffff);
+				b += a >>> 16;
+				c += b >>> 16;
+				d += c >>> 16;
 
-			h = ah3;
-			l = al3;
+				hh[2] = ah2 = (c & 0xffff) | (d << 16);
+				hl[2] = al2 = (a & 0xffff) | (b << 16);
 
-			a = l & 0xffff; b = l >>> 16;
-			c = h & 0xffff; d = h >>> 16;
+				h = ah3;
+				l = al3;
 
-			h = hh[3];
-			l = hl[3];
+				a = l & 0xffff; b = l >>> 16;
+				c = h & 0xffff; d = h >>> 16;
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				h = hh[3];
+				l = hl[3];
 
-			b += a >>> 16;
-			c += b >>> 16;
-			d += c >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			hh[3] = (int) ((ah3 = (c & 0xffff) | (d << 16)) & 0xffffffff);
-			hl[3] = (int) ((al3 = (a & 0xffff) | (b << 16)) & 0xffffffff);
+				b += a >>> 16;
+				c += b >>> 16;
+				d += c >>> 16;
 
-			h = ah4;
-			l = al4;
+				hh[3] = ah3 = (c & 0xffff) | (d << 16);
+				hl[3] = al3 = (a & 0xffff) | (b << 16);
 
-			a = l & 0xffff; b = l >>> 16;
-			c = h & 0xffff; d = h >>> 16;
+				h = ah4;
+				l = al4;
 
-			h = hh[4];
-			l = hl[4];
+				a = l & 0xffff; b = l >>> 16;
+				c = h & 0xffff; d = h >>> 16;
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				h = hh[4];
+				l = hl[4];
 
-			b += a >>> 16;
-			c += b >>> 16;
-			d += c >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			hh[4] = (int) ((ah4 = (c & 0xffff) | (d << 16)) & 0xffffffff);
-			hl[4] = (int) ((al4 = (a & 0xffff) | (b << 16)) & 0xffffffff);
+				b += a >>> 16;
+				c += b >>> 16;
+				d += c >>> 16;
 
-			h = ah5;
-			l = al5;
+				hh[4] = ah4 = (c & 0xffff) | (d << 16);
+				hl[4] = al4 = (a & 0xffff) | (b << 16);
 
-			a = l & 0xffff; b = l >>> 16;
-			c = h & 0xffff; d = h >>> 16;
+				h = ah5;
+				l = al5;
 
-			h = hh[5];
-			l = hl[5];
+				a = l & 0xffff; b = l >>> 16;
+				c = h & 0xffff; d = h >>> 16;
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				h = hh[5];
+				l = hl[5];
 
-			b += a >>> 16;
-			c += b >>> 16;
-			d += c >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			hh[5] = (int) ((ah5 = (c & 0xffff) | (d << 16)) & 0xffffffff);
-			hl[5] = (int) ((al5 = (a & 0xffff) | (b << 16)) & 0xffffffff);
+				b += a >>> 16;
+				c += b >>> 16;
+				d += c >>> 16;
 
-			h = ah6;
-			l = al6;
+				hh[5] = ah5 = (c & 0xffff) | (d << 16);
+				hl[5] = al5 = (a & 0xffff) | (b << 16);
 
-			a = l & 0xffff; b = l >>> 16;
-			c = h & 0xffff; d = h >>> 16;
+				h = ah6;
+				l = al6;
 
-			h = hh[6];
-			l = hl[6];
+				a = l & 0xffff; b = l >>> 16;
+				c = h & 0xffff; d = h >>> 16;
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				h = hh[6];
+				l = hl[6];
 
-			b += a >>> 16;
-			c += b >>> 16;
-			d += c >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			hh[6] = (int) ((ah6 = (c & 0xffff) | (d << 16)) & 0xffffffff);
-			hl[6] = (int) ((al6 = (a & 0xffff) | (b << 16)) & 0xffffffff);
+				b += a >>> 16;
+				c += b >>> 16;
+				d += c >>> 16;
 
-			h = ah7;
-			l = al7;
+				hh[6] = ah6 = (c & 0xffff) | (d << 16);
+				hl[6] = al6 = (a & 0xffff) | (b << 16);
 
-			a = l & 0xffff; b = l >>> 16;
-			c = h & 0xffff; d = h >>> 16;
+				h = ah7;
+				l = al7;
 
-			h = hh[7];
-			l = hl[7];
+				a = l & 0xffff; b = l >>> 16;
+				c = h & 0xffff; d = h >>> 16;
 
-			a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				h = hh[7];
+				l = hl[7];
 
-			b += a >>> 16;
-			c += b >>> 16;
-			d += c >>> 16;
+				a += l & 0xffff; b += l >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
-			hh[7] = (int) ((ah7 = (c & 0xffff) | (d << 16)) & 0xffffffff);
-			hl[7] = (int) ((al7 = (a & 0xffff) | (b << 16)) & 0xffffffff);
+				b += a >>> 16;
+				c += b >>> 16;
+				d += c >>> 16;
 
-			pos += 128;
-			n -= 128;
+				hh[7] = ah7 = (c & 0xffff) | (d << 16);
+				hl[7] = al7 = (a & 0xffff) | (b << 16);
+
+				pos += 128;
+				n -= 128;
+				
+				/*dbgt = "";
+				for (int dbg = 0; dbg < hh.length; dbg ++) dbgt += " "+hh[dbg];
+				Log.d(TAG, "\ncrypto_hashblocks_hl hh -> "+dbgt);
+				
+				dbgt = "";
+				for (int dbg = 0; dbg < hl.length; dbg ++) dbgt += " "+hl[dbg];
+				Log.d(TAG, "\ncrypto_hashblocks_hl hl -> "+dbgt);*/
 		}
 
 		return n;
 	}
-	
+
 	// TBD 64bits of n
 	///int crypto_hash(byte [] out, byte [] m, long n)
 	public static int crypto_hash(byte [] out, byte [] m,final int moff, int n)
 	{
-		  int [] hh = new int[8],
-		         hl = new int[8];
-		  byte[]  x = new byte[256];
-		  int     i;
-		  int b = n;
+		int []  hh = new int[8],
+				hl = new int[8];
+		byte [] x = new byte[256];
+		int     i, b = n;
+		long    u;
 
-		  hh[0] = 0x6a09e667;
-		  hh[1] = 0xbb67ae85;
-		  hh[2] = 0x3c6ef372;
-		  hh[3] = 0xa54ff53a;
-		  hh[4] = 0x510e527f;
-		  hh[5] = 0x9b05688c;
-		  hh[6] = 0x1f83d9ab;
-		  hh[7] = 0x5be0cd19;
+		hh[0] = 0x6a09e667;
+		hh[1] = 0xbb67ae85;
+		hh[2] = 0x3c6ef372;
+		hh[3] = 0xa54ff53a;
+		hh[4] = 0x510e527f;
+		hh[5] = 0x9b05688c;
+		hh[6] = 0x1f83d9ab;
+		hh[7] = 0x5be0cd19;
 
-		  hl[0] = 0xf3bcc908;
-		  hl[1] = 0x84caa73b;
-		  hl[2] = 0xfe94f82b;
-		  hl[3] = 0x5f1d36f1;
-		  hl[4] = 0xade682d1;
-		  hl[5] = 0x2b3e6c1f;
-		  hl[6] = 0xfb41bd6b;
-		  hl[7] = 0x137e2179;
+		hl[0] = 0xf3bcc908;
+		hl[1] = 0x84caa73b;
+		hl[2] = 0xfe94f82b;
+		hl[3] = 0x5f1d36f1;
+		hl[4] = 0xade682d1;
+		hl[5] = 0x2b3e6c1f;
+		hl[6] = 0xfb41bd6b;
+		hl[7] = 0x137e2179;
 
-		  crypto_hashblocks_hl(hh, hl, m,moff, n);
-		  n %= 128;
+		crypto_hashblocks_hl(hh, hl, m,moff, n);
+		n %= 128;
 
-		  for (i = 0; i < n; i++) x[i] = m[b-n+i +moff];
-		  x[n] = (byte) 128;
+		for (i = 0; i < n; i++) x[i] = m[b-n+i +moff];
+		x[n] = (byte) 128;
 
-		  n = 256-128*(n<112?1:0);
-		  x[n-9] = 0;
-		  ts64(x,n-8, b<<3);
-		  crypto_hashblocks_hl(hh, hl, x,0, n);
+		n = 256-128*(n<112?1:0);
+		x[n-9] = 0;
 
-		  long h;
-		  for (i = 0; i < 8; i++) {
-			  h = hh[i]; h <<= 32; h |= hl[i];
-			  ts64(out, 8*i, h);
-		  }
+		ts64(x, n-8,  b<<3 &0xffffffff/*(b / 0x20000000) | 0, b << 3*/);
 
-		  return 0;
+		crypto_hashblocks_hl(hh, hl, x,0, n);
+
+		for (i = 0; i < 8; i++) {
+			u = hh[i]; u <<= 32; u |= hl[i];
+			ts64(out, 8*i, u);
+		}
+
+		return 0;
 	}
 	public static int crypto_hash(byte [] out, byte [] m) {
 		return crypto_hash(out, m,0, m!=null? m.length : 0);
@@ -2925,11 +2957,10 @@ public final class TweetNaclFast {
 		scalarmult(p,q, s,soff);
 	}
 
-	public static int crypto_sign_keypair(byte [] pk, byte [] sk)
-	{
-		byte[] d = new byte[64];
+	public static int  crypto_sign_keypair(byte [] pk, byte [] sk, boolean seeded) {
+		byte [] d = new byte[64];
 		long [] [] p = new long [4] [];
-		
+
 		p[0] = new long [16];
 		p[1] = new long [16];
 		p[2] = new long [16];
@@ -2937,17 +2968,16 @@ public final class TweetNaclFast {
 
 		int i;
 
-		randombytes(sk, 32);
+		if (!seeded) randombytes(sk, 32);
 		crypto_hash(d, sk,0, 32);
 		d[0] &= 248;
 		d[31] &= 127;
 		d[31] |= 64;
 
 		scalarbase(p, d,0);
-		pack(pk,p);
+		pack(pk, p);
 
-		for (i = 0; i < 32; i ++) sk[32 + i] = pk[i];
-		
+		for (i = 0; i < 32; i++) sk[i+32] = pk[i];
 		return 0;
 	}
 
