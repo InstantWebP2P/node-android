@@ -7,6 +7,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
+import android.util.Log;
+
 
 /*
  * @description 
@@ -14,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * */
 public final class TweetNaclFast {
 
-	private final static String TAG = "TweetNacl";
+	private final static String TAG = "TweetNaclFast";
 
 	/*
 	 * @description 
@@ -41,7 +43,7 @@ public final class TweetNaclFast {
 			this.nonce = new AtomicLong(nonce);
 
 			// generate pre-computed shared key
-			before();
+			///before();
 		}
 
 		public void setNonce(long nonce) {
@@ -733,7 +735,7 @@ public final class TweetNaclFast {
 	static {
 		///for (int i = 0; i < gf0.length; i ++) gf0[i] = 0;
 
-		///for (int i = 0; i < gf1.length; i ++) gf1[i] = 0; 
+		///for (int i = 0; i < gf1.length; i ++)  gf1[i] = 0; 
 		gf1[0] = 1;
 
 		///for (int i = 0; i < _121665.length; i ++) _121665[i] = 0;
@@ -770,46 +772,6 @@ public final class TweetNaclFast {
 		0xd7a7, 0x3dfb, 0x0099, 0x2b4d, 
 		0xdf0b, 0x4fc1, 0x2480, 0x2b83
 	};
-
-	private static int L32(int x, int c)
-	{
-		return (x << c) | ((x&0xffffffff) >>> (32 - c));
-	}
-
-	private static int ld32(byte [] x, final int xoff)
-	{
-		int u = x[3+xoff];
-		u = (u<<8)|x[2+xoff];
-		u = (u<<8)|x[1+xoff];
-		return (u<<8)|x[0+xoff];
-	}
-
-	private static long dl64(byte [] x, final int xoff) {
-		///int i;
-		long u=0;
-		
-		///for (i = 0; i < 8; i ++) u=(u<<8)|x[i+xoff];
-		u=(u<<8)|x[0+xoff];
-		u=(u<<8)|x[1+xoff];
-		u=(u<<8)|x[2+xoff];
-		u=(u<<8)|x[3+xoff];
-		u=(u<<8)|x[4+xoff];
-		u=(u<<8)|x[5+xoff];
-		u=(u<<8)|x[6+xoff];
-		u=(u<<8)|x[7+xoff];
-		
-		return u;
-	}
-
-	private static void st32(byte [] x, final int xoff, int u)
-	{
-		///int i;
-		///for (i = 0; i < 4; i ++) { x[i+xoff] = (byte)(u&0xff); u >>>= 8; }
-		x[0+xoff] = (byte)(u&0xff); u >>>= 8;
-		x[1+xoff] = (byte)(u&0xff); u >>>= 8;
-		x[2+xoff] = (byte)(u&0xff); u >>>= 8;
-		x[3+xoff] = (byte)(u&0xff); u >>>= 8;
-	}
 
 	private static void ts64(byte [] x, final int xoff, long u)
 	{
@@ -858,378 +820,345 @@ public final class TweetNaclFast {
 		return crypto_verify_32(x,0, y,0);
 	}
 
-	private static void core(byte [] out, byte [] in, byte [] k, byte [] c, int h)
-	{
-		int [] w = new int[16], x = new int[16], y = new int[16], t = new int[4]; 
-		int i,j,m;
-
-		for (i = 0; i < 4; i ++) {
-			x[5*i]  = ld32(c,  4*i);
-			x[1+i]  = ld32(k,  4*i);
-			x[6+i]  = ld32(in, 4*i);
-			x[11+i] = ld32(k,  16+4*i);
-		}
-
-		for (i = 0; i < 16; i ++) y[i] = x[i];
-
-		for (i = 0; i < 20; i ++) {
-			for (j = 0; j < 4; j ++) {
-				for (m = 0; m < 4; m ++) t[m] = x[(5*j+4*m)%16];
-				t[1] ^= L32(t[0]+t[3], 7);
-				t[2] ^= L32(t[1]+t[0], 9);
-				t[3] ^= L32(t[2]+t[1],13);
-				t[0] ^= L32(t[3]+t[2],18);
-				for (m = 0; m < 4; m ++) w[4*j+(j+m)%4] = t[m];
-			}
-			for (m = 0; m < 16; m ++) x[m] = w[m];
-		}
-
-		if (h != 0) {
-			for (i = 0; i < 16; i ++) x[i] += y[i];
-			for (i = 0; i < 4; i ++) {
-				x[5*i] -= ld32(c, 4*i);
-				x[6+i] -= ld32(in, 4*i);
-			}
-			for (i = 0; i < 4; i ++) {
-				st32(out, 4*i, x[5*i]);
-				st32(out, 16+4*i, x[6+i]);
-			}
-		} else
-			for (i = 0; i < 16; i ++) st32(out,4*i, x[i] + y[i]);
-
-		///String dbgt = "";
-		///for (int dbg = 0; dbg < out.length; dbg ++) dbgt += " "+out[dbg];
-		///L/og.d(TAG, "core -> "+dbgt);
-	}
-
 	private static void core_salsa20(byte [] o, byte [] p, byte [] k, byte [] c) {
-	  int j0  = c[ 0] & 0xff | (c[ 1] & 0xff)<<8 | (c[ 2] & 0xff)<<16 | (c[ 3] & 0xff)<<24,
-	      j1  = k[ 0] & 0xff | (k[ 1] & 0xff)<<8 | (k[ 2] & 0xff)<<16 | (k[ 3] & 0xff)<<24,
-	      j2  = k[ 4] & 0xff | (k[ 5] & 0xff)<<8 | (k[ 6] & 0xff)<<16 | (k[ 7] & 0xff)<<24,
-	      j3  = k[ 8] & 0xff | (k[ 9] & 0xff)<<8 | (k[10] & 0xff)<<16 | (k[11] & 0xff)<<24,
-	      j4  = k[12] & 0xff | (k[13] & 0xff)<<8 | (k[14] & 0xff)<<16 | (k[15] & 0xff)<<24,
-	      j5  = c[ 4] & 0xff | (c[ 5] & 0xff)<<8 | (c[ 6] & 0xff)<<16 | (c[ 7] & 0xff)<<24,
-	      j6  = p[ 0] & 0xff | (p[ 1] & 0xff)<<8 | (p[ 2] & 0xff)<<16 | (p[ 3] & 0xff)<<24,
-	      j7  = p[ 4] & 0xff | (p[ 5] & 0xff)<<8 | (p[ 6] & 0xff)<<16 | (p[ 7] & 0xff)<<24,
-	      j8  = p[ 8] & 0xff | (p[ 9] & 0xff)<<8 | (p[10] & 0xff)<<16 | (p[11] & 0xff)<<24,
-	      j9  = p[12] & 0xff | (p[13] & 0xff)<<8 | (p[14] & 0xff)<<16 | (p[15] & 0xff)<<24,
-	      j10 = c[ 8] & 0xff | (c[ 9] & 0xff)<<8 | (c[10] & 0xff)<<16 | (c[11] & 0xff)<<24,
-	      j11 = k[16] & 0xff | (k[17] & 0xff)<<8 | (k[18] & 0xff)<<16 | (k[19] & 0xff)<<24,
-	      j12 = k[20] & 0xff | (k[21] & 0xff)<<8 | (k[22] & 0xff)<<16 | (k[23] & 0xff)<<24,
-	      j13 = k[24] & 0xff | (k[25] & 0xff)<<8 | (k[26] & 0xff)<<16 | (k[27] & 0xff)<<24,
-	      j14 = k[28] & 0xff | (k[29] & 0xff)<<8 | (k[30] & 0xff)<<16 | (k[31] & 0xff)<<24,
-	      j15 = c[12] & 0xff | (c[13] & 0xff)<<8 | (c[14] & 0xff)<<16 | (c[15] & 0xff)<<24;
+		int     j0  = c[ 0] & 0xff | (c[ 1] & 0xff)<<8 | (c[ 2] & 0xff)<<16 | (c[ 3] & 0xff)<<24,
+				j1  = k[ 0] & 0xff | (k[ 1] & 0xff)<<8 | (k[ 2] & 0xff)<<16 | (k[ 3] & 0xff)<<24,
+				j2  = k[ 4] & 0xff | (k[ 5] & 0xff)<<8 | (k[ 6] & 0xff)<<16 | (k[ 7] & 0xff)<<24,
+				j3  = k[ 8] & 0xff | (k[ 9] & 0xff)<<8 | (k[10] & 0xff)<<16 | (k[11] & 0xff)<<24,
+				j4  = k[12] & 0xff | (k[13] & 0xff)<<8 | (k[14] & 0xff)<<16 | (k[15] & 0xff)<<24,
+				j5  = c[ 4] & 0xff | (c[ 5] & 0xff)<<8 | (c[ 6] & 0xff)<<16 | (c[ 7] & 0xff)<<24,
+				j6  = p[ 0] & 0xff | (p[ 1] & 0xff)<<8 | (p[ 2] & 0xff)<<16 | (p[ 3] & 0xff)<<24,
+				j7  = p[ 4] & 0xff | (p[ 5] & 0xff)<<8 | (p[ 6] & 0xff)<<16 | (p[ 7] & 0xff)<<24,
+				j8  = p[ 8] & 0xff | (p[ 9] & 0xff)<<8 | (p[10] & 0xff)<<16 | (p[11] & 0xff)<<24,
+				j9  = p[12] & 0xff | (p[13] & 0xff)<<8 | (p[14] & 0xff)<<16 | (p[15] & 0xff)<<24,
+				j10 = c[ 8] & 0xff | (c[ 9] & 0xff)<<8 | (c[10] & 0xff)<<16 | (c[11] & 0xff)<<24,
+				j11 = k[16] & 0xff | (k[17] & 0xff)<<8 | (k[18] & 0xff)<<16 | (k[19] & 0xff)<<24,
+				j12 = k[20] & 0xff | (k[21] & 0xff)<<8 | (k[22] & 0xff)<<16 | (k[23] & 0xff)<<24,
+				j13 = k[24] & 0xff | (k[25] & 0xff)<<8 | (k[26] & 0xff)<<16 | (k[27] & 0xff)<<24,
+				j14 = k[28] & 0xff | (k[29] & 0xff)<<8 | (k[30] & 0xff)<<16 | (k[31] & 0xff)<<24,
+				j15 = c[12] & 0xff | (c[13] & 0xff)<<8 | (c[14] & 0xff)<<16 | (c[15] & 0xff)<<24;
 
-	  int x0 = j0, x1 = j1, x2 = j2, x3 = j3, x4 = j4, x5 = j5, x6 = j6, x7 = j7,
-	      x8 = j8, x9 = j9, x10 = j10, x11 = j11, x12 = j12, x13 = j13, x14 = j14,
-	      x15 = j15, u;
+		int     x0 = j0, x1 = j1, x2 = j2, x3 = j3, x4 = j4, x5 = j5, x6 = j6, x7 = j7,
+				x8 = j8, x9 = j9, x10 = j10, x11 = j11, x12 = j12, x13 = j13, x14 = j14,
+				x15 = j15, u;
 
-	  for (int i = 0; i < 20; i += 2) {
-	    u = x0 + x12 | 0;
-	    x4 ^= u<<7 | u>>>(32-7);
-	    u = x4 + x0 | 0;
-	    x8 ^= u<<9 | u>>>(32-9);
-	    u = x8 + x4 | 0;
-	    x12 ^= u<<13 | u>>>(32-13);
-	    u = x12 + x8 | 0;
-	    x0 ^= u<<18 | u>>>(32-18);
+		for (int i = 0; i < 20; i += 2) {
+			u = x0 + x12 | 0;
+			x4 ^= u<<7 | u>>>(32-7);
+			u = x4 + x0 | 0;
+			x8 ^= u<<9 | u>>>(32-9);
+			u = x8 + x4 | 0;
+			x12 ^= u<<13 | u>>>(32-13);
+			u = x12 + x8 | 0;
+			x0 ^= u<<18 | u>>>(32-18);
 
-	    u = x5 + x1 | 0;
-	    x9 ^= u<<7 | u>>>(32-7);
-	    u = x9 + x5 | 0;
-	    x13 ^= u<<9 | u>>>(32-9);
-	    u = x13 + x9 | 0;
-	    x1 ^= u<<13 | u>>>(32-13);
-	    u = x1 + x13 | 0;
-	    x5 ^= u<<18 | u>>>(32-18);
+			u = x5 + x1 | 0;
+			x9 ^= u<<7 | u>>>(32-7);
+			u = x9 + x5 | 0;
+			x13 ^= u<<9 | u>>>(32-9);
+			u = x13 + x9 | 0;
+			x1 ^= u<<13 | u>>>(32-13);
+			u = x1 + x13 | 0;
+			x5 ^= u<<18 | u>>>(32-18);
 
-	    u = x10 + x6 | 0;
-	    x14 ^= u<<7 | u>>>(32-7);
-	    u = x14 + x10 | 0;
-	    x2 ^= u<<9 | u>>>(32-9);
-	    u = x2 + x14 | 0;
-	    x6 ^= u<<13 | u>>>(32-13);
-	    u = x6 + x2 | 0;
-	    x10 ^= u<<18 | u>>>(32-18);
+			u = x10 + x6 | 0;
+			x14 ^= u<<7 | u>>>(32-7);
+			u = x14 + x10 | 0;
+			x2 ^= u<<9 | u>>>(32-9);
+			u = x2 + x14 | 0;
+			x6 ^= u<<13 | u>>>(32-13);
+			u = x6 + x2 | 0;
+			x10 ^= u<<18 | u>>>(32-18);
 
-	    u = x15 + x11 | 0;
-	    x3 ^= u<<7 | u>>>(32-7);
-	    u = x3 + x15 | 0;
-	    x7 ^= u<<9 | u>>>(32-9);
-	    u = x7 + x3 | 0;
-	    x11 ^= u<<13 | u>>>(32-13);
-	    u = x11 + x7 | 0;
-	    x15 ^= u<<18 | u>>>(32-18);
+			u = x15 + x11 | 0;
+			x3 ^= u<<7 | u>>>(32-7);
+			u = x3 + x15 | 0;
+			x7 ^= u<<9 | u>>>(32-9);
+			u = x7 + x3 | 0;
+			x11 ^= u<<13 | u>>>(32-13);
+			u = x11 + x7 | 0;
+			x15 ^= u<<18 | u>>>(32-18);
 
-	    u = x0 + x3 | 0;
-	    x1 ^= u<<7 | u>>>(32-7);
-	    u = x1 + x0 | 0;
-	    x2 ^= u<<9 | u>>>(32-9);
-	    u = x2 + x1 | 0;
-	    x3 ^= u<<13 | u>>>(32-13);
-	    u = x3 + x2 | 0;
-	    x0 ^= u<<18 | u>>>(32-18);
+			u = x0 + x3 | 0;
+			x1 ^= u<<7 | u>>>(32-7);
+			u = x1 + x0 | 0;
+			x2 ^= u<<9 | u>>>(32-9);
+			u = x2 + x1 | 0;
+			x3 ^= u<<13 | u>>>(32-13);
+			u = x3 + x2 | 0;
+			x0 ^= u<<18 | u>>>(32-18);
 
-	    u = x5 + x4 | 0;
-	    x6 ^= u<<7 | u>>>(32-7);
-	    u = x6 + x5 | 0;
-	    x7 ^= u<<9 | u>>>(32-9);
-	    u = x7 + x6 | 0;
-	    x4 ^= u<<13 | u>>>(32-13);
-	    u = x4 + x7 | 0;
-	    x5 ^= u<<18 | u>>>(32-18);
+			u = x5 + x4 | 0;
+			x6 ^= u<<7 | u>>>(32-7);
+			u = x6 + x5 | 0;
+			x7 ^= u<<9 | u>>>(32-9);
+			u = x7 + x6 | 0;
+			x4 ^= u<<13 | u>>>(32-13);
+			u = x4 + x7 | 0;
+			x5 ^= u<<18 | u>>>(32-18);
 
-	    u = x10 + x9 | 0;
-	    x11 ^= u<<7 | u>>>(32-7);
-	    u = x11 + x10 | 0;
-	    x8 ^= u<<9 | u>>>(32-9);
-	    u = x8 + x11 | 0;
-	    x9 ^= u<<13 | u>>>(32-13);
-	    u = x9 + x8 | 0;
-	    x10 ^= u<<18 | u>>>(32-18);
+			u = x10 + x9 | 0;
+			x11 ^= u<<7 | u>>>(32-7);
+			u = x11 + x10 | 0;
+			x8 ^= u<<9 | u>>>(32-9);
+			u = x8 + x11 | 0;
+			x9 ^= u<<13 | u>>>(32-13);
+			u = x9 + x8 | 0;
+			x10 ^= u<<18 | u>>>(32-18);
 
-	    u = x15 + x14 | 0;
-	    x12 ^= u<<7 | u>>>(32-7);
-	    u = x12 + x15 | 0;
-	    x13 ^= u<<9 | u>>>(32-9);
-	    u = x13 + x12 | 0;
-	    x14 ^= u<<13 | u>>>(32-13);
-	    u = x14 + x13 | 0;
-	    x15 ^= u<<18 | u>>>(32-18);
-	  }
-	   x0 =  x0 +  j0 | 0;
-	   x1 =  x1 +  j1 | 0;
-	   x2 =  x2 +  j2 | 0;
-	   x3 =  x3 +  j3 | 0;
-	   x4 =  x4 +  j4 | 0;
-	   x5 =  x5 +  j5 | 0;
-	   x6 =  x6 +  j6 | 0;
-	   x7 =  x7 +  j7 | 0;
-	   x8 =  x8 +  j8 | 0;
-	   x9 =  x9 +  j9 | 0;
-	  x10 = x10 + j10 | 0;
-	  x11 = x11 + j11 | 0;
-	  x12 = x12 + j12 | 0;
-	  x13 = x13 + j13 | 0;
-	  x14 = x14 + j14 | 0;
-	  x15 = x15 + j15 | 0;
+			u = x15 + x14 | 0;
+			x12 ^= u<<7 | u>>>(32-7);
+			u = x12 + x15 | 0;
+			x13 ^= u<<9 | u>>>(32-9);
+			u = x13 + x12 | 0;
+			x14 ^= u<<13 | u>>>(32-13);
+			u = x14 + x13 | 0;
+			x15 ^= u<<18 | u>>>(32-18);
+		}
+		x0 =  x0 +  j0 | 0;
+		x1 =  x1 +  j1 | 0;
+		x2 =  x2 +  j2 | 0;
+		x3 =  x3 +  j3 | 0;
+		x4 =  x4 +  j4 | 0;
+		x5 =  x5 +  j5 | 0;
+		x6 =  x6 +  j6 | 0;
+		x7 =  x7 +  j7 | 0;
+		x8 =  x8 +  j8 | 0;
+		x9 =  x9 +  j9 | 0;
+		x10 = x10 + j10 | 0;
+		x11 = x11 + j11 | 0;
+		x12 = x12 + j12 | 0;
+		x13 = x13 + j13 | 0;
+		x14 = x14 + j14 | 0;
+		x15 = x15 + j15 | 0;
 
-	  o[ 0] = (byte) (x0 >>>  0 & 0xff);
-	  o[ 1] = (byte) (x0 >>>  8 & 0xff);
-	  o[ 2] = (byte) (x0 >>> 16 & 0xff);
-	  o[ 3] = (byte) (x0 >>> 24 & 0xff);
+		o[ 0] = (byte) (x0 >>>  0 & 0xff);
+		o[ 1] = (byte) (x0 >>>  8 & 0xff);
+		o[ 2] = (byte) (x0 >>> 16 & 0xff);
+		o[ 3] = (byte) (x0 >>> 24 & 0xff);
 
-	  o[ 4] = (byte) (x1 >>>  0 & 0xff);
-	  o[ 5] = (byte) (x1 >>>  8 & 0xff);
-	  o[ 6] = (byte) (x1 >>> 16 & 0xff);
-	  o[ 7] = (byte) (x1 >>> 24 & 0xff);
+		o[ 4] = (byte) (x1 >>>  0 & 0xff);
+		o[ 5] = (byte) (x1 >>>  8 & 0xff);
+		o[ 6] = (byte) (x1 >>> 16 & 0xff);
+		o[ 7] = (byte) (x1 >>> 24 & 0xff);
 
-	  o[ 8] = (byte) (x2 >>>  0 & 0xff);
-	  o[ 9] = (byte) (x2 >>>  8 & 0xff);
-	  o[10] = (byte) (x2 >>> 16 & 0xff);
-	  o[11] = (byte) (x2 >>> 24 & 0xff);
+		o[ 8] = (byte) (x2 >>>  0 & 0xff);
+		o[ 9] = (byte) (x2 >>>  8 & 0xff);
+		o[10] = (byte) (x2 >>> 16 & 0xff);
+		o[11] = (byte) (x2 >>> 24 & 0xff);
 
-	  o[12] = (byte) (x3 >>>  0 & 0xff);
-	  o[13] = (byte) (x3 >>>  8 & 0xff);
-	  o[14] = (byte) (x3 >>> 16 & 0xff);
-	  o[15] = (byte) (x3 >>> 24 & 0xff);
+		o[12] = (byte) (x3 >>>  0 & 0xff);
+		o[13] = (byte) (x3 >>>  8 & 0xff);
+		o[14] = (byte) (x3 >>> 16 & 0xff);
+		o[15] = (byte) (x3 >>> 24 & 0xff);
 
-	  o[16] = (byte) (x4 >>>  0 & 0xff);
-	  o[17] = (byte) (x4 >>>  8 & 0xff);
-	  o[18] = (byte) (x4 >>> 16 & 0xff);
-	  o[19] = (byte) (x4 >>> 24 & 0xff);
+		o[16] = (byte) (x4 >>>  0 & 0xff);
+		o[17] = (byte) (x4 >>>  8 & 0xff);
+		o[18] = (byte) (x4 >>> 16 & 0xff);
+		o[19] = (byte) (x4 >>> 24 & 0xff);
 
-	  o[20] = (byte) (x5 >>>  0 & 0xff);
-	  o[21] = (byte) (x5 >>>  8 & 0xff);
-	  o[22] = (byte) (x5 >>> 16 & 0xff);
-	  o[23] = (byte) (x5 >>> 24 & 0xff);
+		o[20] = (byte) (x5 >>>  0 & 0xff);
+		o[21] = (byte) (x5 >>>  8 & 0xff);
+		o[22] = (byte) (x5 >>> 16 & 0xff);
+		o[23] = (byte) (x5 >>> 24 & 0xff);
 
-	  o[24] = (byte) (x6 >>>  0 & 0xff);
-	  o[25] = (byte) (x6 >>>  8 & 0xff);
-	  o[26] = (byte) (x6 >>> 16 & 0xff);
-	  o[27] = (byte) (x6 >>> 24 & 0xff);
+		o[24] = (byte) (x6 >>>  0 & 0xff);
+		o[25] = (byte) (x6 >>>  8 & 0xff);
+		o[26] = (byte) (x6 >>> 16 & 0xff);
+		o[27] = (byte) (x6 >>> 24 & 0xff);
 
-	  o[28] = (byte) (x7 >>>  0 & 0xff);
-	  o[29] = (byte) (x7 >>>  8 & 0xff);
-	  o[30] = (byte) (x7 >>> 16 & 0xff);
-	  o[31] = (byte) (x7 >>> 24 & 0xff);
+		o[28] = (byte) (x7 >>>  0 & 0xff);
+		o[29] = (byte) (x7 >>>  8 & 0xff);
+		o[30] = (byte) (x7 >>> 16 & 0xff);
+		o[31] = (byte) (x7 >>> 24 & 0xff);
 
-	  o[32] = (byte) (x8 >>>  0 & 0xff);
-	  o[33] = (byte) (x8 >>>  8 & 0xff);
-	  o[34] = (byte) (x8 >>> 16 & 0xff);
-	  o[35] = (byte) (x8 >>> 24 & 0xff);
+		o[32] = (byte) (x8 >>>  0 & 0xff);
+		o[33] = (byte) (x8 >>>  8 & 0xff);
+		o[34] = (byte) (x8 >>> 16 & 0xff);
+		o[35] = (byte) (x8 >>> 24 & 0xff);
 
-	  o[36] = (byte) (x9 >>>  0 & 0xff);
-	  o[37] = (byte) (x9 >>>  8 & 0xff);
-	  o[38] = (byte) (x9 >>> 16 & 0xff);
-	  o[39] = (byte) (x9 >>> 24 & 0xff);
+		o[36] = (byte) (x9 >>>  0 & 0xff);
+		o[37] = (byte) (x9 >>>  8 & 0xff);
+		o[38] = (byte) (x9 >>> 16 & 0xff);
+		o[39] = (byte) (x9 >>> 24 & 0xff);
 
-	  o[40] = (byte) (x10 >>>  0 & 0xff);
-	  o[41] = (byte) (x10 >>>  8 & 0xff);
-	  o[42] = (byte) (x10 >>> 16 & 0xff);
-	  o[43] = (byte) (x10 >>> 24 & 0xff);
+		o[40] = (byte) (x10 >>>  0 & 0xff);
+		o[41] = (byte) (x10 >>>  8 & 0xff);
+		o[42] = (byte) (x10 >>> 16 & 0xff);
+		o[43] = (byte) (x10 >>> 24 & 0xff);
 
-	  o[44] = (byte) (x11 >>>  0 & 0xff);
-	  o[45] = (byte) (x11 >>>  8 & 0xff);
-	  o[46] = (byte) (x11 >>> 16 & 0xff);
-	  o[47] = (byte) (x11 >>> 24 & 0xff);
+		o[44] = (byte) (x11 >>>  0 & 0xff);
+		o[45] = (byte) (x11 >>>  8 & 0xff);
+		o[46] = (byte) (x11 >>> 16 & 0xff);
+		o[47] = (byte) (x11 >>> 24 & 0xff);
 
-	  o[48] = (byte) (x12 >>>  0 & 0xff);
-	  o[49] = (byte) (x12 >>>  8 & 0xff);
-	  o[50] = (byte) (x12 >>> 16 & 0xff);
-	  o[51] = (byte) (x12 >>> 24 & 0xff);
+		o[48] = (byte) (x12 >>>  0 & 0xff);
+		o[49] = (byte) (x12 >>>  8 & 0xff);
+		o[50] = (byte) (x12 >>> 16 & 0xff);
+		o[51] = (byte) (x12 >>> 24 & 0xff);
 
-	  o[52] = (byte) (x13 >>>  0 & 0xff);
-	  o[53] = (byte) (x13 >>>  8 & 0xff);
-	  o[54] = (byte) (x13 >>> 16 & 0xff);
-	  o[55] = (byte) (x13 >>> 24 & 0xff);
+		o[52] = (byte) (x13 >>>  0 & 0xff);
+		o[53] = (byte) (x13 >>>  8 & 0xff);
+		o[54] = (byte) (x13 >>> 16 & 0xff);
+		o[55] = (byte) (x13 >>> 24 & 0xff);
 
-	  o[56] = (byte) (x14 >>>  0 & 0xff);
-	  o[57] = (byte) (x14 >>>  8 & 0xff);
-	  o[58] = (byte) (x14 >>> 16 & 0xff);
-	  o[59] = (byte) (x14 >>> 24 & 0xff);
+		o[56] = (byte) (x14 >>>  0 & 0xff);
+		o[57] = (byte) (x14 >>>  8 & 0xff);
+		o[58] = (byte) (x14 >>> 16 & 0xff);
+		o[59] = (byte) (x14 >>> 24 & 0xff);
 
-	  o[60] = (byte) (x15 >>>  0 & 0xff);
-	  o[61] = (byte) (x15 >>>  8 & 0xff);
-	  o[62] = (byte) (x15 >>> 16 & 0xff);
-	  o[63] = (byte) (x15 >>> 24 & 0xff);
+		o[60] = (byte) (x15 >>>  0 & 0xff);
+		o[61] = (byte) (x15 >>>  8 & 0xff);
+		o[62] = (byte) (x15 >>> 16 & 0xff);
+		o[63] = (byte) (x15 >>> 24 & 0xff);
+		
+		/*String dbgt = "";
+		for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o[dbg];
+		Log.d(TAG, "core_salsa20 -> "+dbgt);
+*/
 	}
 
 	private static void core_hsalsa20(byte [] o, byte [] p, byte [] k, byte [] c) {
-	  int j0  = c[ 0] & 0xff | (c[ 1] & 0xff)<<8 | (c[ 2] & 0xff)<<16 | (c[ 3] & 0xff)<<24,
-	      j1  = k[ 0] & 0xff | (k[ 1] & 0xff)<<8 | (k[ 2] & 0xff)<<16 | (k[ 3] & 0xff)<<24,
-	      j2  = k[ 4] & 0xff | (k[ 5] & 0xff)<<8 | (k[ 6] & 0xff)<<16 | (k[ 7] & 0xff)<<24,
-	      j3  = k[ 8] & 0xff | (k[ 9] & 0xff)<<8 | (k[10] & 0xff)<<16 | (k[11] & 0xff)<<24,
-	      j4  = k[12] & 0xff | (k[13] & 0xff)<<8 | (k[14] & 0xff)<<16 | (k[15] & 0xff)<<24,
-	      j5  = c[ 4] & 0xff | (c[ 5] & 0xff)<<8 | (c[ 6] & 0xff)<<16 | (c[ 7] & 0xff)<<24,
-	      j6  = p[ 0] & 0xff | (p[ 1] & 0xff)<<8 | (p[ 2] & 0xff)<<16 | (p[ 3] & 0xff)<<24,
-	      j7  = p[ 4] & 0xff | (p[ 5] & 0xff)<<8 | (p[ 6] & 0xff)<<16 | (p[ 7] & 0xff)<<24,
-	      j8  = p[ 8] & 0xff | (p[ 9] & 0xff)<<8 | (p[10] & 0xff)<<16 | (p[11] & 0xff)<<24,
-	      j9  = p[12] & 0xff | (p[13] & 0xff)<<8 | (p[14] & 0xff)<<16 | (p[15] & 0xff)<<24,
-	      j10 = c[ 8] & 0xff | (c[ 9] & 0xff)<<8 | (c[10] & 0xff)<<16 | (c[11] & 0xff)<<24,
-	      j11 = k[16] & 0xff | (k[17] & 0xff)<<8 | (k[18] & 0xff)<<16 | (k[19] & 0xff)<<24,
-	      j12 = k[20] & 0xff | (k[21] & 0xff)<<8 | (k[22] & 0xff)<<16 | (k[23] & 0xff)<<24,
-	      j13 = k[24] & 0xff | (k[25] & 0xff)<<8 | (k[26] & 0xff)<<16 | (k[27] & 0xff)<<24,
-	      j14 = k[28] & 0xff | (k[29] & 0xff)<<8 | (k[30] & 0xff)<<16 | (k[31] & 0xff)<<24,
-	      j15 = c[12] & 0xff | (c[13] & 0xff)<<8 | (c[14] & 0xff)<<16 | (c[15] & 0xff)<<24;
+		int     j0  = c[ 0] & 0xff | (c[ 1] & 0xff)<<8 | (c[ 2] & 0xff)<<16 | (c[ 3] & 0xff)<<24,
+				j1  = k[ 0] & 0xff | (k[ 1] & 0xff)<<8 | (k[ 2] & 0xff)<<16 | (k[ 3] & 0xff)<<24,
+				j2  = k[ 4] & 0xff | (k[ 5] & 0xff)<<8 | (k[ 6] & 0xff)<<16 | (k[ 7] & 0xff)<<24,
+				j3  = k[ 8] & 0xff | (k[ 9] & 0xff)<<8 | (k[10] & 0xff)<<16 | (k[11] & 0xff)<<24,
+				j4  = k[12] & 0xff | (k[13] & 0xff)<<8 | (k[14] & 0xff)<<16 | (k[15] & 0xff)<<24,
+				j5  = c[ 4] & 0xff | (c[ 5] & 0xff)<<8 | (c[ 6] & 0xff)<<16 | (c[ 7] & 0xff)<<24,
+				j6  = p[ 0] & 0xff | (p[ 1] & 0xff)<<8 | (p[ 2] & 0xff)<<16 | (p[ 3] & 0xff)<<24,
+				j7  = p[ 4] & 0xff | (p[ 5] & 0xff)<<8 | (p[ 6] & 0xff)<<16 | (p[ 7] & 0xff)<<24,
+				j8  = p[ 8] & 0xff | (p[ 9] & 0xff)<<8 | (p[10] & 0xff)<<16 | (p[11] & 0xff)<<24,
+				j9  = p[12] & 0xff | (p[13] & 0xff)<<8 | (p[14] & 0xff)<<16 | (p[15] & 0xff)<<24,
+				j10 = c[ 8] & 0xff | (c[ 9] & 0xff)<<8 | (c[10] & 0xff)<<16 | (c[11] & 0xff)<<24,
+				j11 = k[16] & 0xff | (k[17] & 0xff)<<8 | (k[18] & 0xff)<<16 | (k[19] & 0xff)<<24,
+				j12 = k[20] & 0xff | (k[21] & 0xff)<<8 | (k[22] & 0xff)<<16 | (k[23] & 0xff)<<24,
+				j13 = k[24] & 0xff | (k[25] & 0xff)<<8 | (k[26] & 0xff)<<16 | (k[27] & 0xff)<<24,
+				j14 = k[28] & 0xff | (k[29] & 0xff)<<8 | (k[30] & 0xff)<<16 | (k[31] & 0xff)<<24,
+				j15 = c[12] & 0xff | (c[13] & 0xff)<<8 | (c[14] & 0xff)<<16 | (c[15] & 0xff)<<24;
 
-	  int x0 = j0, x1 = j1, x2 = j2, x3 = j3, x4 = j4, x5 = j5, x6 = j6, x7 = j7,
-	      x8 = j8, x9 = j9, x10 = j10, x11 = j11, x12 = j12, x13 = j13, x14 = j14,
-	      x15 = j15, u;
+		int     x0 = j0, x1 = j1, x2 = j2, x3 = j3, x4 = j4, x5 = j5, x6 = j6, x7 = j7,
+				x8 = j8, x9 = j9, x10 = j10, x11 = j11, x12 = j12, x13 = j13, x14 = j14,
+				x15 = j15, u;
 
-	  for (int i = 0; i < 20; i += 2) {
-	    u = x0 + x12 | 0;
-	    x4 ^= u<<7 | u>>>(32-7);
-	    u = x4 + x0 | 0;
-	    x8 ^= u<<9 | u>>>(32-9);
-	    u = x8 + x4 | 0;
-	    x12 ^= u<<13 | u>>>(32-13);
-	    u = x12 + x8 | 0;
-	    x0 ^= u<<18 | u>>>(32-18);
+		for (int i = 0; i < 20; i += 2) {
+			u = x0 + x12 | 0;
+			x4 ^= u<<7 | u>>>(32-7);
+			u = x4 + x0 | 0;
+			x8 ^= u<<9 | u>>>(32-9);
+			u = x8 + x4 | 0;
+			x12 ^= u<<13 | u>>>(32-13);
+			u = x12 + x8 | 0;
+			x0 ^= u<<18 | u>>>(32-18);
 
-	    u = x5 + x1 | 0;
-	    x9 ^= u<<7 | u>>>(32-7);
-	    u = x9 + x5 | 0;
-	    x13 ^= u<<9 | u>>>(32-9);
-	    u = x13 + x9 | 0;
-	    x1 ^= u<<13 | u>>>(32-13);
-	    u = x1 + x13 | 0;
-	    x5 ^= u<<18 | u>>>(32-18);
+			u = x5 + x1 | 0;
+			x9 ^= u<<7 | u>>>(32-7);
+			u = x9 + x5 | 0;
+			x13 ^= u<<9 | u>>>(32-9);
+			u = x13 + x9 | 0;
+			x1 ^= u<<13 | u>>>(32-13);
+			u = x1 + x13 | 0;
+			x5 ^= u<<18 | u>>>(32-18);
 
-	    u = x10 + x6 | 0;
-	    x14 ^= u<<7 | u>>>(32-7);
-	    u = x14 + x10 | 0;
-	    x2 ^= u<<9 | u>>>(32-9);
-	    u = x2 + x14 | 0;
-	    x6 ^= u<<13 | u>>>(32-13);
-	    u = x6 + x2 | 0;
-	    x10 ^= u<<18 | u>>>(32-18);
+			u = x10 + x6 | 0;
+			x14 ^= u<<7 | u>>>(32-7);
+			u = x14 + x10 | 0;
+			x2 ^= u<<9 | u>>>(32-9);
+			u = x2 + x14 | 0;
+			x6 ^= u<<13 | u>>>(32-13);
+			u = x6 + x2 | 0;
+			x10 ^= u<<18 | u>>>(32-18);
 
-	    u = x15 + x11 | 0;
-	    x3 ^= u<<7 | u>>>(32-7);
-	    u = x3 + x15 | 0;
-	    x7 ^= u<<9 | u>>>(32-9);
-	    u = x7 + x3 | 0;
-	    x11 ^= u<<13 | u>>>(32-13);
-	    u = x11 + x7 | 0;
-	    x15 ^= u<<18 | u>>>(32-18);
+			u = x15 + x11 | 0;
+			x3 ^= u<<7 | u>>>(32-7);
+			u = x3 + x15 | 0;
+			x7 ^= u<<9 | u>>>(32-9);
+			u = x7 + x3 | 0;
+			x11 ^= u<<13 | u>>>(32-13);
+			u = x11 + x7 | 0;
+			x15 ^= u<<18 | u>>>(32-18);
 
-	    u = x0 + x3 | 0;
-	    x1 ^= u<<7 | u>>>(32-7);
-	    u = x1 + x0 | 0;
-	    x2 ^= u<<9 | u>>>(32-9);
-	    u = x2 + x1 | 0;
-	    x3 ^= u<<13 | u>>>(32-13);
-	    u = x3 + x2 | 0;
-	    x0 ^= u<<18 | u>>>(32-18);
+			u = x0 + x3 | 0;
+			x1 ^= u<<7 | u>>>(32-7);
+			u = x1 + x0 | 0;
+			x2 ^= u<<9 | u>>>(32-9);
+			u = x2 + x1 | 0;
+			x3 ^= u<<13 | u>>>(32-13);
+			u = x3 + x2 | 0;
+			x0 ^= u<<18 | u>>>(32-18);
 
-	    u = x5 + x4 | 0;
-	    x6 ^= u<<7 | u>>>(32-7);
-	    u = x6 + x5 | 0;
-	    x7 ^= u<<9 | u>>>(32-9);
-	    u = x7 + x6 | 0;
-	    x4 ^= u<<13 | u>>>(32-13);
-	    u = x4 + x7 | 0;
-	    x5 ^= u<<18 | u>>>(32-18);
+			u = x5 + x4 | 0;
+			x6 ^= u<<7 | u>>>(32-7);
+			u = x6 + x5 | 0;
+			x7 ^= u<<9 | u>>>(32-9);
+			u = x7 + x6 | 0;
+			x4 ^= u<<13 | u>>>(32-13);
+			u = x4 + x7 | 0;
+			x5 ^= u<<18 | u>>>(32-18);
 
-	    u = x10 + x9 | 0;
-	    x11 ^= u<<7 | u>>>(32-7);
-	    u = x11 + x10 | 0;
-	    x8 ^= u<<9 | u>>>(32-9);
-	    u = x8 + x11 | 0;
-	    x9 ^= u<<13 | u>>>(32-13);
-	    u = x9 + x8 | 0;
-	    x10 ^= u<<18 | u>>>(32-18);
+			u = x10 + x9 | 0;
+			x11 ^= u<<7 | u>>>(32-7);
+			u = x11 + x10 | 0;
+			x8 ^= u<<9 | u>>>(32-9);
+			u = x8 + x11 | 0;
+			x9 ^= u<<13 | u>>>(32-13);
+			u = x9 + x8 | 0;
+			x10 ^= u<<18 | u>>>(32-18);
 
-	    u = x15 + x14 | 0;
-	    x12 ^= u<<7 | u>>>(32-7);
-	    u = x12 + x15 | 0;
-	    x13 ^= u<<9 | u>>>(32-9);
-	    u = x13 + x12 | 0;
-	    x14 ^= u<<13 | u>>>(32-13);
-	    u = x14 + x13 | 0;
-	    x15 ^= u<<18 | u>>>(32-18);
-	  }
+			u = x15 + x14 | 0;
+			x12 ^= u<<7 | u>>>(32-7);
+			u = x12 + x15 | 0;
+			x13 ^= u<<9 | u>>>(32-9);
+			u = x13 + x12 | 0;
+			x14 ^= u<<13 | u>>>(32-13);
+			u = x14 + x13 | 0;
+			x15 ^= u<<18 | u>>>(32-18);
+		}
 
-	  o[ 0] = (byte) (x0 >>>  0 & 0xff);
-	  o[ 1] = (byte) (x0 >>>  8 & 0xff);
-	  o[ 2] = (byte) (x0 >>> 16 & 0xff);
-	  o[ 3] = (byte) (x0 >>> 24 & 0xff);
+		o[ 0] = (byte) (x0 >>>  0 & 0xff);
+		o[ 1] = (byte) (x0 >>>  8 & 0xff);
+		o[ 2] = (byte) (x0 >>> 16 & 0xff);
+		o[ 3] = (byte) (x0 >>> 24 & 0xff);
 
-	  o[ 4] = (byte) (x5 >>>  0 & 0xff);
-	  o[ 5] = (byte) (x5 >>>  8 & 0xff);
-	  o[ 6] = (byte) (x5 >>> 16 & 0xff);
-	  o[ 7] = (byte) (x5 >>> 24 & 0xff);
+		o[ 4] = (byte) (x5 >>>  0 & 0xff);
+		o[ 5] = (byte) (x5 >>>  8 & 0xff);
+		o[ 6] = (byte) (x5 >>> 16 & 0xff);
+		o[ 7] = (byte) (x5 >>> 24 & 0xff);
 
-	  o[ 8] = (byte) (x10 >>>  0 & 0xff);
-	  o[ 9] = (byte) (x10 >>>  8 & 0xff);
-	  o[10] = (byte) (x10 >>> 16 & 0xff);
-	  o[11] = (byte) (x10 >>> 24 & 0xff);
+		o[ 8] = (byte) (x10 >>>  0 & 0xff);
+		o[ 9] = (byte) (x10 >>>  8 & 0xff);
+		o[10] = (byte) (x10 >>> 16 & 0xff);
+		o[11] = (byte) (x10 >>> 24 & 0xff);
 
-	  o[12] = (byte) (x15 >>>  0 & 0xff);
-	  o[13] = (byte) (x15 >>>  8 & 0xff);
-	  o[14] = (byte) (x15 >>> 16 & 0xff);
-	  o[15] = (byte) (x15 >>> 24 & 0xff);
+		o[12] = (byte) (x15 >>>  0 & 0xff);
+		o[13] = (byte) (x15 >>>  8 & 0xff);
+		o[14] = (byte) (x15 >>> 16 & 0xff);
+		o[15] = (byte) (x15 >>> 24 & 0xff);
 
-	  o[16] = (byte) (x6 >>>  0 & 0xff);
-	  o[17] = (byte) (x6 >>>  8 & 0xff);
-	  o[18] = (byte) (x6 >>> 16 & 0xff);
-	  o[19] = (byte) (x6 >>> 24 & 0xff);
+		o[16] = (byte) (x6 >>>  0 & 0xff);
+		o[17] = (byte) (x6 >>>  8 & 0xff);
+		o[18] = (byte) (x6 >>> 16 & 0xff);
+		o[19] = (byte) (x6 >>> 24 & 0xff);
 
-	  o[20] = (byte) (x7 >>>  0 & 0xff);
-	  o[21] = (byte) (x7 >>>  8 & 0xff);
-	  o[22] = (byte) (x7 >>> 16 & 0xff);
-	  o[23] = (byte) (x7 >>> 24 & 0xff);
+		o[20] = (byte) (x7 >>>  0 & 0xff);
+		o[21] = (byte) (x7 >>>  8 & 0xff);
+		o[22] = (byte) (x7 >>> 16 & 0xff);
+		o[23] = (byte) (x7 >>> 24 & 0xff);
 
-	  o[24] = (byte) (x8 >>>  0 & 0xff);
-	  o[25] = (byte) (x8 >>>  8 & 0xff);
-	  o[26] = (byte) (x8 >>> 16 & 0xff);
-	  o[27] = (byte) (x8 >>> 24 & 0xff);
+		o[24] = (byte) (x8 >>>  0 & 0xff);
+		o[25] = (byte) (x8 >>>  8 & 0xff);
+		o[26] = (byte) (x8 >>> 16 & 0xff);
+		o[27] = (byte) (x8 >>> 24 & 0xff);
 
-	  o[28] = (byte) (x9 >>>  0 & 0xff);
-	  o[29] = (byte) (x9 >>>  8 & 0xff);
-	  o[30] = (byte) (x9 >>> 16 & 0xff);
-	  o[31] = (byte) (x9 >>> 24 & 0xff);
+		o[28] = (byte) (x9 >>>  0 & 0xff);
+		o[29] = (byte) (x9 >>>  8 & 0xff);
+		o[30] = (byte) (x9 >>> 16 & 0xff);
+		o[31] = (byte) (x9 >>> 24 & 0xff);
+
+
+		/*String dbgt = "";
+		for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o[dbg];
+		Log.d(TAG, "core_hsalsa20 -> "+dbgt);
+*/
 	}
 
 	public static int crypto_core_salsa20(byte [] out, byte [] in, byte [] k, byte [] c)
@@ -1257,7 +1186,7 @@ public final class TweetNaclFast {
 	}
 	
     // "expand 32-byte k"
-	private static final byte[] sigma = { 101, 120, 112, 97, 110, 100, 32, 51, 50, 45, 98, 121, 116, 101, 32, 107 };
+	private static final byte[] sigma = {101, 120, 112, 97, 110, 100, 32, 51, 50, 45, 98, 121, 116, 101, 32, 107};
 	
 	/*static {
 		try {
@@ -1268,62 +1197,92 @@ public final class TweetNaclFast {
 		}
 	}*/
 
-	private static int crypto_stream_salsa20_xor(byte [] c, byte [] m, long b, byte [] n,final int noff, byte [] k)
+	private static int crypto_stream_salsa20_xor(byte [] c,int cpos, byte [] m,int mpos, long b, byte [] n, byte [] k)
 	{
-		byte[] z = new byte[16], x = new byte[64];
-		int u,i;
-		if (0==b) return 0;
-
-		for (i = 0; i < 16; i ++) z[i] = 0;
-		for (i = 0; i < 8; i ++) z[i] = n[i+noff];
-
-		int coffset = 0;
-		int moffset = 0;
+		byte [] z = new byte[16], x = new byte[64];
+		int u, i;
+		for (i = 0; i < 16; i++) z[i] = 0;
+		for (i = 0; i < 8; i++) z[i] = n[i];
 		while (b >= 64) {
 			crypto_core_salsa20(x,z,k,sigma);
-			for (i = 0; i < 64; i ++) c[i+coffset] = (byte) (((m!=null?m[i+moffset]:0) ^ x[i]) & 0xff);
+			for (i = 0; i < 64; i++) c[cpos+i] = (byte) ((m[mpos+i] ^ x[i]) & 0xff);
 			u = 1;
-			for (i = 8;i < 16;++i) {
-				u += (int) (z[i]&0xff);
-				z[i] = (byte) (u&0xff);
+			for (i = 8; i < 16; i++) {
+				u = u + (z[i] & 0xff) | 0;
+				z[i] = (byte) (u & 0xff);
 				u >>>= 8;
 			}
 			b -= 64;
-			coffset += 64;
-			if (m!=null) moffset += 64;
+			cpos += 64;
+			mpos += 64;
 		}
-		if (b!=0) {
+		if (b > 0) {
 			crypto_core_salsa20(x,z,k,sigma);
-			for (i = 0; i < b; i ++) c[i+coffset] = (byte) (((m!=null?m[i+moffset]:0) ^ x[i]) & 0xff);
+			for (i = 0; i < b; i++) c[cpos+i] = (byte) ((m[mpos+i] ^ x[i]) & 0xff);
 		}
+		
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < c.length-cpos; dbg ++) dbgt += " "+c[dbg +cpos];
+		///Log.d(TAG, "crypto_stream_salsa20_xor, c -> "+dbgt);
+		
 		return 0;
 	}
-	public static int crypto_stream_salsa20_xor(byte [] c, byte [] m, long b, byte [] n, byte [] k) {
-		return crypto_stream_salsa20_xor(c, m, b, n,0, k);
+
+	public static int crypto_stream_salsa20(byte [] c,int cpos, long b, byte [] n, byte [] k) {
+		byte [] z = new byte[16], x = new byte[64];
+		int u, i;
+		for (i = 0; i < 16; i++) z[i] = 0;
+		for (i = 0; i < 8; i++) z[i] = n[i];
+		while (b >= 64) {
+			crypto_core_salsa20(x,z,k,sigma);
+			for (i = 0; i < 64; i++) c[cpos+i] = x[i];
+			u = 1;
+			for (i = 8; i < 16; i++) {
+				u = u + (z[i] & 0xff) | 0;
+				z[i] = (byte) (u & 0xff);
+				u >>>= 8;
+			}
+			b -= 64;
+			cpos += 64;
+		}
+		if (b > 0) {
+			crypto_core_salsa20(x,z,k,sigma);
+			for (i = 0; i < b; i++) c[cpos+i] = x[i];
+		}
+
+		///String dbgt = "";
+		///for (int dbg = 0; dbg < c.length-cpos; dbg ++) dbgt += " "+c[dbg +cpos];
+		///Log.d(TAG, "crypto_stream_salsa20, c -> "+dbgt);
+		
+		return 0;
 	}
 
-	private static int crypto_stream_salsa20(byte [] c, long d, byte [] n,final int noff, byte [] k)
-	{
-		return crypto_stream_salsa20_xor(c,null,d, n,noff, k);
-	}
-	public static int crypto_stream_salsa20(byte [] c, long d, byte [] n, byte [] k) {
-		return crypto_stream_salsa20(c, d, n,0, k);
-	}
-
-	public static int crypto_stream(byte [] c, long d, byte [] n, byte [] k)
-	{
-		byte[] s = new byte[32];
+	public static int  crypto_stream(byte [] c,int cpos, long d, byte [] n, byte [] k) {
+		byte [] s = new byte[32];
 		crypto_core_hsalsa20(s,n,k,sigma);
-		return crypto_stream_salsa20(c,d, n,16, s);
+		byte [] sn = new byte[8];
+		for (int i = 0; i < 8; i++) sn[i] = n[i+16];
+		return crypto_stream_salsa20(c,cpos,d,sn,s);
 	}
 
-	public static int crypto_stream_xor(byte []c,byte []m,long d,byte []n,byte []k)
-	{
-		byte[] s = new byte[32];
+	public static int crypto_stream_xor(byte [] c,int cpos, byte [] m,int mpos, long d, byte [] n, byte [] k) {
+		byte [] s = new byte[32];
+		
+		/*String dbgt = "";
+		for (int dbg = 0; dbg < n.length; dbg ++) dbgt += " "+n[dbg];
+		Log.d(TAG, "crypto_stream_xor, nonce -> "+dbgt);
+		
+		dbgt = "";
+		for (int dbg = 0; dbg < k.length; dbg ++) dbgt += " "+k[dbg];
+		Log.d(TAG, "crypto_stream_xor, shk -> "+dbgt);
+		*/
+		
 		crypto_core_hsalsa20(s,n,k,sigma);
-		return crypto_stream_salsa20_xor(c,m,d, n,16, s);
+		byte [] sn = new byte[8];
+		for (int i = 0; i < 8; i++) sn[i] = n[i+16];
+		return crypto_stream_salsa20_xor(c,cpos,m,mpos,d,sn,s);
 	}
-
+	
 	/*
 	* Port of Andrew Moon's Poly1305-donna-16. Public domain.
 	* https://github.com/floodyberry/poly1305-donna
@@ -1331,82 +1290,80 @@ public final class TweetNaclFast {
 	public static class poly1305 {
 
 		private byte[] buffer;
-		private short[] r;
-		private short[] h;
-		private short[] pad;
+		private int[] r;
+		private int[] h;
+		private int[] pad;
 		private int leftover;
 		private int fin;
 
 		public poly1305(byte [] key) {
 			this.buffer = new byte[16];
-			this.r = new short[10];
-			this.h = new short[10];
-			this.pad = new short[8];
+			this.r = new int[10];
+			this.h = new int[10];
+			this.pad = new int[8];
 			this.leftover = 0;
 			this.fin = 0;
 
-			short t0, t1, t2, t3, t4, t5, t6, t7;
+			int t0, t1, t2, t3, t4, t5, t6, t7;
 
-			t0 = (short) (key[ 0] & 0xff | (key[ 1] & 0xff) << 8); this.r[0] = (short) (( t0                     ) & 0x1fff);
-			t1 = (short) (key[ 2] & 0xff | (key[ 3] & 0xff) << 8); this.r[1] = (short) (((t0 >>> 13) | (t1 <<  3)) & 0x1fff);
-			t2 = (short) (key[ 4] & 0xff | (key[ 5] & 0xff) << 8); this.r[2] = (short) (((t1 >>> 10) | (t2 <<  6)) & 0x1f03);
-			t3 = (short) (key[ 6] & 0xff | (key[ 7] & 0xff) << 8); this.r[3] = (short) (((t2 >>>  7) | (t3 <<  9)) & 0x1fff);
-			t4 = (short) (key[ 8] & 0xff | (key[ 9] & 0xff) << 8); this.r[4] = (short) (((t3 >>>  4) | (t4 << 12)) & 0x00ff);
-			this.r[5] = (short) (((t4 >>>  1)) & 0x1ffe);
-			t5 = (short) (key[10] & 0xff | (key[11] & 0xff) << 8); this.r[6] = (short) (((t4 >>> 14) | (t5 <<  2)) & 0x1fff);
-			t6 = (short) (key[12] & 0xff | (key[13] & 0xff) << 8); this.r[7] = (short) (((t5 >>> 11) | (t6 <<  5)) & 0x1f81);
-			t7 = (short) (key[14] & 0xff | (key[15] & 0xff) << 8); this.r[8] = (short) (((t6 >>>  8) | (t7 <<  8)) & 0x1fff);
-			this.r[9] = (short) (((t7 >>>  5)) & 0x007f);
+			t0 = key[ 0] & 0xff | (key[ 1] & 0xff) << 8; this.r[0] = ( t0                     ) & 0x1fff;
+			t1 = key[ 2] & 0xff | (key[ 3] & 0xff) << 8; this.r[1] = ((t0 >>> 13) | (t1 <<  3)) & 0x1fff;
+			t2 = key[ 4] & 0xff | (key[ 5] & 0xff) << 8; this.r[2] = ((t1 >>> 10) | (t2 <<  6)) & 0x1f03;
+			t3 = key[ 6] & 0xff | (key[ 7] & 0xff) << 8; this.r[3] = ((t2 >>>  7) | (t3 <<  9)) & 0x1fff;
+			t4 = key[ 8] & 0xff | (key[ 9] & 0xff) << 8; this.r[4] = ((t3 >>>  4) | (t4 << 12)) & 0x00ff;
+			this.r[5] = ((t4 >>>  1)) & 0x1ffe;
+			t5 = key[10] & 0xff | (key[11] & 0xff) << 8; this.r[6] = ((t4 >>> 14) | (t5 <<  2)) & 0x1fff;
+			t6 = key[12] & 0xff | (key[13] & 0xff) << 8; this.r[7] = ((t5 >>> 11) | (t6 <<  5)) & 0x1f81;
+			t7 = key[14] & 0xff | (key[15] & 0xff) << 8; this.r[8] = ((t6 >>>  8) | (t7 <<  8)) & 0x1fff;
+			this.r[9] = ((t7 >>>  5)) & 0x007f;
 
-			this.pad[0] = (short) (key[16] & 0xff | (key[17] & 0xff) << 8);
-			this.pad[1] = (short) (key[18] & 0xff | (key[19] & 0xff) << 8);
-			this.pad[2] = (short) (key[20] & 0xff | (key[21] & 0xff) << 8);
-			this.pad[3] = (short) (key[22] & 0xff | (key[23] & 0xff) << 8);
-			this.pad[4] = (short) (key[24] & 0xff | (key[25] & 0xff) << 8);
-			this.pad[5] = (short) (key[26] & 0xff | (key[27] & 0xff) << 8);
-			this.pad[6] = (short) (key[28] & 0xff | (key[29] & 0xff) << 8);
-			this.pad[7] = (short) (key[30] & 0xff | (key[31] & 0xff) << 8);
+			this.pad[0] = key[16] & 0xff | (key[17] & 0xff) << 8;
+			this.pad[1] = key[18] & 0xff | (key[19] & 0xff) << 8;
+			this.pad[2] = key[20] & 0xff | (key[21] & 0xff) << 8;
+			this.pad[3] = key[22] & 0xff | (key[23] & 0xff) << 8;
+			this.pad[4] = key[24] & 0xff | (key[25] & 0xff) << 8;
+			this.pad[5] = key[26] & 0xff | (key[27] & 0xff) << 8;
+			this.pad[6] = key[28] & 0xff | (key[29] & 0xff) << 8;
+			this.pad[7] = key[30] & 0xff | (key[31] & 0xff) << 8;
 		}
 
 		public poly1305 blocks(byte [] m, int mpos, int bytes) {
 			int hibit = this.fin!=0 ? 0 : (1 << 11);
-			short t0, t1, t2, t3, t4, t5, t6, t7, c;
-			short d0, d1, d2, d3, d4, d5, d6, d7, d8, d9;
+			int t0, t1, t2, t3, t4, t5, t6, t7, c;
+			int d0, d1, d2, d3, d4, d5, d6, d7, d8, d9;
 
-			short
-			h0 = this.h[0],
-			h1 = this.h[1],
-			h2 = this.h[2],
-			h3 = this.h[3],
-			h4 = this.h[4],
-			h5 = this.h[5],
-			h6 = this.h[6],
-			h7 = this.h[7],
-			h8 = this.h[8],
-			h9 = this.h[9];
+			int     h0 = this.h[0],
+					h1 = this.h[1],
+					h2 = this.h[2],
+					h3 = this.h[3],
+					h4 = this.h[4],
+					h5 = this.h[5],
+					h6 = this.h[6],
+					h7 = this.h[7],
+					h8 = this.h[8],
+					h9 = this.h[9];
 
-			short
-			r0 = this.r[0],
-			r1 = this.r[1],
-			r2 = this.r[2],
-			r3 = this.r[3],
-			r4 = this.r[4],
-			r5 = this.r[5],
-			r6 = this.r[6],
-			r7 = this.r[7],
-			r8 = this.r[8],
-			r9 = this.r[9];
+			int     r0 = this.r[0],
+					r1 = this.r[1],
+					r2 = this.r[2],
+					r3 = this.r[3],
+					r4 = this.r[4],
+					r5 = this.r[5],
+					r6 = this.r[6],
+					r7 = this.r[7],
+					r8 = this.r[8],
+					r9 = this.r[9];
 
 			while (bytes >= 16) {
-				t0 = (short) (m[mpos+ 0] & 0xff | (m[mpos+ 1] & 0xff) << 8); h0 += ( t0                     ) & 0x1fff;
-				t1 = (short) (m[mpos+ 2] & 0xff | (m[mpos+ 3] & 0xff) << 8); h1 += ((t0 >>> 13) | (t1 <<  3)) & 0x1fff;
-				t2 = (short) (m[mpos+ 4] & 0xff | (m[mpos+ 5] & 0xff) << 8); h2 += ((t1 >>> 10) | (t2 <<  6)) & 0x1fff;
-				t3 = (short) (m[mpos+ 6] & 0xff | (m[mpos+ 7] & 0xff) << 8); h3 += ((t2 >>>  7) | (t3 <<  9)) & 0x1fff;
-				t4 = (short) (m[mpos+ 8] & 0xff | (m[mpos+ 9] & 0xff) << 8); h4 += ((t3 >>>  4) | (t4 << 12)) & 0x1fff;
+				t0 = m[mpos+ 0] & 0xff | (m[mpos+ 1] & 0xff) << 8; h0 += ( t0                     ) & 0x1fff;
+				t1 = m[mpos+ 2] & 0xff | (m[mpos+ 3] & 0xff) << 8; h1 += ((t0 >>> 13) | (t1 <<  3)) & 0x1fff;
+				t2 = m[mpos+ 4] & 0xff | (m[mpos+ 5] & 0xff) << 8; h2 += ((t1 >>> 10) | (t2 <<  6)) & 0x1fff;
+				t3 = m[mpos+ 6] & 0xff | (m[mpos+ 7] & 0xff) << 8; h3 += ((t2 >>>  7) | (t3 <<  9)) & 0x1fff;
+				t4 = m[mpos+ 8] & 0xff | (m[mpos+ 9] & 0xff) << 8; h4 += ((t3 >>>  4) | (t4 << 12)) & 0x1fff;
 				h5 += ((t4 >>>  1)) & 0x1fff;
-				t5 = (short) (m[mpos+10] & 0xff | (m[mpos+11] & 0xff) << 8); h6 += ((t4 >>> 14) | (t5 <<  2)) & 0x1fff;
-				t6 = (short) (m[mpos+12] & 0xff | (m[mpos+13] & 0xff) << 8); h7 += ((t5 >>> 11) | (t6 <<  5)) & 0x1fff;
-				t7 = (short) (m[mpos+14] & 0xff | (m[mpos+15] & 0xff) << 8); h8 += ((t6 >>>  8) | (t7 <<  8)) & 0x1fff;
+				t5 = m[mpos+10] & 0xff | (m[mpos+11] & 0xff) << 8; h6 += ((t4 >>> 14) | (t5 <<  2)) & 0x1fff;
+				t6 = m[mpos+12] & 0xff | (m[mpos+13] & 0xff) << 8; h7 += ((t5 >>> 11) | (t6 <<  5)) & 0x1fff;
+				t7 = m[mpos+14] & 0xff | (m[mpos+15] & 0xff) << 8; h8 += ((t6 >>>  8) | (t7 <<  8)) & 0x1fff;
 				h9 += ((t7 >>> 5)) | hibit;
 
 				c = 0;
@@ -1417,7 +1374,7 @@ public final class TweetNaclFast {
 				d0 += h2 * (5 * r8);
 				d0 += h3 * (5 * r7);
 				d0 += h4 * (5 * r6);
-				c = (short) (d0 >>> 13); d0 &= 0x1fff;
+				c = (d0 >>> 13); d0 &= 0x1fff;
 				d0 += h5 * (5 * r5);
 				d0 += h6 * (5 * r4);
 				d0 += h7 * (5 * r3);
@@ -1431,7 +1388,7 @@ public final class TweetNaclFast {
 				d1 += h2 * (5 * r9);
 				d1 += h3 * (5 * r8);
 				d1 += h4 * (5 * r7);
-				c = (short) (d1 >>> 13); d1 &= 0x1fff;
+				c = (d1 >>> 13); d1 &= 0x1fff;
 				d1 += h5 * (5 * r6);
 				d1 += h6 * (5 * r5);
 				d1 += h7 * (5 * r4);
@@ -1445,7 +1402,7 @@ public final class TweetNaclFast {
 				d2 += h2 * r0;
 				d2 += h3 * (5 * r9);
 				d2 += h4 * (5 * r8);
-				c = (short) (d2 >>> 13); d2 &= 0x1fff;
+				c = (d2 >>> 13); d2 &= 0x1fff;
 				d2 += h5 * (5 * r7);
 				d2 += h6 * (5 * r6);
 				d2 += h7 * (5 * r5);
@@ -1459,7 +1416,7 @@ public final class TweetNaclFast {
 				d3 += h2 * r1;
 				d3 += h3 * r0;
 				d3 += h4 * (5 * r9);
-				c = (short) (d3 >>> 13); d3 &= 0x1fff;
+				c = (d3 >>> 13); d3 &= 0x1fff;
 				d3 += h5 * (5 * r8);
 				d3 += h6 * (5 * r7);
 				d3 += h7 * (5 * r6);
@@ -1473,7 +1430,7 @@ public final class TweetNaclFast {
 				d4 += h2 * r2;
 				d4 += h3 * r1;
 				d4 += h4 * r0;
-				c = (short) (d4 >>> 13); d4 &= 0x1fff;
+				c = (d4 >>> 13); d4 &= 0x1fff;
 				d4 += h5 * (5 * r9);
 				d4 += h6 * (5 * r8);
 				d4 += h7 * (5 * r7);
@@ -1487,7 +1444,7 @@ public final class TweetNaclFast {
 				d5 += h2 * r3;
 				d5 += h3 * r2;
 				d5 += h4 * r1;
-				c = (short) (d5 >>> 13); d5 &= 0x1fff;
+				c = (d5 >>> 13); d5 &= 0x1fff;
 				d5 += h5 * r0;
 				d5 += h6 * (5 * r9);
 				d5 += h7 * (5 * r8);
@@ -1501,7 +1458,7 @@ public final class TweetNaclFast {
 				d6 += h2 * r4;
 				d6 += h3 * r3;
 				d6 += h4 * r2;
-				c = (short) (d6 >>> 13); d6 &= 0x1fff;
+				c = (d6 >>> 13); d6 &= 0x1fff;
 				d6 += h5 * r1;
 				d6 += h6 * r0;
 				d6 += h7 * (5 * r9);
@@ -1515,7 +1472,7 @@ public final class TweetNaclFast {
 				d7 += h2 * r5;
 				d7 += h3 * r4;
 				d7 += h4 * r3;
-				c = (short) (d7 >>> 13); d7 &= 0x1fff;
+				c = (d7 >>> 13); d7 &= 0x1fff;
 				d7 += h5 * r2;
 				d7 += h6 * r1;
 				d7 += h7 * r0;
@@ -1529,7 +1486,7 @@ public final class TweetNaclFast {
 				d8 += h2 * r6;
 				d8 += h3 * r5;
 				d8 += h4 * r4;
-				c = (short) (d8 >>> 13); d8 &= 0x1fff;
+				c = (d8 >>> 13); d8 &= 0x1fff;
 				d8 += h5 * r3;
 				d8 += h6 * r2;
 				d8 += h7 * r1;
@@ -1543,7 +1500,7 @@ public final class TweetNaclFast {
 				d9 += h2 * r7;
 				d9 += h3 * r6;
 				d9 += h4 * r5;
-				c = (short) (d9 >>> 13); d9 &= 0x1fff;
+				c = (d9 >>> 13); d9 &= 0x1fff;
 				d9 += h5 * r4;
 				d9 += h6 * r3;
 				d9 += h7 * r2;
@@ -1551,10 +1508,10 @@ public final class TweetNaclFast {
 				d9 += h9 * r0;
 				c += (d9 >>> 13); d9 &= 0x1fff;
 
-				c = (short) ((((c << 2) + c)) | 0);
-				c = (short) ((c + d0) | 0);
-				d0 = (short) (c & 0x1fff);
-				c = (short) (c >>> 13);
+				c = (((c << 2) + c)) | 0;
+				c = (c + d0) | 0;
+				d0 = c & 0x1fff;
+				c = (c >>> 13);
 				d1 += c;
 
 				h0 = d0;
@@ -1586,10 +1543,10 @@ public final class TweetNaclFast {
 		}
 
 		public poly1305 finish(byte [] mac, int macpos) {
-			short [] g = new short[10];
+			int [] g = new int[10];
 			int c, mask, f, i;
 
-			if (this.leftover!=0) {
+			if (this.leftover != 0) {
 				i = this.leftover;
 				this.buffer[i++] = 1;
 				for (; i < 16; i++) this.buffer[i] = 0;
@@ -1612,35 +1569,35 @@ public final class TweetNaclFast {
 			this.h[1] &= 0x1fff;
 			this.h[2] += c;
 
-			g[0] = (short) (this.h[0] + 5);
+			g[0] = this.h[0] + 5;
 			c = g[0] >>> 13;
 			g[0] &= 0x1fff;
 			for (i = 1; i < 10; i++) {
-				g[i] = (short) (this.h[i] + c);
+				g[i] = this.h[i] + c;
 				c = g[i] >>> 13;
 				g[i] &= 0x1fff;
 			}
-			g[9] -= (1 << 13);
+			g[9] -= (1 << 13); g[9] &= 0xffff;
 
-			mask = (g[9] >>> ((2 * 8) - 1)) - 1;
+			mask = (g[9] >>> ((2 * 8) - 1)) - 1; mask &= 0xffff;
 			for (i = 0; i < 10; i++) g[i] &= mask;
 			mask = ~mask;
-			for (i = 0; i < 10; i++) this.h[i] = (short) ((this.h[i] & mask) | g[i]);
+			for (i = 0; i < 10; i++) this.h[i] = (this.h[i] & mask) | g[i];
 
-			this.h[0] = (short) (((this.h[0]       ) | (this.h[1] << 13)                    ) & 0xffff);
-			this.h[1] = (short) (((this.h[1] >>>  3) | (this.h[2] << 10)                    ) & 0xffff);
-			this.h[2] = (short) (((this.h[2] >>>  6) | (this.h[3] <<  7)                    ) & 0xffff);
-			this.h[3] = (short) (((this.h[3] >>>  9) | (this.h[4] <<  4)                    ) & 0xffff);
-			this.h[4] = (short) (((this.h[4] >>> 12) | (this.h[5] <<  1) | (this.h[6] << 14)) & 0xffff);
-			this.h[5] = (short) (((this.h[6] >>>  2) | (this.h[7] << 11)                    ) & 0xffff);
-			this.h[6] = (short) (((this.h[7] >>>  5) | (this.h[8] <<  8)                    ) & 0xffff);
-			this.h[7] = (short) (((this.h[8] >>>  8) | (this.h[9] <<  5)                    ) & 0xffff);
+			this.h[0] = ((this.h[0]       ) | (this.h[1] << 13)                    ) & 0xffff;
+			this.h[1] = ((this.h[1] >>>  3) | (this.h[2] << 10)                    ) & 0xffff;
+			this.h[2] = ((this.h[2] >>>  6) | (this.h[3] <<  7)                    ) & 0xffff;
+			this.h[3] = ((this.h[3] >>>  9) | (this.h[4] <<  4)                    ) & 0xffff;
+			this.h[4] = ((this.h[4] >>> 12) | (this.h[5] <<  1) | (this.h[6] << 14)) & 0xffff;
+			this.h[5] = ((this.h[6] >>>  2) | (this.h[7] << 11)                    ) & 0xffff;
+			this.h[6] = ((this.h[7] >>>  5) | (this.h[8] <<  8)                    ) & 0xffff;
+			this.h[7] = ((this.h[8] >>>  8) | (this.h[9] <<  5)                    ) & 0xffff;
 
 			f = this.h[0] + this.pad[0];
-			this.h[0] = (short) (f & 0xffff);
+			this.h[0] = f & 0xffff;
 			for (i = 1; i < 8; i++) {
 				f = (((this.h[i] + this.pad[i]) | 0) + (f >>> 16)) | 0;
-				this.h[i] = (short) (f & 0xffff);
+				this.h[i] = f & 0xffff;
 			}
 
 			mac[macpos+ 0] = (byte) ((this.h[0] >>> 0) & 0xff);
@@ -1666,7 +1623,7 @@ public final class TweetNaclFast {
 		public poly1305 update(byte [] m, int mpos, int bytes) {
 			int i, want;
 
-			if (this.leftover!=0) {
+			if (this.leftover != 0) {
 				want = (16 - this.leftover);
 				if (want > bytes)
 					want = bytes;
@@ -1688,7 +1645,7 @@ public final class TweetNaclFast {
 				bytes -= want;
 			}
 
-			if (bytes!=0) {
+			if (bytes != 0) {
 				for (i = 0; i < bytes; i++)
 					this.buffer[this.leftover + i] = m[mpos+i];
 				this.leftover += bytes;
@@ -1699,89 +1656,22 @@ public final class TweetNaclFast {
 
 	}
     
-    
-	private static void add1305(int [] h,int [] c)
-	{
-		int j,u = 0;
-		for (j = 0; j < 17; j ++) {
-			u += h[j] + c[j];
-			h[j] = u & 255;
-			u >>>= 8;
-		}
-	}
-
-	private final static int minusp[] = { 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 252 };
-
 	private static int crypto_onetimeauth(
-			byte[] out,final int outoff,
-			byte[] m,final int moff,
-			int /*long*/ n,
+			byte[] out,final int outpos,
+			byte[] m,final int mpos,
+			int n,
 			byte [] k)
 	{
 		poly1305 s = new poly1305(k);
-		s.update(m, moff, n);
-		s.finish(out, outoff);
+		s.update(m, mpos, n);
+		s.finish(out, outpos);
+		
+		/*String dbgt = "";
+		for (int dbg = 0; dbg < out.length-outpos; dbg ++) dbgt += " "+out[dbg+outpos];
+		Log.d(TAG, "crypto_onetimeauth -> "+dbgt);
+		*/
+		
 		return 0;
-
-		/*
-		int s,i,j,u;
-		int [] x = new int[17], r = new int [17], 
-			   h = new int[17], c = new int [17], g = new int[17];
-
-		for (j = 0; j < 17; j ++) r[j] = h[j] = 0;
-
-		for (j = 0; j < 16; j ++) r[j] = k[j];
-
-		r[3]&=15;
-		r[4]&=252;
-		r[7]&=15;
-		r[8]&=252;
-		r[11]&=15;
-		r[12]&=252;
-		r[15]&=15;
-
-		int moffset = moff;
-		while (n > 0) {
-			for (j = 0; j < 17; j ++) c[j] = 0;
-			for (j = 0;(j < 16) && (j < n);++j) c[j] = m[j+moffset];
-			c[j] = 1;
-
-			moffset += j;
-
-			n -= j;
-			add1305(h,c);
-			for (i = 0; i < 17; i ++) {
-				x[i] = 0;
-				for (j = 0; j < 17; j ++) x[i] += h[j] * ((j <= i) ? r[i - j] : 320 * r[i + 17 - j]);
-			}
-			for (i = 0; i < 17; i ++) h[i] = x[i];
-			u = 0;
-			for (j = 0; j < 16; j ++) {
-				u += h[j];
-				h[j] = u & 255;
-				u >>>= 8;
-			}
-			u += h[16]; h[16] = u & 3;
-			u = 5 * (u >>> 2);
-			for (j = 0; j < 16; j ++) {
-				u += h[j];
-				h[j] = u & 255;
-				u >>>= 8;
-			}
-			u += h[16]; h[16] = u;
-		}
-
-		for (j = 0; j < 17; j ++) g[j] = h[j];
-		add1305(h,minusp);
-		s = -(h[16] >>> 7);
-		for (j = 0; j < 17; j ++) h[j] ^= s & (g[j] ^ h[j]);
-
-		for (j = 0; j < 16; j ++) c[j] = k[j + 16];
-		c[16] = 0;
-		add1305(h,c);
-		for (j = 0; j < 16; j ++) out[j+outoff] = (byte) (h[j]&0xff);
-
-		return 0;*/
 	}
 	public static int crypto_onetimeauth(byte [] out, byte [] m, int /*long*/ n , byte [] k) {
 		return crypto_onetimeauth(out,0, m,0, n, k);
@@ -1793,9 +1683,9 @@ public final class TweetNaclFast {
 			int /*long*/ n,
 			byte [] k)
 	{
-		byte[] x = new byte[16];
-		crypto_onetimeauth(x,0, m,moff, n,k);
-		return crypto_verify_16(h,hoff, x,0);
+		byte [] x = new byte[16];
+		crypto_onetimeauth(x,0,m,moff,n,k);
+		return crypto_verify_16(h,hoff,x,0);
 	}
 	public static int crypto_onetimeauth_verify(byte [] h, byte [] m, int /*long*/ n, byte [] k) {
 		return crypto_onetimeauth_verify(h,0, m,0, n, k);
@@ -1807,14 +1697,10 @@ public final class TweetNaclFast {
 	public static int crypto_secretbox(byte [] c, byte [] m, int /*long*/ d, byte [] n, byte [] k)
 	{
 		int i;
-		
 		if (d < 32) return -1;
-		
-		crypto_stream_xor(c,m,d,n,k);
-		crypto_onetimeauth(c,16, c,32, d - 32, c);
-		
-		///for (i = 0; i < 16; i ++) c[i] = 0;
-		
+		crypto_stream_xor(c,0,m,0,d,n,k);
+		crypto_onetimeauth(c,16, c,32, d-32, c);
+		for (i = 0; i < 16; i++) c[i] = 0;
 		return 0;
 	}
 
@@ -1822,15 +1708,11 @@ public final class TweetNaclFast {
 	{
 		int i;
 		byte[] x = new byte[32];
-		
 		if (d < 32) return -1;
-		
-		crypto_stream(x,32,n,k);
+		crypto_stream(x,0,32,n,k);
 		if (crypto_onetimeauth_verify(c,16, c,32, d-32, x) != 0) return -1;
-		crypto_stream_xor(m,c,d,n,k);
-		
-		///for (i = 0; i < 32; i ++) m[i] = 0;
-		
+		crypto_stream_xor(m,0,c,0,d,n,k);
+		for (i = 0; i < 32; i++) m[i] = 0;
 		return 0;
 	}
 
@@ -1840,129 +1722,99 @@ public final class TweetNaclFast {
 		for (i = 0; i < 16; i ++) r[i]=a[i];
 	}
 
-	private static void car25519(long [] o,final int ooff)
+	private static void car25519(long [] o)
 	{
-		///int i;
-		///long c;
-
-		///String dbgt = "";
-		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o.get(dbg);
-		///L/og.d(TAG, "car25519 pre -> "+dbgt);
-
-		/*
-		for (i = 0; i < 16; i ++) {
-			o[i+ooff] += (1L<<16);
-
-			c = o[i+ooff]>>16;
-
-			o[(i+1)*((i<15) ? 1 : 0)+ooff] += c-1+37*(c-1)*((i==15) ? 1 : 0);
-
-			o[i+ooff] -= (c<<16);
-		}*/
-
 		int i;
-		long v, c = 1L;
+		long v, c = 1;
 		for (i = 0; i < 16; i++) {
 			v = o[i] + c + 65535;
-			c = v >> 16;
-		    o[i] = v - c * 65536;
+			c = v>>16;
+			o[i] = v - c * 65536;
 		}
 		o[0] += c-1 + 37 * (c-1);
-
-		///dbgt = "";
-		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o.get(dbg);
-		///L/og.d(TAG, "car25519 -> "+dbgt);
-
 	}
-
+	
+	private static void sel25519(
+			long[] p,
+			long[] q,
+			int b)
+	{
+		sel25519(p,0, q,0, b);
+	}
 	private static void sel25519(
 			long[] p,final int poff,
 			long[] q,final int qoff,
 			int b)
 	{
-		int i;
-		long t,c=~(b-1);
-		
-		for (i = 0; i < 16; i ++) {
+		long t, c = ~(b-1);
+		for (int i = 0; i < 16; i++) {
 			t = c & (p[i+poff] ^ q[i+qoff]);
 			p[i+poff] ^= t;
 			q[i+qoff] ^= t;
 		}
-
-		///String dbgt = "";
-		///for (int dbg = 0; dbg < p.length; dbg ++) dbgt += " "+p.get(dbg);
-		///L/og.d(TAG, "sel25519 -> "+dbgt);
-
 	}
 
 	private static void pack25519(byte [] o, long [] n,final int noff)
 	{
-		int i,j,b;
+		int i, j, b;
 		long [] m = new long[16], t = new long[16];
-		
-		for (i = 0; i < 16; i ++) t[i] = n[i+noff];
-		
-		car25519(t,0);
-		car25519(t,0);
-		car25519(t,0);
-		
-		for (j = 0; j < 2; j ++) {
-			m[0]=t[0]-0xffed;
-			
-			for(i=1;i<15;i++) {
-				m[i]=t[i]-0xffff-((m[i-1] >> 16)&1);
-				m[i-1]&=0xffff;
+		for (i = 0; i < 16; i++) t[i] = n[i+noff];
+		car25519(t);
+		car25519(t);
+		car25519(t);
+		for (j = 0; j < 2; j++) {
+			m[0] = t[0] - 0xffed;
+			for (i = 1; i < 15; i++) {
+				m[i] = t[i] - 0xffff - ((m[i-1]>>16) & 1);
+				m[i-1] &= 0xffff;
 			}
-			
-			m[15]=t[15]-0x7fff-((m[14] >> 16)&1);
-			b=(int) ((m[15] >> 16)&1);
-			m[14]&=0xffff;
-			
+			m[15] = t[15] - 0x7fff - ((m[14]>>16) & 1);
+			b = (int) ((m[15]>>16) & 1);
+			m[14] &= 0xffff;
 			sel25519(t,0, m,0, 1-b);
 		}
-		
-		for (i = 0; i < 16; i ++) {
-			o[2*i]=(byte) (t[i]&0xff);
-			o[2*i+1]=(byte) (t[i] >> 8);
+		for (i = 0; i < 16; i++) {
+			o[2*i] = (byte) (t[i] & 0xff);
+			o[2*i+1] = (byte) (t[i]>>8);
 		}
-
-		///String dbgt = "";
-		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o[dbg];
-		///L/og.d(TAG, "pack25519 -> "+dbgt);
 	}
-
-	private static int neq25519(long [] a, long [] b)
+	
+	private static int neq25519(long [] a, long [] b) {
+		return neq25519(a,0, b,0);
+	}
+	private static int neq25519(long [] a,final int aoff, long [] b,final int boff)
 	{
-		byte[] c = new byte[32], d = new byte[32];
-		
-		pack25519(c, a,0);
-		pack25519(d, b,0);
-		
-		return crypto_verify_32(c,0, d,0);
+		byte [] c = new byte[32], d = new byte[32];
+		pack25519(c, a,aoff);
+		pack25519(d, b,boff);
+		return crypto_verify_32(c, 0, d, 0);
 	}
-
+	
 	private static byte par25519(long [] a)
 	{
-		byte[] d = new byte[32];
-		
-		pack25519(d, a,0);
-		
-		return (byte) (d[0]&1);
+		return par25519(a,0);
+	}
+	private static byte par25519(long [] a,final int aoff)
+	{
+		byte [] d = new byte[32];
+		pack25519(d, a,aoff);
+		return (byte) (d[0] & 1);
 	}
 
 	private static void unpack25519(long [] o, byte [] n)
 	{
 		int i;
-		
 		for (i = 0; i < 16; i ++) o[i]=(n[2*i]&0xff)+((long)((n[2*i+1]<<8)&0xffff));
-		
-		o[15]&=0x7fff;
-
-		///String dbgt = "";
-		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o[dbg];
-		///L/og.d(TAG, "unpack25519 -> "+dbgt);
+		o[15] &= 0x7fff;
 	}
-
+	
+	private static void A(
+			long [] o,
+			long [] a,
+			long [] b)
+	{
+		A(o,0, a,0, b,0);
+	}
 	private static void A(
 			long [] o,final int ooff,
 			long [] a,final int aoff,
@@ -1971,7 +1823,14 @@ public final class TweetNaclFast {
 		int i;
 		for (i = 0; i < 16; i ++) o[i+ooff] = a[i+aoff] + b[i+boff];
 	}
-
+	
+	private static void Z(
+			long [] o,
+			long [] a,
+			long [] b)
+	{
+		Z(o,0, a,0, b,0);
+	}
 	private static void Z(
 			long [] o,final int ooff,
 			long [] a,final int aoff,
@@ -1980,7 +1839,14 @@ public final class TweetNaclFast {
 		int i;
 		for (i = 0; i < 16; i ++) o[i+ooff] = a[i+aoff] - b[i+boff];
 	}
-
+	
+	private static void M(
+			long [] o,
+			long [] a,
+			long [] b)
+	{
+		M(o,0, a,0, b,0);
+	}
 	private static void M(
 			long [] o,final int ooff,
 			long [] a,final int aoff,
@@ -1991,24 +1857,24 @@ public final class TweetNaclFast {
 		     t8 = 0,  t9 = 0, t10 = 0, t11 = 0, t12 = 0, t13 = 0, t14 = 0, t15 = 0,
 		    t16 = 0, t17 = 0, t18 = 0, t19 = 0, t20 = 0, t21 = 0, t22 = 0, t23 = 0,
 		    t24 = 0, t25 = 0, t26 = 0, t27 = 0, t28 = 0, t29 = 0, t30 = 0,
-		    b0 = b[0],
-		    b1 = b[1],
-		    b2 = b[2],
-		    b3 = b[3],
-		    b4 = b[4],
-		    b5 = b[5],
-		    b6 = b[6],
-		    b7 = b[7],
-		    b8 = b[8],
-		    b9 = b[9],
-		    b10 = b[10],
-		    b11 = b[11],
-		    b12 = b[12],
-		    b13 = b[13],
-		    b14 = b[14],
-		    b15 = b[15];
+		    b0 = b[0 +boff],
+		    b1 = b[1 +boff],
+		    b2 = b[2 +boff],
+		    b3 = b[3 +boff],
+		    b4 = b[4 +boff],
+		    b5 = b[5 +boff],
+		    b6 = b[6 +boff],
+		    b7 = b[7 +boff],
+		    b8 = b[8 +boff],
+		    b9 = b[9 +boff],
+		    b10 = b[10 +boff],
+		    b11 = b[11 +boff],
+		    b12 = b[12 +boff],
+		    b13 = b[13 +boff],
+		    b14 = b[14 +boff],
+		    b15 = b[15 +boff];
 
-		  v = a[0];
+		  v = a[0 +aoff];
 		  t0 += v * b0;
 		  t1 += v * b1;
 		  t2 += v * b2;
@@ -2025,7 +1891,7 @@ public final class TweetNaclFast {
 		  t13 += v * b13;
 		  t14 += v * b14;
 		  t15 += v * b15;
-		  v = a[1];
+		  v = a[1 +aoff];
 		  t1 += v * b0;
 		  t2 += v * b1;
 		  t3 += v * b2;
@@ -2042,7 +1908,7 @@ public final class TweetNaclFast {
 		  t14 += v * b13;
 		  t15 += v * b14;
 		  t16 += v * b15;
-		  v = a[2];
+		  v = a[2 +aoff];
 		  t2 += v * b0;
 		  t3 += v * b1;
 		  t4 += v * b2;
@@ -2059,7 +1925,7 @@ public final class TweetNaclFast {
 		  t15 += v * b13;
 		  t16 += v * b14;
 		  t17 += v * b15;
-		  v = a[3];
+		  v = a[3 +aoff];
 		  t3 += v * b0;
 		  t4 += v * b1;
 		  t5 += v * b2;
@@ -2076,7 +1942,7 @@ public final class TweetNaclFast {
 		  t16 += v * b13;
 		  t17 += v * b14;
 		  t18 += v * b15;
-		  v = a[4];
+		  v = a[4 +aoff];
 		  t4 += v * b0;
 		  t5 += v * b1;
 		  t6 += v * b2;
@@ -2093,7 +1959,7 @@ public final class TweetNaclFast {
 		  t17 += v * b13;
 		  t18 += v * b14;
 		  t19 += v * b15;
-		  v = a[5];
+		  v = a[5 +aoff];
 		  t5 += v * b0;
 		  t6 += v * b1;
 		  t7 += v * b2;
@@ -2110,7 +1976,7 @@ public final class TweetNaclFast {
 		  t18 += v * b13;
 		  t19 += v * b14;
 		  t20 += v * b15;
-		  v = a[6];
+		  v = a[6 +aoff];
 		  t6 += v * b0;
 		  t7 += v * b1;
 		  t8 += v * b2;
@@ -2127,7 +1993,7 @@ public final class TweetNaclFast {
 		  t19 += v * b13;
 		  t20 += v * b14;
 		  t21 += v * b15;
-		  v = a[7];
+		  v = a[7 +aoff];
 		  t7 += v * b0;
 		  t8 += v * b1;
 		  t9 += v * b2;
@@ -2144,7 +2010,7 @@ public final class TweetNaclFast {
 		  t20 += v * b13;
 		  t21 += v * b14;
 		  t22 += v * b15;
-		  v = a[8];
+		  v = a[8 +aoff];
 		  t8 += v * b0;
 		  t9 += v * b1;
 		  t10 += v * b2;
@@ -2161,7 +2027,7 @@ public final class TweetNaclFast {
 		  t21 += v * b13;
 		  t22 += v * b14;
 		  t23 += v * b15;
-		  v = a[9];
+		  v = a[9 +aoff];
 		  t9 += v * b0;
 		  t10 += v * b1;
 		  t11 += v * b2;
@@ -2178,7 +2044,7 @@ public final class TweetNaclFast {
 		  t22 += v * b13;
 		  t23 += v * b14;
 		  t24 += v * b15;
-		  v = a[10];
+		  v = a[10 +aoff];
 		  t10 += v * b0;
 		  t11 += v * b1;
 		  t12 += v * b2;
@@ -2195,7 +2061,7 @@ public final class TweetNaclFast {
 		  t23 += v * b13;
 		  t24 += v * b14;
 		  t25 += v * b15;
-		  v = a[11];
+		  v = a[11 +aoff];
 		  t11 += v * b0;
 		  t12 += v * b1;
 		  t13 += v * b2;
@@ -2212,7 +2078,7 @@ public final class TweetNaclFast {
 		  t24 += v * b13;
 		  t25 += v * b14;
 		  t26 += v * b15;
-		  v = a[12];
+		  v = a[12 +aoff];
 		  t12 += v * b0;
 		  t13 += v * b1;
 		  t14 += v * b2;
@@ -2229,7 +2095,7 @@ public final class TweetNaclFast {
 		  t25 += v * b13;
 		  t26 += v * b14;
 		  t27 += v * b15;
-		  v = a[13];
+		  v = a[13 +aoff];
 		  t13 += v * b0;
 		  t14 += v * b1;
 		  t15 += v * b2;
@@ -2246,7 +2112,7 @@ public final class TweetNaclFast {
 		  t26 += v * b13;
 		  t27 += v * b14;
 		  t28 += v * b15;
-		  v = a[14];
+		  v = a[14 +aoff];
 		  t14 += v * b0;
 		  t15 += v * b1;
 		  t16 += v * b2;
@@ -2263,7 +2129,7 @@ public final class TweetNaclFast {
 		  t27 += v * b13;
 		  t28 += v * b14;
 		  t29 += v * b15;
-		  v = a[15];
+		  v = a[15 +aoff];
 		  t15 += v * b0;
 		  t16 += v * b1;
 		  t17 += v * b2;
@@ -2338,70 +2204,50 @@ public final class TweetNaclFast {
 		  v = t15 + c + 65535; c = v >> 16; t15 = v - c * 65536;
 		  t0 += c-1 + 37 * (c-1);
 
-		  o[ 0] = t0;
-		  o[ 1] = t1;
-		  o[ 2] = t2;
-		  o[ 3] = t3;
-		  o[ 4] = t4;
-		  o[ 5] = t5;
-		  o[ 6] = t6;
-		  o[ 7] = t7;
-		  o[ 8] = t8;
-		  o[ 9] = t9;
-		  o[10] = t10;
-		  o[11] = t11;
-		  o[12] = t12;
-		  o[13] = t13;
-		  o[14] = t14;
-		  o[15] = t15;
-
-		/*
-		int i,j;
-		long [] t = new long[31];
-
-		for (i = 0; i < 31; i ++) t[i]=0;
-
-		for (i = 0; i < 16; i ++) for (j = 0; j < 16; j ++) t[i+j]+=a[i+aoff]*b[j+boff];
-
-		for (i = 0; i < 15; i ++) t[i]+=38*t[i+16];
-
-		for (i = 0; i < 16; i ++) o[i+ooff]=t[i];
-
-		car25519(o,ooff);
-		car25519(o,ooff);
-
-		///String dbgt = "";
-		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o.get(dbg);
-		///L/og.d(TAG, "M -> "+dbgt);*/
+		  o[ 0 +ooff] = t0;
+		  o[ 1 +ooff] = t1;
+		  o[ 2 +ooff] = t2;
+		  o[ 3 +ooff] = t3;
+		  o[ 4 +ooff] = t4;
+		  o[ 5 +ooff] = t5;
+		  o[ 6 +ooff] = t6;
+		  o[ 7 +ooff] = t7;
+		  o[ 8 +ooff] = t8;
+		  o[ 9 +ooff] = t9;
+		  o[10 +ooff] = t10;
+		  o[11 +ooff] = t11;
+		  o[12 +ooff] = t12;
+		  o[13 +ooff] = t13;
+		  o[14 +ooff] = t14;
+		  o[15 +ooff] = t15;
 	}
-
+	
+	private static void S(
+			long [] o,
+			long [] a)
+	{
+		S(o,0, a,0);
+	}
 	private static void S(
 			long [] o,final int ooff,
 			long [] a,final int aoff)
 	{
 		M(o,ooff, a,aoff, a,aoff);
 	}
-
+	
 	private static void inv25519(
 			long [] o,final int ooff,
 			long [] i,final int ioff)
 	{
-		long [] c = new long[16];
-		int a;
-		
-		for (a = 0; a < 16; a ++) c[a]=i[a+ioff];
-		
-		for(a=253;a>=0;a--) {
-			S(c,0, c,0);
-			if(a!=2&&a!=4) M(c,0, c,0, i,ioff);
-		}
-		
-		for (a = 0; a < 16; a ++) o[a+ooff] = c[a];
-
-		///String dbgt = "";
-		///for (int dbg = 0; dbg < o.length; dbg ++) dbgt += " "+o.get(dbg);
-		///L/og.d(TAG, "inv25519 -> "+dbgt);
-	}
+		  long [] c = new long[16];
+		  int a;
+		  for (a = 0; a < 16; a++) c[a] = i[a+ioff];
+		  for (a = 253; a >= 0; a--) {
+		    S(c,0, c,0);
+		    if(a != 2 && a != 4) M(c,0, c,0, i,ioff);
+		  }
+		  for (a = 0; a < 16; a++) o[a+ooff] = c[a];
+}
 
 	private static void pow2523(long [] o,long [] i)
 	{
@@ -2420,71 +2266,57 @@ public final class TweetNaclFast {
 
 	public static int crypto_scalarmult(byte []q,byte []n,byte []p)
 	{
-		byte[] z = new byte[32];
-		long[] x = new long[80];
-		int r,i;
-
+		byte [] z = new byte[32];
+		long [] x = new long[80];
+		int r, i;
 		long [] a = new long[16], b = new long[16], c = new long[16],
 				d = new long[16], e = new long[16], f = new long[16];
-		
-		for (i = 0; i < 31; i ++) z[i]=n[i];
-		
+		for (i = 0; i < 31; i++) z[i] = n[i];
 		z[31]=(byte) (((n[31]&127)|64) & 0xff);
 		z[0]&=248;
-		
 		unpack25519(x,p);
-		
-		for (i = 0; i < 16; i ++) {
+		for (i = 0; i < 16; i++) {
 			b[i]=x[i];
 			d[i]=a[i]=c[i]=0;
 		}
 		a[0]=d[0]=1;
-
-		for(i=254;i>=0;--i) {
+		for (i=254;i>=0;--i) {
 			r=(z[i>>>3]>>>(i&7))&1;
-			sel25519(a,0, b,0, r);
-			sel25519(c,0, d,0, r);
-			A(e,0, a,0, c,0);
-			Z(a,0, a,0, c,0);
-			A(c,0, b,0, d,0);
-			Z(b,0, b,0, d,0);
-			S(d,0, e,0);
-			S(f,0, a,0);
-			M(a,0, c,0, a,0);
-			M(c,0, b,0, e,0);
-			A(e,0, a,0, c,0);
-			Z(a,0, a,0, c,0);
-			S(b,0, a,0);
-			Z(c,0, d,0, f,0);
-			M(a,0, c,0, _121665,0);
-			A(a,0, a,0, d,0);
-			M(c,0, c,0, a,0);
-			M(a,0, d,0, f,0);
-			M(d,0, b,0, x,0);
-			S(b,0, e,0);
-			sel25519(a,0, b,0, r);
-			sel25519(c,0, d,0, r);
+			sel25519(a,b,r);
+			sel25519(c,d,r);
+			A(e,a,c);
+			Z(a,a,c);
+			A(c,b,d);
+			Z(b,b,d);
+			S(d,e);
+			S(f,a);
+			M(a,c,a);
+			M(c,b,e);
+			A(e,a,c);
+			Z(a,a,c);
+			S(b,a);
+			Z(c,d,f);
+			M(a,c,_121665);
+			A(a,a,d);
+			M(c,c,a);
+			M(a,d,f);
+			M(d,b,x);
+			S(b,e);
+			sel25519(a,b,r);
+			sel25519(c,d,r);
 		}
-		
-		for (i = 0; i < 16; i ++) {
+		for (i = 0; i < 16; i++) {
 			x[i+16]=a[i];
 			x[i+32]=c[i];
 			x[i+48]=b[i];
 			x[i+64]=d[i];
 		}
-		
 		inv25519(x,32, x,32);
-		
 		M(x,16, x,16, x,32);
-		
 		pack25519(q, x,16);
-
-		///String dbgt = "";
-		///for (int dbg = 0; dbg < q.length; dbg ++) dbgt += " "+q[dbg];
-		///L/og.d(TAG, "crypto_scalarmult -> "+dbgt);
-
+		
 		return 0;
-	}
+}
 
 	public static int crypto_scalarmult_base(byte []q,byte []n)
 	{ 
@@ -2502,11 +2334,20 @@ public final class TweetNaclFast {
 		byte[] s = new byte[32];
 		crypto_scalarmult(s,x,y);
 
-		///String dbgt = "";
-		///for (int dbg = 0; dbg < s.length; dbg ++) dbgt += " "+s[dbg];
-		///L/og.d(TAG, "crypto_box_beforenm -> "+dbgt);
+		/*String dbgt = "";
+		for (int dbg = 0; dbg < s.length; dbg ++) dbgt += " "+s[dbg];
+		Log.d(TAG, "crypto_box_beforenm -> "+dbgt);
+		
+	    dbgt = "";
+		for (int dbg = 0; dbg < x.length; dbg ++) dbgt += " "+x[dbg];
+		Log.d(TAG, "crypto_box_beforenm, x -> "+dbgt);
 
-		return crypto_core_hsalsa20(k,_0,s,sigma);
+	    dbgt = "";
+		for (int dbg = 0; dbg < y.length; dbg ++) dbgt += " "+y[dbg];
+		Log.d(TAG, "crypto_box_beforenm, y -> "+dbgt);
+		*/
+		
+		return crypto_core_hsalsa20(k, _0, s, sigma);
 	}
 
 	public static int crypto_box_afternm(byte []c,byte []m,int /*long*/ d,byte []n,byte []k)
@@ -2536,16 +2377,6 @@ public final class TweetNaclFast {
 		return crypto_box_open_afternm(m,c,d,n,k);
 	}
 
-	private static long R(long x,int c)           { return (x >>> c) | (x << (64 - c)); }
-	
-	private static long Ch( long x,long y,long z) { return (x & y) ^ (~x & z);          }
-	private static long Maj(long x,long y,long z) { return (x & y) ^ (x & z) ^ (y & z); }
-	
-	private static long Sigma0(long x) { return R(x,28) ^ R(x,34) ^ R(x,39); }
-	private static long Sigma1(long x) { return R(x,14) ^ R(x,18) ^ R(x,41); }
-	private static long sigma0(long x) { return R(x, 1) ^ R(x, 8) ^ (x >>> 7); }
-	private static long sigma1(long x) { return R(x,19) ^ R(x,61) ^ (x >>> 6); }
-
 	private static final long K[] = {
 		0x428a2f98d728ae22L, 0x7137449123ef65cdL, 0xb5c0fbcfec4d3b2fL, 0xe9b5dba58189dbbcL,
 		0x3956c25bf348b538L, 0x59f111f1b605d019L, 0x923f82a4af194f9bL, 0xab1c5ed5da6d8118L,
@@ -2569,91 +2400,37 @@ public final class TweetNaclFast {
 		0x4cc5d4becb3e42b6L, 0x597f299cfc657e2aL, 0x5fcb6fab3ad6faecL, 0x6c44198c4a475817L
 	};
 
-	// TBD... long length n
-	///int crypto_hashblocks(byte [] x, byte [] m, long n)
-	private static int crypto_hashblocks(byte [] x, byte [] m,final int moff, int n)
-	{
-		long [] z = new long [8], b = new long [8], a = new long [8], w = new long [16];
-		long t;
-		int i,j;
+	private static int crypto_hashblocks_hl(int [] hh,int [] hl, byte [] m,final int moff, int n) {
+		long [] wh = new long[16], wl = new long[16];
+		long bh0, bh1, bh2, bh3, bh4, bh5, bh6, bh7,
+		     bl0, bl1, bl2, bl3, bl4, bl5, bl6, bl7,
+		     th, tl, h, l, a, b, c, d;
+		int i, j;
 
-		for (i = 0; i < 8; i ++) z[i] = a[i] = dl64(x, 8*i);
+		long    ah0 = hh[0] & 0xffffffff,
+				ah1 = hh[1] & 0xffffffff,
+				ah2 = hh[2] & 0xffffffff,
+				ah3 = hh[3] & 0xffffffff,
+				ah4 = hh[4] & 0xffffffff,
+				ah5 = hh[5] & 0xffffffff,
+				ah6 = hh[6] & 0xffffffff,
+				ah7 = hh[7] & 0xffffffff,
 
-		int moffset = moff;
-		
-		while (n >= 128) {
-			for (i = 0; i < 16; i ++) w[i] = dl64(m, 8*i+moffset);
-
-			for (i = 0; i < 80; i ++) {
-				for (j = 0; j < 8; j ++) b[j] = a[j];
-				
-				t = a[7] + Sigma1(a[4]) + Ch(a[4],a[5],a[6]) + K[i] + w[i%16];
-				b[7] = t + Sigma0(a[0]) + Maj(a[0],a[1],a[2]);
-				b[3] += t;
-				
-				for (j = 0; j < 8; j ++) a[(j+1)%8] = b[j];
-				
-				if (i%16 == 15)
-					for (j = 0; j < 16; j ++)
-						w[j] += w[(j+9)%16] + sigma0(w[(j+1)%16]) + sigma1(w[(j+14)%16]);
-			}
-
-			for (i = 0; i < 8; i ++) { a[i] += z[i]; z[i] = a[i]; }
-
-			moffset += 128;
-			n -= 128;
-		}
-
-		for (i = 0; i < 8; i ++) ts64(x,8*i, z[i]);
-
-		return n;
-	}
-	public static int crypto_hashblocks(byte [] x, byte [] m, int n) {
-		return crypto_hashblocks(x, m,0, n);
-	}
-
-	private final static byte iv[] = {
-		0x6a,0x09,(byte) 0xe6,0x67,(byte) 0xf3,(byte) 0xbc,(byte) 0xc9,0x08,
-		(byte) 0xbb,0x67,(byte) 0xae,(byte) 0x85,(byte) 0x84,(byte) 0xca,(byte) 0xa7,0x3b,
-		0x3c,0x6e,(byte) 0xf3,0x72,(byte) 0xfe,(byte) 0x94,(byte) 0xf8,0x2b,
-		(byte) 0xa5,0x4f,(byte) 0xf5,0x3a,0x5f,0x1d,0x36,(byte) 0xf1,
-		0x51,0x0e,0x52,0x7f,(byte) 0xad,(byte) 0xe6,(byte) 0x82,(byte) 0xd1,
-		(byte) 0x9b,0x05,0x68,(byte) 0x8c,0x2b,0x3e,0x6c,0x1f,
-		0x1f,(byte) 0x83,(byte) 0xd9,(byte) 0xab,(byte) 0xfb,0x41,(byte) 0xbd,0x6b,
-		0x5b,(byte) 0xe0,(byte) 0xcd,0x19,0x13,0x7e,0x21,0x79
-	} ;
-
-
-	private static int crypto_hashblocks_hl(int [] hh, int [] hl, byte [] m, int n) {
-		int [] wh = new int[16], wl = new int[16];
-		int bh0, bh1, bh2, bh3, bh4, bh5, bh6, bh7,
-		bl0, bl1, bl2, bl3, bl4, bl5, bl6, bl7,
-		th, tl, i, j, h, l, a, b, c, d;
-
-		int ah0 = hh[0],
-				ah1 = hh[1],
-				ah2 = hh[2],
-				ah3 = hh[3],
-				ah4 = hh[4],
-				ah5 = hh[5],
-				ah6 = hh[6],
-				ah7 = hh[7],
-
-				al0 = hl[0],
-				al1 = hl[1],
-				al2 = hl[2],
-				al3 = hl[3],
-				al4 = hl[4],
-				al5 = hl[5],
-				al6 = hl[6],
-				al7 = hl[7];
+				al0 = hl[0] & 0xffffffff,
+				al1 = hl[1] & 0xffffffff,
+				al2 = hl[2] & 0xffffffff,
+				al3 = hl[3] & 0xffffffff,
+				al4 = hl[4] & 0xffffffff,
+				al5 = hl[5] & 0xffffffff,
+				al6 = hl[6] & 0xffffffff,
+				al7 = hl[7] & 0xffffffff;
 
 		int pos = 0;
 		while (n >= 128) {
 			for (i = 0; i < 16; i++) {
 				j = 8 * i + pos;
-				wh[i] = (m[j+0] << 24) | (m[j+1] << 16) | (m[j+2] << 8) | m[j+3];
-				wl[i] = (m[j+4] << 24) | (m[j+5] << 16) | (m[j+6] << 8) | m[j+7];
+				wh[i] = (m[j+0+moff] << 24) | (m[j+1+moff] << 16) | (m[j+2+moff] << 8) | m[j+3+moff];
+				wl[i] = (m[j+4+moff] << 24) | (m[j+5+moff] << 16) | (m[j+6+moff] << 8) | m[j+7+moff];
 			}
 			for (i = 0; i < 80; i++) {
 				bh0 = ah0;
@@ -2691,15 +2468,15 @@ public final class TweetNaclFast {
 				// Ch
 				h = (ah4 & ah5) ^ (~ah4 & ah6);
 				l = (al4 & al5) ^ (~al4 & al6);
-
+				
 				a += l & 0xffff; b += l >>> 16;
-			c += h & 0xffff; d += h >>> 16;
+				c += h & 0xffff; d += h >>> 16;
 
 			// K
 			///h = K[i*2];
 			///l = K[i*2+1];
-			h = (int) (K[i] & 0xffffffff);
-			l = (int) ((K[i]>>>32) & 0xffffffff);
+			h = ((K[i]>>>32) & 0xffffffff);
+			l = ((K[i]>>> 0) & 0xffffffff);
 
 			a += l & 0xffff; b += l >>> 16;
 			c += h & 0xffff; d += h >>> 16;
@@ -2844,8 +2621,8 @@ public final class TweetNaclFast {
 			c += b >>> 16;
 			d += c >>> 16;
 
-			hh[0] = ah0 = (c & 0xffff) | (d << 16);
-			hl[0] = al0 = (a & 0xffff) | (b << 16);
+			hh[0] = (int) ((ah0 = (c & 0xffff) | (d << 16)) & 0xffffffff);
+			hl[0] = (int) ((al0 = (a & 0xffff) | (b << 16)) & 0xffffffff);
 
 			h = ah1;
 			l = al1;
@@ -2863,8 +2640,8 @@ public final class TweetNaclFast {
 			c += b >>> 16;
 			d += c >>> 16;
 
-			hh[1] = ah1 = (c & 0xffff) | (d << 16);
-			hl[1] = al1 = (a & 0xffff) | (b << 16);
+			hh[1] = (int) ((ah1 = (c & 0xffff) | (d << 16)) & 0xffffffff);
+			hl[1] = (int) ((al1 = (a & 0xffff) | (b << 16)) & 0xffffffff);
 
 			h = ah2;
 			l = al2;
@@ -2881,9 +2658,9 @@ public final class TweetNaclFast {
 			b += a >>> 16;
 			c += b >>> 16;
 			d += c >>> 16;
-
-			hh[2] = ah2 = (c & 0xffff) | (d << 16);
-			hl[2] = al2 = (a & 0xffff) | (b << 16);
+			
+			hh[2] = (int) ((ah2 = (c & 0xffff) | (d << 16)) & 0xffffffff);
+			hl[2] = (int) ((al2 = (a & 0xffff) | (b << 16)) & 0xffffffff);
 
 			h = ah3;
 			l = al3;
@@ -2901,8 +2678,8 @@ public final class TweetNaclFast {
 			c += b >>> 16;
 			d += c >>> 16;
 
-			hh[3] = ah3 = (c & 0xffff) | (d << 16);
-			hl[3] = al3 = (a & 0xffff) | (b << 16);
+			hh[3] = (int) ((ah3 = (c & 0xffff) | (d << 16)) & 0xffffffff);
+			hl[3] = (int) ((al3 = (a & 0xffff) | (b << 16)) & 0xffffffff);
 
 			h = ah4;
 			l = al4;
@@ -2920,8 +2697,8 @@ public final class TweetNaclFast {
 			c += b >>> 16;
 			d += c >>> 16;
 
-			hh[4] = ah4 = (c & 0xffff) | (d << 16);
-			hl[4] = al4 = (a & 0xffff) | (b << 16);
+			hh[4] = (int) ((ah4 = (c & 0xffff) | (d << 16)) & 0xffffffff);
+			hl[4] = (int) ((al4 = (a & 0xffff) | (b << 16)) & 0xffffffff);
 
 			h = ah5;
 			l = al5;
@@ -2939,8 +2716,8 @@ public final class TweetNaclFast {
 			c += b >>> 16;
 			d += c >>> 16;
 
-			hh[5] = ah5 = (c & 0xffff) | (d << 16);
-			hl[5] = al5 = (a & 0xffff) | (b << 16);
+			hh[5] = (int) ((ah5 = (c & 0xffff) | (d << 16)) & 0xffffffff);
+			hl[5] = (int) ((al5 = (a & 0xffff) | (b << 16)) & 0xffffffff);
 
 			h = ah6;
 			l = al6;
@@ -2958,8 +2735,8 @@ public final class TweetNaclFast {
 			c += b >>> 16;
 			d += c >>> 16;
 
-			hh[6] = ah6 = (c & 0xffff) | (d << 16);
-			hl[6] = al6 = (a & 0xffff) | (b << 16);
+			hh[6] = (int) ((ah6 = (c & 0xffff) | (d << 16)) & 0xffffffff);
+			hl[6] = (int) ((al6 = (a & 0xffff) | (b << 16)) & 0xffffffff);
 
 			h = ah7;
 			l = al7;
@@ -2977,8 +2754,8 @@ public final class TweetNaclFast {
 			c += b >>> 16;
 			d += c >>> 16;
 
-			hh[7] = ah7 = (c & 0xffff) | (d << 16);
-			hl[7] = al7 = (a & 0xffff) | (b << 16);
+			hh[7] = (int) ((ah7 = (c & 0xffff) | (d << 16)) & 0xffffffff);
+			hl[7] = (int) ((al7 = (a & 0xffff) | (b << 16)) & 0xffffffff);
 
 			pos += 128;
 			n -= 128;
@@ -2989,13 +2766,13 @@ public final class TweetNaclFast {
 	
 	// TBD 64bits of n
 	///int crypto_hash(byte [] out, byte [] m, long n)
-	private static int crypto_hash(byte [] out, byte [] m,final int moff, int n)
+	public static int crypto_hash(byte [] out, byte [] m,final int moff, int n)
 	{
 		  int [] hh = new int[8],
 		         hl = new int[8];
 		  byte[]  x = new byte[256];
 		  int     i;
-		  long b = n;
+		  int b = n;
 
 		  hh[0] = 0x6a09e667;
 		  hh[1] = 0xbb67ae85;
@@ -3015,53 +2792,27 @@ public final class TweetNaclFast {
 		  hl[6] = 0xfb41bd6b;
 		  hl[7] = 0x137e2179;
 
-		  crypto_hashblocks_hl(hh, hl, m, n);
+		  crypto_hashblocks_hl(hh, hl, m,moff, n);
 		  n %= 128;
 
-		  for (i = 0; i < n; i++) x[i] = m[(int) (b-n+i)];
+		  for (i = 0; i < n; i++) x[i] = m[b-n+i +moff];
 		  x[n] = (byte) 128;
 
 		  n = 256-128*(n<112?1:0);
 		  x[n-9] = 0;
 		  ts64(x,n-8, b<<3);
-		  crypto_hashblocks_hl(hh, hl, x, n);
+		  crypto_hashblocks_hl(hh, hl, x,0, n);
 
-		  for (i = 0; i < 8; i++) ts64(out, 8*i, hh[i]<<32 | hl[i]);
+		  long h;
+		  for (i = 0; i < 8; i++) {
+			  h = hh[i]; h <<= 32; h |= hl[i];
+			  ts64(out, 8*i, h);
+		  }
 
 		  return 0;
-		
-		/*
-		byte[] h = new byte[64], x = new byte [256];
-		long b = n;
-		int i;
-		
-		for (i = 0; i < 64; i ++) h[i] = iv[i];
-
-		crypto_hashblocks(h, m,moff, n);
-		///m += n;
-		n &= 127;
-		///m -= n;
-
-		for (i = 0; i < 256; i ++) x[i] = 0;
-		
-		for (i = 0; i < n; i ++) x[i] = m[i+moff];
-		x[n] = (byte) 128;
-
-		n = 256-128*(n<112?1:0);
-		x[n-9] = (byte) (b >>> 61);
-		ts64(x,n-8, b<<3);
-		crypto_hashblocks(h, x,0, n);
-
-		for (i = 0; i < 64; i ++) out[i] = h[i];
-
-		return 0;
-		*/
-	}
-	public static int crypto_hash(byte [] out, byte [] m, int n) {
-		return crypto_hash(out, m,0, n);
 	}
 	public static int crypto_hash(byte [] out, byte [] m) {
-		return crypto_hash(out, m, m!=null? m.length : 0);
+		return crypto_hash(out, m,0, m!=null? m.length : 0);
 	}
 
 	// gf: long[16]
@@ -3096,7 +2847,7 @@ public final class TweetNaclFast {
 		A(t,0, q0,0, q1,0);
 		M(b,0, b,0,   t,0);
 		M(c,0, p3,0, q3,0);
-		M(c,0, c,0,   D2,0);
+		M(c,0, c,0,  D2,0);
 		M(d,0, p2,0, q2,0);
 		
 		A(d,0, d,0, d,0);
@@ -3132,7 +2883,7 @@ public final class TweetNaclFast {
 
 		pack25519(r, ty,0);
 
-		r[31] ^= par25519(tx) << 7;
+		r[31] ^= par25519(tx,0) << 7;
 	}
 
 	private static void scalarmult(long [] p[], long [] q[], byte[] s,final int soff)
@@ -3145,7 +2896,7 @@ public final class TweetNaclFast {
 		set25519(p[3],gf0);
 
 		for (i = 255;i >= 0;--i) {
-			byte b = (byte) ((s[i/8+soff] >> (i&7))&1);
+			byte b = (byte) ((s[i/8+soff] >>> (i&7))&1);
 
 			cswap(p,q,b);
 			add(q,p);
@@ -3306,36 +3057,37 @@ public final class TweetNaclFast {
 		long [] den4 = new long [16];
 		long [] den6 = new long [16];
 
-		set25519(r[2],gf1);
+		set25519(r[2], gf1);
 		unpack25519(r[1], p);
-		S(num,0, r[1],0);
-		M(den,0, num,0, D,0);
-		Z(num,0, num,0, r[2],0);
-		A(den,0, r[2],0, den,0);
+		S(num, r[1]);
+		M(den, num, D);
+		Z(num, num, r[2]);
+		A(den, r[2], den);
 
-		S(den2,0, den,0);
-		S(den4,0, den2,0);
-		M(den6,0, den4,0, den2,0);
-		M(t,0, den6,0, num,0);
-		M(t,0, t,0, den,0);
+		S(den2, den);
+		S(den4, den2);
+		M(den6, den4, den2);
+		M(t, den6, num);
+		M(t, t, den);
 
 		pow2523(t, t);
-		M(t,0, t,0, num,0);
-		M(t,0, t,0, den,0);
-		M(t,0, t,0, den,0);
-		M(r[0],0, t,0, den,0);
+		M(t, t, num);
+		M(t, t, den);
+		M(t, t, den);
+		M(r[0], t, den);
 
-		S(chk,0, r[0],0);
-		M(chk,0, chk,0, den,0);
-		if (neq25519(chk, num)!=0) M(r[0],0, r[0],0, I,0);
+		S(chk, r[0]);
+		M(chk, chk, den);
+		if (neq25519(chk, num)!=0) M(r[0], r[0], I);
 
-		S(chk,0, r[0],0);
-		M(chk,0, chk,0, den,0);
+		S(chk, r[0]);
+		M(chk, chk, den);
 		if (neq25519(chk, num)!=0) return -1;
 
-		if (par25519(r[0]) == (p[31]>>7)) Z(r[0],0, gf0,0, r[0],0);
+		if (par25519(r[0]) == (p[31]>>>7)) Z(r[0], gf0, r[0]);
 
-		M(r[3],0, r[0],0, r[1],0);
+		M(r[3], r[0], r[1]);
+
 		return 0;
 	}
 
