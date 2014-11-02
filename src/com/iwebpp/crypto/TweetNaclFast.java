@@ -100,6 +100,8 @@ public final class TweetNaclFast {
 			return after(message, moff, message.length-moff);
 		}
 		public byte [] box(byte [] message, final int moff, final int mlen) {
+			if (!(message!=null && message.length>=(moff+mlen))) return null;
+
 			// prepare shared key
 			if (this.sharedKey == null) before();
 
@@ -130,6 +132,8 @@ public final class TweetNaclFast {
 			return open_after(box, boxoff, box.length-boxoff);
 		}
 		public byte [] open(byte [] box, final int boxoff, final int boxlen) {
+			if (!(box!=null && box.length>=(boxoff+boxlen))) return null;
+
 			// prepare shared key
 			if (this.sharedKey == null) before();
 
