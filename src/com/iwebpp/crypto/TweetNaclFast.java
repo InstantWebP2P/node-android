@@ -734,7 +734,7 @@ public final class TweetNaclFast {
 	////////////////////////////////////////////////////////////////////////////////////
 	/*
 	 * @description
-	 *   Codes below are ported from TweetNacl.c/TweetNacl.h
+	 *   Codes below are ported tweetnacl-fast.js from TweetNacl.c/TweetNacl.h
 	 * */
 	
 	private static final byte [] _0 = new byte[16];
@@ -1717,7 +1717,7 @@ public final class TweetNaclFast {
 		if (d < 32) return -1;
 		crypto_stream_xor(c,0,m,0,d,n,k);
 		crypto_onetimeauth(c,16, c,32, d-32, c);
-		for (i = 0; i < 16; i++) c[i] = 0;
+		///for (i = 0; i < 16; i++) c[i] = 0;
 		return 0;
 	}
 
@@ -1729,7 +1729,7 @@ public final class TweetNaclFast {
 		crypto_stream(x,0,32,n,k);
 		if (crypto_onetimeauth_verify(c,16, c,32, d-32, x) != 0) return -1;
 		crypto_stream_xor(m,0,c,0,d,n,k);
-		for (i = 0; i < 32; i++) m[i] = 0;
+		///for (i = 0; i < 32; i++) m[i] = 0;
 		return 0;
 	}
 
@@ -2590,7 +2590,7 @@ public final class TweetNaclFast {
 						h = wh[j];
 						l = wl[j];
 
-						a = l & 0xffff; b = l >>> 16;
+				a = l & 0xffff; b = l >>> 16;
 				c = h & 0xffff; d = h >>> 16;
 
 				h = wh[(j+9)%16];
@@ -2832,12 +2832,12 @@ public final class TweetNaclFast {
 		n = 256-128*(n<112?1:0);
 		x[n-9] = 0;
 
-		ts64(x, n-8,  b<<3 &0xffffffff/*(b / 0x20000000) | 0, b << 3*/);
+		ts64(x, n-8,  b<<3/*(b / 0x20000000) | 0, b << 3*/);
 
 		crypto_hashblocks_hl(hh, hl, x,0, n);
 
 		for (i = 0; i < 8; i++) {
-			u = hh[i]; u <<= 32; u |= hl[i];
+			u = hh[i]; u <<= 32; u |= hl[i]&0xffffffffL;
 			ts64(out, 8*i, u);
 		}
 
@@ -2970,7 +2970,7 @@ public final class TweetNaclFast {
 
 		if (!seeded) randombytes(sk, 32);
 		crypto_hash(d, sk,0, 32);
-		d[0] &= 248;
+		d[0]  &= 248;
 		d[31] &= 127;
 		d[31] |= 64;
 

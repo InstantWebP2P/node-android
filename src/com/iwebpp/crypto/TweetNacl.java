@@ -7,8 +7,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.iwebpp.crypto.TweetNaclFast.Signature.KeyPair;
-
 
 /*
  * @description 
@@ -795,16 +793,16 @@ public final class TweetNacl {
 
 	private static int ld32(byte [] x, final int xoff, final int xlen)
 	{
-		int u = x[3+xoff];
-		u = (u<<8)|x[2+xoff];
-		u = (u<<8)|x[1+xoff];
-		return (u<<8)|x[0+xoff];
+		int u =       (x[3+xoff]&0xff);
+		u =    (u<<8)|(x[2+xoff]&0xff);
+		u =    (u<<8)|(x[1+xoff]&0xff);
+		return (u<<8)|(x[0+xoff]&0xff);
 	}
 
 	private static long dl64(byte [] x, final int xoff, final int xlen) {
 		int i;
 		long u=0;
-		for (i = 0; i < 8; i ++) u=(u<<8)|x[i+xoff];
+		for (i = 0; i < 8; i ++) u=(u<<8)|(x[i+xoff]&0xff);
 		return u;
 	}
 

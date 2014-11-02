@@ -1,20 +1,18 @@
-// Copyright (c) 2014 Tom Zhou<iwebpp@gmail.com>
-
-
 package com.iwebpp.crypto.tests;
 
 import java.io.UnsupportedEncodingException;
-import com.iwebpp.crypto.TweetNacl;
 
 import android.util.Log;
 
-public final class TweetNaclTest {
-	private static final String TAG = "TweetNaclTest";
+import com.iwebpp.crypto.TweetNaclFast;
+
+public final class TweetNaclFastTest {
+	private static final String TAG = "TweetNaclFastTest";
 
 	private boolean testBox() throws UnsupportedEncodingException {
 		// keypair A
 		byte [] ska = new byte[32]; for (int i = 0; i < 32; i ++) ska[i] = 0;
-		TweetNacl.Box.KeyPair ka = TweetNacl.Box.keyPair_fromSecretKey(ska);
+		TweetNaclFast.Box.KeyPair ka = TweetNaclFast.Box.keyPair_fromSecretKey(ska);
 		
 		String skat = "";
 		for (int i = 0; i < ka.getSecretKey().length; i ++)
@@ -28,7 +26,7 @@ public final class TweetNaclTest {
 		
 		// keypair B
 		byte [] skb = new byte[32]; for (int i = 0; i < 32; i ++) skb[i] = 1;
-		TweetNacl.Box.KeyPair kb = TweetNacl.Box.keyPair_fromSecretKey(skb);
+		TweetNaclFast.Box.KeyPair kb = TweetNaclFast.Box.keyPair_fromSecretKey(skb);
 		
 		String skbt = "";
 		for (int i = 0; i < kb.getSecretKey().length; i ++)
@@ -41,10 +39,10 @@ public final class TweetNaclTest {
 		Log.d(TAG, "pkbt: "+pkbt);
 		
 		// peer A -> B
-		TweetNacl.Box pab = new TweetNacl.Box(kb.getPublicKey(), ka.getSecretKey(), 0);
+		TweetNaclFast.Box pab = new TweetNaclFast.Box(kb.getPublicKey(), ka.getSecretKey(), 0);
 
 		// peer B -> A
-		TweetNacl.Box pba = new TweetNacl.Box(ka.getPublicKey(), kb.getSecretKey(), 0);
+		TweetNaclFast.Box pba = new TweetNaclFast.Box(ka.getPublicKey(), kb.getSecretKey(), 0);
 
 		// messages
 		String m0 = "Helloword, Am Tom ...";
@@ -97,15 +95,15 @@ public final class TweetNaclTest {
 	
 	private boolean testSecretBox() throws UnsupportedEncodingException {
 		// shared key
-		byte [] shk = new byte[TweetNacl.SecretBox.keyLength];
+		byte [] shk = new byte[TweetNaclFast.SecretBox.keyLength];
 		for (int i = 0; i < shk.length; i ++)
 			shk[i] = 0x66;
 
 		// peer A -> B
-		TweetNacl.SecretBox pab = new TweetNacl.SecretBox(shk, 0);
+		TweetNaclFast.SecretBox pab = new TweetNaclFast.SecretBox(shk, 0);
 
 		// peer B -> A
-		TweetNacl.SecretBox pba = new TweetNacl.SecretBox(shk, 0);
+		TweetNaclFast.SecretBox pba = new TweetNaclFast.SecretBox(shk, 0);
 
 		// messages
 		String m0 = "Helloword, Am Tom ...";
@@ -157,16 +155,16 @@ public final class TweetNaclTest {
 	
 	private boolean testSign() throws UnsupportedEncodingException {
 		// keypair A
-		TweetNacl.Signature.KeyPair ka = TweetNacl.Signature.keyPair();
+		TweetNaclFast.Signature.KeyPair ka = TweetNaclFast.Signature.keyPair();
 
 		// keypair B
-		TweetNacl.Signature.KeyPair kb = TweetNacl.Signature.keyPair();
+		TweetNaclFast.Signature.KeyPair kb = TweetNaclFast.Signature.keyPair();
 
 		// peer A -> B
-		TweetNacl.Signature pab = new TweetNacl.Signature(kb.getPublicKey(), ka.getSecretKey());
+		TweetNaclFast.Signature pab = new TweetNaclFast.Signature(kb.getPublicKey(), ka.getSecretKey());
 
 		// peer B -> A
-		TweetNacl.Signature pba = new TweetNacl.Signature(ka.getPublicKey(), kb.getSecretKey());
+		TweetNaclFast.Signature pba = new TweetNaclFast.Signature(ka.getPublicKey(), kb.getSecretKey());
 
 		// messages
 		String m0 = "Helloword, Am Tom ...";
@@ -177,7 +175,7 @@ public final class TweetNaclTest {
         Log.d(TAG, "...sign@" + System.currentTimeMillis());
 
 		String sgt = "sign@"+m0 + ": ";
-		for (int i = 0; i < TweetNacl.Signature.signatureLength; i ++)
+		for (int i = 0; i < TweetNaclFast.Signature.signatureLength; i ++)
 			sgt += " "+sab[i];
 		Log.d(TAG, sgt);
 		
@@ -197,9 +195,9 @@ public final class TweetNaclTest {
 		}
 		
 		// keypair C
-		byte [] seed = new byte[TweetNacl.Signature.seedLength]; for (int i = 0; i < seed.length; i ++) seed[i] = 0x66;
+		byte [] seed = new byte[TweetNaclFast.Signature.seedLength]; for (int i = 0; i < seed.length; i ++) seed[i] = 0x66;
 		
-		TweetNacl.Signature.KeyPair kc = TweetNacl.Signature.keyPair_fromSeed(seed);
+		TweetNaclFast.Signature.KeyPair kc = TweetNaclFast.Signature.keyPair_fromSeed(seed);
 		
 		String skct = "";
 		for (int i = 0; i < kc.getSecretKey().length; i ++)
@@ -212,14 +210,14 @@ public final class TweetNaclTest {
 		Log.d(TAG, "pkct: "+pkct);
 		
 		// self-signed
-		TweetNacl.Signature pcc = new TweetNacl.Signature(kc.getPublicKey(), kc.getSecretKey());
+		TweetNaclFast.Signature pcc = new TweetNaclFast.Signature(kc.getPublicKey(), kc.getSecretKey());
 
 		Log.d(TAG, "\nself-sign...@" + System.currentTimeMillis());
 		byte [] scc = pcc.sign(m0.getBytes("utf-8"));
 		Log.d(TAG, "...self-sign@" + System.currentTimeMillis());
 
 		String ssc = "self-sign@"+m0 + ": ";
-		for (int i = 0; i < TweetNacl.Signature.signatureLength; i ++)
+		for (int i = 0; i < TweetNaclFast.Signature.signatureLength; i ++)
 			ssc += " "+scc[i];
 		Log.d(TAG, ssc);
 
@@ -249,7 +247,7 @@ public final class TweetNaclTest {
 		byte [] b0 = m0.getBytes("utf-8");
 		
         Log.d(TAG, "\nsha512...@" + System.currentTimeMillis());
-		byte [] hash = TweetNacl.Hash.sha512(b0);
+		byte [] hash = TweetNaclFast.Hash.sha512(b0);
         Log.d(TAG, "...sha512@" + System.currentTimeMillis());
 
 		String hst = "sha512@"+m0 + "/"+b0.length + ": ";
@@ -289,6 +287,5 @@ public final class TweetNaclTest {
 		})).start();
 
 	}
-
 
 }

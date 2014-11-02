@@ -1,5 +1,6 @@
 package com.iwebpp;
 
+import com.iwebpp.crypto.tests.TweetNaclFastTest;
 import com.iwebpp.crypto.tests.TweetNaclTest;
 import com.iwebpp.libuvpp.R;
 import com.iwebpp.libuvpp.R.layout;
@@ -50,7 +51,7 @@ public class MainActivity extends Activity {
 		///new FileEventHandleTest().start();
 		
 		// Node Unit tests
-		/*new EE2Test().start();
+		new EE2Test().start();
 		new StreamTest().start();
         new TcpTest().start();
         new UdtTest().start();
@@ -70,11 +71,12 @@ public class MainActivity extends Activity {
 		new RhinoTest().start();
 		
 		// NodeApi tests
-		new EventHandlerTest().start();*/
-		///new SimpleApiTest().start();
+		new EventHandlerTest().start();
+		new SimpleApiTest().start();
 		
 		// Crypto tests
-		new TweetNaclTest().start();
+		///new TweetNaclTest().start();
+		new TweetNaclFastTest().start();
 	}
 
 	@Override
