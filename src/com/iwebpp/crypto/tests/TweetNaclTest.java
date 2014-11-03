@@ -5,6 +5,7 @@ package com.iwebpp.crypto.tests;
 
 import java.io.UnsupportedEncodingException;
 import com.iwebpp.crypto.TweetNacl;
+import com.iwebpp.crypto.TweetNaclFast;
 
 import android.util.Log;
 
@@ -14,7 +15,7 @@ public final class TweetNaclTest {
 	private boolean testBox() throws UnsupportedEncodingException {
 		// keypair A
 		byte [] ska = new byte[32]; for (int i = 0; i < 32; i ++) ska[i] = 0;
-		TweetNacl.Box.KeyPair ka = TweetNacl.Box.keyPair_fromSecretKey(ska);
+		TweetNaclFast.Box.KeyPair ka = TweetNaclFast.Box.keyPair_fromSecretKey(ska);
 		
 		String skat = "";
 		for (int i = 0; i < ka.getSecretKey().length; i ++)
@@ -28,7 +29,7 @@ public final class TweetNaclTest {
 		
 		// keypair B
 		byte [] skb = new byte[32]; for (int i = 0; i < 32; i ++) skb[i] = 1;
-		TweetNacl.Box.KeyPair kb = TweetNacl.Box.keyPair_fromSecretKey(skb);
+		TweetNaclFast.Box.KeyPair kb = TweetNaclFast.Box.keyPair_fromSecretKey(skb);
 		
 		String skbt = "";
 		for (int i = 0; i < kb.getSecretKey().length; i ++)
@@ -41,57 +42,47 @@ public final class TweetNaclTest {
 		Log.d(TAG, "pkbt: "+pkbt);
 		
 		// peer A -> B
-		TweetNacl.Box pab = new TweetNacl.Box(kb.getPublicKey(), ka.getSecretKey(), 0);
+		TweetNaclFast.Box pab = new TweetNaclFast.Box(kb.getPublicKey(), ka.getSecretKey(), 0);
 
 		// peer B -> A
-		TweetNacl.Box pba = new TweetNacl.Box(ka.getPublicKey(), kb.getSecretKey(), 0);
+		TweetNaclFast.Box pba = new TweetNaclFast.Box(ka.getPublicKey(), kb.getSecretKey(), 0);
 
 		// messages
 		String m0 = "Helloword, Am Tom ...";
 		
-		// cipher A -> B
-		byte [] cab = pab.box(m0.getBytes("utf-8"));
-		String cabt = "";
-		for (int i = 0; i < cab.length; i ++)
-			cabt += " "+cab[i];
-		Log.d(TAG, "cabt: "+cabt);
-		
-		byte [] mba = pba.open(cab);
-		String mbat = "";
-		for (int i = 0; i < mba.length; i ++)
-			mbat += " "+mba[i];
-		Log.d(TAG, "mbat: "+mbat);
-		
-		String nm0 = new String(mba, "utf-8");
-		if (nm0.equals(m0)) {
-			Log.d(TAG, "box/open string success @" + m0);
-		} else {
-			Log.e(TAG, "box/open string failed @" + m0 + " / " + nm0);
+		// stress test
+		for (int t = 0; t < 19; t ++, m0+=m0) {
+			byte [] mb0 = m0.getBytes("utf-8");
+
+			Log.d(TAG, "\n\n\tbox streess/"+(mb0.length/1000.0) +"kB: " + t + " times");
+
+			// cipher A -> B
+			Log.d(TAG, "box ...@" + System.currentTimeMillis());
+			byte [] cab = pab.box(mb0);
+			Log.d(TAG, "... box@" + System.currentTimeMillis());
+
+			/*String cabt = "";
+			for (int i = 0; i < cab.length; i ++)
+				cabt += " "+cab[i];
+			Log.d(TAG, "cabt: "+cabt);*/
+
+			Log.d(TAG, "\nbox open ...@" + System.currentTimeMillis());
+			byte [] mba = pba.open(cab);
+			Log.d(TAG, "... box open@" + System.currentTimeMillis());
+
+			/*String mbat = "";
+			for (int i = 0; i < mba.length; i ++)
+				mbat += " "+mba[i];
+			Log.d(TAG, "mbat: "+mbat);*/
+
+			String nm0 = new String(mba, "utf-8");
+			if (nm0.equals(m0)) {
+				Log.d(TAG, "box/open string success");
+			} else {
+				Log.e(TAG, "box/open string failed @" + m0 + " / " + nm0);
+			}
 		}
-		
-		// cipher B -> A
-        byte [] b0 = new byte[6];
         
-        Log.d(TAG, "box@" + System.currentTimeMillis());
-        byte [] cba = pba.box(b0);
-		byte [] mab = pab.open(cba);
-        Log.d(TAG, "open@" + System.currentTimeMillis());
-
-		if (b0.length == mab.length) {
-			int rc = 0;
-			
-			for (int i = 0; i < b0.length; i ++)
-				if (!(b0[i] == mab[i])) {
-					rc = -1;
-					Log.e(TAG, "box/open binary failed @" + b0[i] + " / " + mab[i]);
-				}
-
-			if (rc == 0)
-				Log.d(TAG, "box/open binary success @" + b0);
-		} else {
-			Log.e(TAG, "box/open binary failed @" + b0 + " / " + mab);
-		}
-
 		return true;
 	}
 	

@@ -47,49 +47,39 @@ public final class TweetNaclFastTest {
 		// messages
 		String m0 = "Helloword, Am Tom ...";
 		
-		// cipher A -> B
-		byte [] cab = pab.box(m0.getBytes("utf-8"));
-		String cabt = "";
-		for (int i = 0; i < cab.length; i ++)
-			cabt += " "+cab[i];
-		Log.d(TAG, "cabt: "+cabt);
-		
-		byte [] mba = pba.open(cab);
-		String mbat = "";
-		for (int i = 0; i < mba.length; i ++)
-			mbat += " "+mba[i];
-		Log.d(TAG, "mbat: "+mbat);
-		
-		String nm0 = new String(mba, "utf-8");
-		if (nm0.equals(m0)) {
-			Log.d(TAG, "box/open string success @" + m0);
-		} else {
-			Log.e(TAG, "box/open string failed @" + m0 + " / " + nm0);
+		// stress test
+		for (int t = 0; t < 19; t ++, m0+=m0) {
+			byte [] mb0 = m0.getBytes("utf-8");
+
+			Log.d(TAG, "\n\n\tbox streess/"+(mb0.length/1000.0) +"kB: " + t + " times");
+
+			// cipher A -> B
+			Log.d(TAG, "box ...@" + System.currentTimeMillis());
+			byte [] cab = pab.box(mb0);
+			Log.d(TAG, "... box@" + System.currentTimeMillis());
+
+			/*String cabt = "";
+			for (int i = 0; i < cab.length; i ++)
+				cabt += " "+cab[i];
+			Log.d(TAG, "cabt: "+cabt);*/
+
+			Log.d(TAG, "\nbox open ...@" + System.currentTimeMillis());
+			byte [] mba = pba.open(cab);
+			Log.d(TAG, "... box open@" + System.currentTimeMillis());
+
+			/*String mbat = "";
+			for (int i = 0; i < mba.length; i ++)
+				mbat += " "+mba[i];
+			Log.d(TAG, "mbat: "+mbat);*/
+
+			String nm0 = new String(mba, "utf-8");
+			if (nm0.equals(m0)) {
+				Log.d(TAG, "box/open string success");
+			} else {
+				Log.e(TAG, "box/open string failed @" + m0 + " / " + nm0);
+			}
 		}
-		
-		// cipher B -> A
-        byte [] b0 = new byte[6];
         
-        Log.d(TAG, "box@" + System.currentTimeMillis());
-        byte [] cba = pba.box(b0);
-		byte [] mab = pab.open(cba);
-        Log.d(TAG, "open@" + System.currentTimeMillis());
-
-		if (b0.length == mab.length) {
-			int rc = 0;
-			
-			for (int i = 0; i < b0.length; i ++)
-				if (!(b0[i] == mab[i])) {
-					rc = -1;
-					Log.e(TAG, "box/open binary failed @" + b0[i] + " / " + mab[i]);
-				}
-
-			if (rc == 0)
-				Log.d(TAG, "box/open binary success @" + b0);
-		} else {
-			Log.e(TAG, "box/open binary failed @" + b0 + " / " + mab);
-		}
-
 		return true;
 	}
 	
@@ -114,7 +104,7 @@ public final class TweetNaclFastTest {
 		for (int t = 0; t < 19; t ++, m0 += m0) {
 			byte [] mb0 = m0.getBytes("utf-8");
 			
-			Log.d(TAG, "\n\n\tstreess/"+(mb0.length/1000.0) +"kB: " + t + " times");
+			Log.d(TAG, "\n\n\tsecret-box streess/"+(mb0.length/1000.0) +"kB: " + t + " times");
 
 			/*String mb0t = "mb0/"+mb0.length + ": ";
 			for (int i = 0; i < mb0.length; i ++)
