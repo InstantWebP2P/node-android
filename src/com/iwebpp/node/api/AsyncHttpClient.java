@@ -20,6 +20,7 @@ import com.iwebpp.node.http.ClientRequest;
 import com.iwebpp.node.http.IncomingMessage;
 import com.iwebpp.node.http.ReqOptions;
 import com.iwebpp.node.http.http;
+import com.iwebpp.node.http.httpp;
 
 /*
  * @description
@@ -30,6 +31,9 @@ public final class AsyncHttpClient {
 	private static final String TAG = "AsyncHttpClient";
 
 	private static class HttpClient extends SimpleApi {
+		// request on http or httpp
+		private boolean isHttpp;
+
 		// request content
 		private String method;
 
@@ -52,13 +56,36 @@ public final class AsyncHttpClient {
 		private int cont_timeout; // ms
 		private TimerHandle cont_tmohdl;
 		
+        // response handler
+		private ClientRequest.responseListener respHdlr;
+		
+		protected HttpClient(
+				boolean isHttpp,
+				String method,
+				String url,
+				Map<String, String> headers, 
+				http_content_b data,
+				final HttpClientCallback cb) {
+			this(isHttpp, method, url, headers, data, cb, 2000, -1);
+		}
 		protected HttpClient(
 				String method,
 				String url,
 				Map<String, String> headers, 
 				http_content_b data,
 				final HttpClientCallback cb) {
-			this(method, url, headers, data, cb, 2000, -1);
+			this(false, method, url, headers, data, cb, 2000, -1);
+		}
+		
+		protected HttpClient(
+				boolean isHttpp,
+				String method,
+				String url,
+				Map<String, String> headers, 
+				http_content_b data,
+				final HttpClientCallback cb,
+				int resp_timeout) {
+			this(isHttpp, method, url, headers, data, cb, resp_timeout, -1);
 		}
 		protected HttpClient(
 				String method,
@@ -67,9 +94,11 @@ public final class AsyncHttpClient {
 				http_content_b data,
 				final HttpClientCallback cb,
 				int resp_timeout) {
-			this(method, url, headers, data, cb, resp_timeout, -1);
+			this(false, method, url, headers, data, cb, resp_timeout, -1);
 		}
+		
 		protected HttpClient(
+				boolean isHttpp,
 				String method,
 				String url,
 				Map<String, String> headers, 
@@ -77,6 +106,10 @@ public final class AsyncHttpClient {
 				final HttpClientCallback cb,
 				int resp_timeout,
 				int cont_timeout) {
+			// request on http or httpp
+			this.isHttpp = isHttpp;
+			
+			// request method
 			this.method = method;
 			this.url = url;
 
@@ -112,6 +145,78 @@ public final class AsyncHttpClient {
 
 			// response body
 			this.body = new LinkedList<Object>();
+			
+			// response handler
+			this.respHdlr = new ClientRequest.responseListener(){
+
+				@Override
+				public void onResponse(IncomingMessage res) throws Exception {
+					// clear response timeout
+					clearRespTimeout();
+					
+					Log.d(TAG, "got response: "+res.statusCode()+", headers:"+res.headers());
+
+					// response
+					response = res;
+
+					// check Content-Type: string or binary data
+					if (res.headers().containsKey("content-type")) {
+						String ct = res.headers().get("content-type").get(0);
+						
+						if (ct.contains("text/") || 
+					  	    ct.equalsIgnoreCase("application/json") ||
+						    ct.equalsIgnoreCase("application/javascript"))
+							res.setEncoding("utf-8");
+					} else {
+						// clear content timeout
+						clearContTimeout();
+						
+						HttpClient.this.emit("error", "response miss content-type header");
+						return;
+					}
+
+					// body
+					res.on("data", new Listener(){
+
+						@Override
+						public void onEvent(Object data) throws Exception {
+							Log.d(TAG, "response got data:\n"+data);
+
+							body.add(data);
+						}
+
+					});
+					res.on("end", new Listener(){
+
+						@Override
+						public void onEvent(Object data) throws Exception {
+							// clear content timeout
+							clearContTimeout();
+							
+							Log.d(TAG, "response got end\n");
+
+							if (data!=null) body.add(data);
+
+							HttpClient.this.emit("completed");
+						}
+
+					});
+					res.on("error", new Listener(){
+
+						@Override
+						public void onEvent(Object error) throws Exception {
+							// clear content timeout
+							clearContTimeout();
+							
+							Log.d(TAG, "response got error:\n"+error);
+							
+							HttpClient.this.emit("error", "request error:"+error);
+						}
+
+					});
+				}
+
+			};
 
 			// handle response in UI thread
 			this.once("completed", new Listener(){
@@ -217,6 +322,7 @@ public final class AsyncHttpClient {
 					}
 
 				}, resp_timeout);
+			
 			// make http request with cont_timeout
 			if (cont_timeout > 0) 
 				this.cont_tmohdl = getNodeContext().setTimeout(new TimeoutListener(){
@@ -228,73 +334,9 @@ public final class AsyncHttpClient {
 
 				}, cont_timeout);
 						
-			ClientRequest req = http.request(getNodeContext(), options, new ClientRequest.responseListener(){
-
-				@Override
-				public void onResponse(IncomingMessage res) throws Exception {
-					// clear response timeout
-					clearRespTimeout();
-					
-					Log.d(TAG, "got response: "+res.statusCode()+", headers:"+res.headers());
-
-					// response
-					response = res;
-
-					// check Content-Type: string or binary data
-					if (res.headers().containsKey("content-type")) {
-						String ct = res.headers().get("content-type").get(0);
-						
-						if (ct.contains("text/") || 
-					  	    ct.equalsIgnoreCase("application/json") ||
-						    ct.equalsIgnoreCase("application/javascript"))
-							res.setEncoding("utf-8");
-					} else {
-						HttpClient.this.emit("error", "response miss content-type header");
-						return;
-					}
-
-					// body
-					res.on("data", new Listener(){
-
-						@Override
-						public void onEvent(Object data) throws Exception {
-							Log.d(TAG, "response got data:\n"+data);
-
-							body.add(data);
-						}
-
-					});
-					res.on("end", new Listener(){
-
-						@Override
-						public void onEvent(Object data) throws Exception {
-							// clear content timeout
-							clearContTimeout();
-							
-							Log.d(TAG, "response got end\n");
-
-							if (data!=null) body.add(data);
-
-							HttpClient.this.emit("completed");
-						}
-
-					});
-					res.on("error", new Listener(){
-
-						@Override
-						public void onEvent(Object error) throws Exception {
-							// clear content timeout
-							clearContTimeout();
-							
-							Log.d(TAG, "response got error:\n"+error);
-							
-							HttpClient.this.emit("error", "request error:"+error);
-						}
-
-					});
-				}
-
-			});
+			// make http/httpp request
+			ClientRequest req = isHttpp ? httpp.request(getNodeContext(), options, respHdlr) :
+				                          http.request(getNodeContext(), options, respHdlr);
 			
 			if (data!=null) req.write(data.getContent(), data.getEncoding());
 			req.end();
@@ -336,25 +378,40 @@ public final class AsyncHttpClient {
 	public static void head(String url, HttpClientCallback cb) throws Exception {
 		new HttpClient("HEAD", url, null, null, cb).execute();
 	}
-
+	public static void head(String url, HttpClientCallback cb, boolean httpp) throws Exception {
+		new HttpClient(httpp, "HEAD", url, null, null, cb).execute();
+	}
+	
 	// GET
 	public static void get(String url, HttpClientCallback cb) throws Exception {
 		new HttpClient("GET", url, null, null, cb).execute();
 	}
-
+	public static void get(String url, HttpClientCallback cb, boolean httpp) throws Exception {
+		new HttpClient(httpp, "GET", url, null, null, cb).execute();
+	}
+	
 	// PUT
 	public static void put(String url, http_content_b data, HttpClientCallback cb) throws Exception {
 		new HttpClient("PUT", url, null, data, cb, 2000).execute();
 	}
-
+	public static void put(String url, http_content_b data, HttpClientCallback cb, boolean httpp) throws Exception {
+		new HttpClient(httpp, "PUT", url, null, data, cb, 2000).execute();
+	}
+	
 	// POST
 	public static void post(String url, http_content_b data, HttpClientCallback cb) throws Exception {
 		new HttpClient("POST", url, null, data, cb, 2000).execute();
 	}
-
+	public static void post(String url, http_content_b data, HttpClientCallback cb, boolean httpp) throws Exception {
+		new HttpClient(httpp, "POST", url, null, data, cb, 2000).execute();
+	}
+	
 	// DELETE
 	public static void delete(String url, HttpClientCallback cb) throws Exception {
 		new HttpClient("DELETE", url, null, null, cb, 2000).execute();
+	}
+	public static void delete(String url, HttpClientCallback cb, boolean httpp) throws Exception {
+		new HttpClient(httpp, "DELETE", url, null, null, cb, 2000).execute();
 	}
 	
 }
