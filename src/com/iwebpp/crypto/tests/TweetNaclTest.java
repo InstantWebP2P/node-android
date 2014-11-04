@@ -5,8 +5,6 @@ package com.iwebpp.crypto.tests;
 
 import java.io.UnsupportedEncodingException;
 import com.iwebpp.crypto.TweetNacl;
-import com.iwebpp.crypto.TweetNaclFast;
-
 import android.util.Log;
 
 public final class TweetNaclTest {
@@ -15,7 +13,7 @@ public final class TweetNaclTest {
 	private boolean testBox() throws UnsupportedEncodingException {
 		// keypair A
 		byte [] ska = new byte[32]; for (int i = 0; i < 32; i ++) ska[i] = 0;
-		TweetNaclFast.Box.KeyPair ka = TweetNaclFast.Box.keyPair_fromSecretKey(ska);
+		TweetNacl.Box.KeyPair ka = TweetNacl.Box.keyPair_fromSecretKey(ska);
 		
 		String skat = "";
 		for (int i = 0; i < ka.getSecretKey().length; i ++)
@@ -29,7 +27,7 @@ public final class TweetNaclTest {
 		
 		// keypair B
 		byte [] skb = new byte[32]; for (int i = 0; i < 32; i ++) skb[i] = 1;
-		TweetNaclFast.Box.KeyPair kb = TweetNaclFast.Box.keyPair_fromSecretKey(skb);
+		TweetNacl.Box.KeyPair kb = TweetNacl.Box.keyPair_fromSecretKey(skb);
 		
 		String skbt = "";
 		for (int i = 0; i < kb.getSecretKey().length; i ++)
@@ -42,10 +40,10 @@ public final class TweetNaclTest {
 		Log.d(TAG, "pkbt: "+pkbt);
 		
 		// peer A -> B
-		TweetNaclFast.Box pab = new TweetNaclFast.Box(kb.getPublicKey(), ka.getSecretKey(), 0);
+		TweetNacl.Box pab = new TweetNacl.Box(kb.getPublicKey(), ka.getSecretKey(), 0);
 
 		// peer B -> A
-		TweetNaclFast.Box pba = new TweetNaclFast.Box(ka.getPublicKey(), kb.getSecretKey(), 0);
+		TweetNacl.Box pba = new TweetNacl.Box(ka.getPublicKey(), kb.getSecretKey(), 0);
 
 		// messages
 		String m0 = "Helloword, Am Tom ...";
