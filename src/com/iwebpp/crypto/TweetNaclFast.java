@@ -370,62 +370,12 @@ public final class TweetNaclFast {
 		public byte [] box(byte [] message) {
 			if (message==null) return null;
 
-			final int mlen = message.length;
-
-			// generate nonce
-			byte [] n = generateNonce();
-
-			// message buffer
-			byte [] m = new byte[mlen + zerobytesLength];
-
-			// cipher buffer
-			byte [] c = new byte[m.length];
-
-			for (int i = 0; i < mlen; i ++)
-				m[i+zerobytesLength] = message[i];
-
-			if (0 != crypto_secretbox(c, m, m.length, n, key))
-				return null;
-
-			// TBD optimizing ...
-			// wrap byte_buf_t on c offset@boxzerobytesLength
-			///return new byte_buf_t(c, boxzerobytesLength, c.length-boxzerobytesLength);
-			byte [] ret = new byte[c.length-boxzerobytesLength];
-
-			for (int i = 0; i < ret.length; i ++)
-				ret[i] = c[i+boxzerobytesLength];
-
-			return ret;
+			return box(message, 0, message.length);
 		}
 		public byte [] box(byte [] message, final int moff) {
 			if (!(message!=null && message.length>moff)) return null;
 
-			final int mlen = message.length - moff;
-
-			// generate nonce
-			byte [] n = generateNonce();
-
-			// message buffer
-			byte [] m = new byte[mlen + zerobytesLength];
-
-			// cipher buffer
-			byte [] c = new byte[m.length];
-
-			for (int i = 0; i < mlen; i ++)
-				m[i+zerobytesLength] = message[i+moff];
-
-			if (0 != crypto_secretbox(c, m, m.length, n, key))
-				return null;
-
-			// TBD optimizing ...
-			// wrap byte_buf_t on c offset@boxzerobytesLength
-			///return new byte_buf_t(c, boxzerobytesLength, c.length-boxzerobytesLength);
-			byte [] ret = new byte[c.length-boxzerobytesLength];
-
-			for (int i = 0; i < ret.length; i ++)
-				ret[i] = c[i+boxzerobytesLength];
-
-			return ret;
+			return box(message, moff, message.length-moff);
 		}
 		public byte [] box(byte [] message, final int moff, final int mlen) {
 			// check message
@@ -468,60 +418,12 @@ public final class TweetNaclFast {
 		public byte [] open(byte [] box) {
 			if (box==null) return null;
 
-			final int boxlen = box.length;
-
-			// generate nonce
-			byte [] n = generateNonce();
-
-			// cipher buffer
-			byte [] c = new byte[boxlen + boxzerobytesLength];
-
-			// message buffer
-			byte [] m = new byte[c.length];
-
-			for (int i = 0; i < boxlen; i++) 
-				c[i+boxzerobytesLength] = box[i];
-
-			if (0 != crypto_secretbox_open(m, c, c.length, n, key))
-				return null;
-
-			// wrap byte_buf_t on m offset@zerobytesLength
-			///return new byte_buf_t(m, zerobytesLength, m.length-zerobytesLength);
-			byte [] ret = new byte[m.length-zerobytesLength];
-
-			for (int i = 0; i < ret.length; i ++)
-				ret[i] = m[i+zerobytesLength];
-
-			return ret;
+			return open(box, 0, box.length);
 		}
 		public byte [] open(byte [] box, final int boxoff) {
 			if (!(box!=null && box.length>boxoff)) return null;
 
-			final int boxlen = box.length - boxoff;
-
-			// generate nonce
-			byte [] n = generateNonce();
-
-			// cipher buffer
-			byte [] c = new byte[boxlen + boxzerobytesLength];
-
-			// message buffer
-			byte [] m = new byte[c.length];
-
-			for (int i = 0; i < boxlen; i++) 
-				c[i+boxzerobytesLength] = box[i+boxoff];
-
-			if (0 != crypto_secretbox_open(m, c, c.length, n, key))
-				return null;
-
-			// wrap byte_buf_t on m offset@zerobytesLength
-			///return new byte_buf_t(m, zerobytesLength, m.length-zerobytesLength);
-			byte [] ret = new byte[m.length-zerobytesLength];
-
-			for (int i = 0; i < ret.length; i ++)
-				ret[i] = m[i+zerobytesLength];
-
-			return ret;
+			return open(box, boxoff, box.length-boxoff);
 		}	
 		public byte [] open(byte [] box, final int boxoff, final int boxlen) {
 			// check message
@@ -697,26 +599,12 @@ public final class TweetNaclFast {
 		public byte [] sign(byte [] message) {
 			if (message==null) return null;
 
-			final int mlen = message.length;
-
-			// signed message 
-			byte [] sm = new byte[mlen + signatureLength];
-
-			crypto_sign(sm, -1, message, 0, mlen, mySecretKey);
-
-			return sm;
+			return sign(message, 0, message.length);
 		}
 		public byte [] sign(byte [] message, final int moff) {
 			if (!(message!=null && message.length>moff)) return null;
 
-			final int mlen = message.length - moff;
-
-			// signed message 
-			byte [] sm = new byte[mlen + signatureLength];
-
-			crypto_sign(sm, -1, message, moff, mlen, mySecretKey);
-
-			return sm;
+			return sign(message, moff, message.length-moff);
 		}
 		public byte [] sign(byte [] message, final int moff, final int mlen) {
 			// check message
@@ -739,38 +627,12 @@ public final class TweetNaclFast {
 		public byte [] open(byte [] signedMessage) {
 			if (signedMessage==null) return null;
 
-			final int smlen = signedMessage.length;
-
-			// temp buffer 
-			byte [] tmp = new byte[smlen];
-
-			if (0 != crypto_sign_open(tmp, -1, signedMessage, 0, smlen, theirPublicKey))
-				return null;
-
-			// message 
-			byte [] msg = new byte[smlen-signatureLength];
-			for (int i = 0; i < msg.length; i ++)
-				msg[i] = signedMessage[i+signatureLength];
-
-			return msg;
+			return open(signedMessage, 0, signedMessage.length);
 		}
 		public byte [] open(byte [] signedMessage, final int smoff) {
 			if (!(signedMessage!=null && signedMessage.length>smoff)) return null;
 
-			final int smlen = signedMessage.length - smoff;
-
-			// temp buffer 
-			byte [] tmp = new byte[smlen];
-
-			if (0 != crypto_sign_open(tmp, -1, signedMessage, smoff, smlen, theirPublicKey))
-				return null;
-
-			// message 
-			byte [] msg = new byte[smlen-signatureLength];
-			for (int i = 0; i < msg.length; i ++)
-				msg[i] = signedMessage[smoff+ i+signatureLength];
-
-			return msg;
+			return open(signedMessage, smoff, signedMessage.length-smoff);
 		}
 		public byte [] open(byte [] signedMessage, final int smoff, final int smlen) {
 			// check sm length
