@@ -6,7 +6,7 @@ rewrite tweetnacl.c in pure Java
 #### Public key authenticated encryption
 
 * get key pair: Box.KeyPair kp = Box.keyPair(), kp = Box.keyPair_fromSecretKey(sk)
-* new Box object: Box box = new new Box(theirPublicKey, mySecretKey, Nonce);
+* new Box object: Box box = new Box(theirPublicKey, mySecretKey, Nonce);
 * encryption: cipher = box.box(message);
 * decryption: message = box.open(cipher);
 * Nonce MUST be unique for ever message passed between same peers
@@ -15,9 +15,10 @@ rewrite tweetnacl.c in pure Java
 #### Secret key authenticated encryption
 
 * get shared key: crypto random, what you have
-* new SecretBox object: SecretBox sbox = new SecretBox(sharedKey, nonce);
+* new SecretBox object: SecretBox sbox = new SecretBox(sharedKey, Nonce);
 * encryption: cipher = sbox.box(message);
 * decryption: message = sbox.open(cipher);
+* Nonce MUST be unique for ever message passed between same peers
 
 
 ### Signature
