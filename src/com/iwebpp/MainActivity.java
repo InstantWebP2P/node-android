@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
 		///new FileEventHandleTest().start();
 		
 		// Node Unit tests
-		new EE2Test().start();
+		/*new EE2Test().start();
 		new StreamTest().start();
         new TcpTest().start();
         new UdtTest().start();
@@ -75,7 +75,7 @@ public class MainActivity extends Activity {
 		new SimpleApiTest().start();
 		
 		// Crypto tests
-		///new TweetNaclTest().start();
+		///new TweetNaclTest().start();*/
 		new TweetNaclFastTest().start();
 	}
 
