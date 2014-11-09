@@ -11,24 +11,37 @@ import org.json.JSONObject;
 
 import com.iwebpp.crypto.TweetNaclFast;
 import com.iwebpp.libuvpp.handles.TimerHandle;
+import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.EventEmitter.Listener;
+import com.iwebpp.node.http.IncomingMessage;
 import com.iwebpp.node.stream.Duplex;
 import com.iwebpp.node.stream.Readable2;
+import com.iwebpp.node.stream.Writable.WriteCB;
 import com.iwebpp.node.stream.Writable2;
+import com.iwebpp.wspp.Receiver.opcOptions;
+import com.iwebpp.wspp.WebSocket.ErrorEvent;
 import com.iwebpp.wspp.WebSocket.MessageEvent;
 import com.iwebpp.wspp.WebSocket.OpenEvent;
+import com.iwebpp.wspp.WebSocket.SendOptions;
+import com.iwebpp.wspp.WebSocket.error_code_b;
+import com.iwebpp.wspp.WebSocket.message_data_b;
+import com.iwebpp.wspp.WebSocket.oncloseListener;
+import com.iwebpp.wspp.WebSocket.onerrorListener;
+import com.iwebpp.wspp.WebSocket.onmessageListener;
+import com.iwebpp.wspp.WebSocket.onopenListener;
 
 public final class SecureWebSocket 
-extends Duplex {
+extends EventEmitter2 {
 
 	private static final String TAG = "SecureWebSocket";
 
 	private static final int HANDSHAKE_TIMEOUT = 6000; // 6s
 
-	private WebSocket ws;
+	private final WebSocket ws;
 	private sws_state_t state;
 
-	private TimerHandle hs_tmo;
+	private final TimerHandle hs_tmo;
 
 	private static enum sws_state_t {
 		SWS_STATE_NEW               (0),
@@ -78,6 +91,11 @@ extends Duplex {
 	
 	private SecInfo mySecInfo;
 
+	private NodeContext context;
+
+	private BinaryStream binaryStream;
+
+
 	// Hand shake message beans	
 	private class client_hello_b {
 		public int opc;
@@ -106,10 +124,14 @@ extends Duplex {
 				cpka.put(i, client_public_key[i]&0xff);
 			json.put("client_public_key", cpka);
 
+			debug(TAG, "client_hello_b->:" + json.toString());
+			
 			return json.toString();
 		}
 
 		public client_hello_b(String jstr) throws JSONException {
+			debug(TAG, "client_hello_b<-:" + jstr);
+
 			JSONObject json = new JSONObject(jstr);
 
 			this.opc = json.getInt("opc");
@@ -127,6 +149,7 @@ extends Duplex {
 		}
 		public client_hello_b() {}
 	}
+	
 	private class server_hello_b {
 		public int opc;
 
@@ -159,7 +182,13 @@ extends Duplex {
 			for (int i = 0; i < share_key.length; i ++)
 				nonce_share_key[i+nonce.length] = share_key[i];
 			
-			byte[] s_nonce_share_key = SecureWebSocket.this.txBox.box(nonce_share_key);
+			// Constructor temp NACL tx box
+			TweetNaclFast.Box tmpBox = new TweetNaclFast.Box(
+					SecureWebSocket.this.theirPublicKey,
+					SecureWebSocket.this.mySecretKey,
+					toLong(SecureWebSocket.this.theirNonce));
+
+			byte[] s_nonce_share_key = tmpBox.box(nonce_share_key);
 			if (!(s_nonce_share_key!=null && s_nonce_share_key.length==(nonce_share_key.length+TweetNaclFast.Box.overheadLength)))
 				throw new Exception("server_hello_b encrypt nonce_share_key failed");
 			
@@ -168,14 +197,16 @@ extends Duplex {
 			for (int i = 0; i < s_nonce_share_key.length; i ++)
 				s_nonce_share_key_a.put(i, s_nonce_share_key[i]&0xff);
 			json.put("s_nonce_share_key_a", s_nonce_share_key_a);
-						
+			
+			debug(TAG, "server_hello_b->:" + json.toString());
+
 			return json.toString();
 		}
 		
 		public server_hello_b(String jstr) throws Exception {
-			JSONObject json;
+			debug(TAG, "server_hello_b<-:" + jstr);
 
-			json = new JSONObject(jstr);
+			JSONObject json = new JSONObject(jstr);
 
 			this.opc = json.getInt("opc");
 			this.version = json.getInt("version");
@@ -193,7 +224,13 @@ extends Duplex {
 			for (int i = 0; i < s_nonce_share_key_a.length(); i ++)
 				s_nonce_share_key[i] = (byte) (s_nonce_share_key_a.getInt(i)&0xff);
 			
-			byte[] nonce_share_key = SecureWebSocket.this.rxBox.open(s_nonce_share_key);
+			// Constructor temp NACL rx box
+			TweetNaclFast.Box tmpBox = new TweetNaclFast.Box(
+					this.server_public_key,
+					SecureWebSocket.this.mySecretKey,
+					toLong(SecureWebSocket.this.myNonce));
+			
+			byte[] nonce_share_key = tmpBox.open(s_nonce_share_key);
 			if (!(nonce_share_key!=null && nonce_share_key.length==(s_nonce_share_key.length-TweetNaclFast.Box.overheadLength)))
 				throw new Exception("server_hello_b decrypt nonce_share_key failed");
 			
@@ -210,6 +247,7 @@ extends Duplex {
 		
 		public server_hello_b(){}
 	}
+	
 	private class client_ready_b {
 		public int opc;
 		
@@ -234,8 +272,14 @@ extends Duplex {
 			
 			for (int i = 0; i < share_key.length; i ++)
 				nonce_share_key[i+nonce.length] = share_key[i];
-			
-			byte[] s_nonce_share_key = SecureWebSocket.this.txBox.box(nonce_share_key);
+
+			// Constructor temp NACL tx box
+			TweetNaclFast.Box tmpBox = new TweetNaclFast.Box(
+					SecureWebSocket.this.theirPublicKey,
+					SecureWebSocket.this.mySecretKey,
+					toLong(SecureWebSocket.this.theirNonce));
+
+			byte[] s_nonce_share_key = tmpBox.box(nonce_share_key);
 			if (!(s_nonce_share_key!=null && s_nonce_share_key.length==(nonce_share_key.length+TweetNaclFast.Box.overheadLength)))
 				throw new Exception("client_ready_b encrypt nonce_share_key failed");
 			
@@ -244,14 +288,16 @@ extends Duplex {
 			for (int i = 0; i < s_nonce_share_key.length; i ++)
 				s_nonce_share_key_a.put(i, s_nonce_share_key[i]&0xff);
 			json.put("s_nonce_share_key_a", s_nonce_share_key_a);
-						
+			
+			debug(TAG, "client_ready_b->:" + json.toString());
+
 			return json.toString();
 		}
 
 		public client_ready_b(String jstr) throws Exception {
-			JSONObject json;
+			debug(TAG, "client_ready_b<-:" + jstr);
 
-			json = new JSONObject(jstr);
+			JSONObject json = new JSONObject(jstr);
 
 			this.opc = json.getInt("opc");
 			this.version = json.getInt("version");
@@ -262,8 +308,14 @@ extends Duplex {
 			
 			for (int i = 0; i < s_nonce_share_key_a.length(); i ++)
 				s_nonce_share_key[i] = (byte) (s_nonce_share_key_a.getInt(i)&0xff);
-			
-			byte[] nonce_share_key = SecureWebSocket.this.rxBox.open(s_nonce_share_key);
+
+			// Constructor temp NACL rx box
+			TweetNaclFast.Box tmpBox = new TweetNaclFast.Box(
+					SecureWebSocket.this.theirPublicKey,
+					SecureWebSocket.this.mySecretKey,
+					toLong(SecureWebSocket.this.myNonce));
+						
+			byte[] nonce_share_key = tmpBox.open(s_nonce_share_key);
 			if (!(nonce_share_key!=null && nonce_share_key.length==(s_nonce_share_key.length-TweetNaclFast.Box.overheadLength)))
 				throw new Exception("server_hello_b decrypt nonce_share_key failed");
 			
@@ -316,13 +368,10 @@ extends Duplex {
 
 	// Client constructor
 	@SuppressWarnings("unused")
-	public SecureWebSocket(final NodeContext ctx, String address, SecInfo sec) throws Exception {
-		super(ctx, new Duplex.Options(
-				new Readable2.Options(-1, null, false, "utf8", true), 
-                new Writable2.Options(-1, false, "utf8", false, true), 
-                false));
-		// TODO Auto-generated constructor stub
-
+	public SecureWebSocket(final NodeContext ctx, String address, WebSocket.Options options, SecInfo sec) throws Exception {		
+		// context
+		this.context = ctx;
+		
 		// setup security info
 		this.mySecInfo   = sec;
 		this.myPublicKey = sec.getPublicKey();
@@ -352,7 +401,7 @@ extends Duplex {
 		// FSM 
 		this.state = sws_state_t.SWS_STATE_NEW;
 
-		this.ws = new WebSocket(ctx, address, null, new WebSocket.Options());
+		this.ws = new WebSocket(ctx, address, null, options);
 		this.ws.onopen(new WebSocket.onopenListener() {
 
 			@Override
@@ -364,7 +413,7 @@ extends Duplex {
 
 					@Override
 					public void onMessage(MessageEvent event) throws Exception {
-						// TODO Auto-generated method stub
+						debug(TAG, "Client got message:"+event.getData().toString());
 
 						if (SecureWebSocket.this.state == sws_state_t.SWS_STATE_HANDSHAKE_DONE) {
 							// Secure Context process
@@ -379,11 +428,10 @@ extends Duplex {
                                     if (plain != null) {
                                     	// increase nonce
                                     	SecureWebSocket.this.rxSecretBox.incrNonce();
-                                    	
-                                    	// push data with pause
-                                    	if (!SecureWebSocket.this.push(ByteBuffer.wrap(plain), null)) {
-                                    		SecureWebSocket.this.ws.pause();
-                                    	}
+
+                                    	// emit plain message
+                                    	message_data_b msg = new message_data_b(ByteBuffer.wrap(plain), new Receiver.opcOptions(false, null, true));
+                                    	SecureWebSocket.this.emit("message", msg);
                                     } else {
     									warn(TAG, "hacked ByteBuffer, ingore it");
     									SecureWebSocket.this.emit("warn", "hacked ByteBuffer, ingore it");
@@ -433,8 +481,14 @@ extends Duplex {
 											SecureWebSocket.this.txShareKey = crm.share_key;
 											
 											// constructor NACL tx box
-											SecureWebSocket.this.txBox = new TweetNaclFast.Box(theirPublicKey, mySecretKey, toLong(SecureWebSocket.this.myNonce));
-											SecureWebSocket.this.txSecretBox = new TweetNaclFast.SecretBox(txShareKey, toLong(SecureWebSocket.this.myNonce));
+											SecureWebSocket.this.txBox = new TweetNaclFast.Box(
+													SecureWebSocket.this.theirPublicKey, 
+													SecureWebSocket.this.mySecretKey, 
+													toLong(SecureWebSocket.this.myNonce));
+											
+											SecureWebSocket.this.txSecretBox = new TweetNaclFast.SecretBox(
+													SecureWebSocket.this.txShareKey, 
+													toLong(SecureWebSocket.this.myNonce));
 											
 											SecureWebSocket.this.ws.send(crm.stringify(), new WebSocket.SendOptions(false, false), new WriteCB(){
 
@@ -445,6 +499,9 @@ extends Duplex {
 														// close ws
 														SecureWebSocket.this.ws.close(0, null);
 													} else {
+														// clear hand shake timeout
+														SecureWebSocket.this.hs_tmo.close();
+
 														// update state to SWS_STATE_SEND_CLIENT_READY
 
 														// Am ready  
@@ -455,22 +512,28 @@ extends Duplex {
 															@Override
 															public void onTimeout() throws Exception {
 																// construct NACL rx box
-																SecureWebSocket.this.rxBox = new TweetNaclFast.Box(theirPublicKey, mySecretKey, toLong(SecureWebSocket.this.theirNonce));
-																SecureWebSocket.this.rxSecretBox = new TweetNaclFast.SecretBox(txShareKey, toLong(SecureWebSocket.this.theirNonce));
+																SecureWebSocket.this.rxBox = new TweetNaclFast.Box(
+																		SecureWebSocket.this.theirPublicKey, 
+																		SecureWebSocket.this.mySecretKey, 
+																		toLong(SecureWebSocket.this.theirNonce));
+																
+																SecureWebSocket.this.rxSecretBox = new TweetNaclFast.SecretBox(
+																		SecureWebSocket.this.rxSharekey, 
+																		toLong(SecureWebSocket.this.theirNonce));
 
 																// set hand shake done
 																SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_DONE;
 
-                                                                // Flush writeCache
-																for (write_cache_b c : SecureWebSocket.this.writeCache)
-																	SecureWebSocket.this._write(c.chunk, c.encoding, c.cb);
-																SecureWebSocket.this.writeCache.clear();
+                                                                // Flush sendCache
+																for (send_cache_b c : SecureWebSocket.this.sendCache)
+																	SecureWebSocket.this.send(c.chunk, c.options, c.cb);
+																SecureWebSocket.this.sendCache.clear();
 																
 																// emit Secure event
 																SecureWebSocket.this.emit("secure");
 															}
 
-														}, 200); // 200ms delay
+														}, 50); // 50ms delay
 													}					
 												}
 											});
@@ -501,7 +564,8 @@ extends Duplex {
 				chm.nonce = new byte[client_hello_b.nonceLength];
 				randombytes(chm.nonce, chm.nonce.length);
 
-				///SecureWebSocket.this.myNonce = chm.nonce;
+				// update secure info
+				SecureWebSocket.this.myNonce = chm.nonce;
 				
 				SecureWebSocket.this.ws.send(chm.stringify(), new WebSocket.SendOptions(false, false), new WriteCB(){
 
@@ -531,6 +595,8 @@ extends Duplex {
 			@Override
 			public void onTimeout() throws Exception {
 				if (SecureWebSocket.this.state != sws_state_t.SWS_STATE_HANDSHAKE_DONE) {
+					debug(TAG, "handshake timeout");
+
 					SecureWebSocket.this.emit("timeout", "handshake timeout");
 
 					// close ws
@@ -540,19 +606,13 @@ extends Duplex {
 
 		}, HANDSHAKE_TIMEOUT);
 		
-		// write cache
-		this.writeCache = new LinkedList<write_cache_b>();
+		// Send cache
+		this.sendCache = new LinkedList<send_cache_b>();
 	}
 
 	// ServerClient constructor
 	@SuppressWarnings("unused")
 	protected SecureWebSocket(final NodeContext ctx, WebSocket ws, SecInfo sec) throws Exception {
-		super(ctx, new Duplex.Options(
-				new Readable2.Options(-1, null, false, "utf8", true), 
-                new Writable2.Options(-1, false, "utf8", false, true), 
-                false));
-		// TODO Auto-generated constructor stub
-
 		// setup security info
 		this.mySecInfo   = sec;
 		this.myPublicKey = sec.getPublicKey();
@@ -583,172 +643,177 @@ extends Duplex {
 		this.state = sws_state_t.SWS_STATE_NEW;
 
 		this.ws = ws;
-		this.ws.onopen(new WebSocket.onopenListener() {
+		
+		// Hand shake process
+		{
+			SecureWebSocket.this.state = sws_state_t.SWS_STATE_CONNECTED;
 
-			@Override
-			public void onOpen(OpenEvent event) throws Exception {
-				// TODO Auto-generated method stub
-				SecureWebSocket.this.state = sws_state_t.SWS_STATE_CONNECTED;
+			SecureWebSocket.this.ws.onmessage(new WebSocket.onmessageListener() {
 
-				SecureWebSocket.this.ws.onmessage(new WebSocket.onmessageListener() {
+				@Override
+				public void onMessage(MessageEvent event) throws Exception {
+					debug(TAG, "ServerClient got message:"+event.getData().toString());
+					
+					if (SecureWebSocket.this.state == sws_state_t.SWS_STATE_HANDSHAKE_DONE) {
+						// Secure Context process
+						if (event.isBinary()) {
+							ByteBuffer bb = (ByteBuffer) event.getData();
 
-					@Override
-					public void onMessage(MessageEvent event) throws Exception {
-						// TODO Auto-generated method stub
+							if (bb!=null && bb.capacity()>0) {
+								// authenticated decrypt cipher to plain buffer
+								byte[] plain = SecureWebSocket.this.rxSecretBox.open(bb.array(), bb.arrayOffset());
 
-						if (SecureWebSocket.this.state == sws_state_t.SWS_STATE_HANDSHAKE_DONE) {
-							// Secure Context process
-							if (event.isBinary()) {
-								ByteBuffer bb = (ByteBuffer) event.getData();
+								// check security
+								if (plain != null) {
+									// increase nonce
+									SecureWebSocket.this.rxSecretBox.incrNonce();
 
-								if (bb!=null && bb.capacity()>0) {
-									// authenticated decrypt cipher to plain buffer
-                                    byte[] plain = SecureWebSocket.this.rxSecretBox.open(bb.array(), bb.arrayOffset());
-                                    		
-                                    // check security
-                                    if (plain != null) {
-                                    	// increase nonce
-                                    	SecureWebSocket.this.rxSecretBox.incrNonce();
-                                    	
-                                    	// push data with pause
-                                    	if (!SecureWebSocket.this.push(ByteBuffer.wrap(plain), null)) {
-                                    		SecureWebSocket.this.ws.pause();
-                                    	}
-                                    } else {
-    									warn(TAG, "hacked ByteBuffer, ingore it");
-    									SecureWebSocket.this.emit("warn", "hacked ByteBuffer, ingore it");
-    								}
+									// emit plain message
+									message_data_b msg = new message_data_b(ByteBuffer.wrap(plain), new Receiver.opcOptions(false, null, true));
+									SecureWebSocket.this.emit("message", msg);
 								} else {
-									warn(TAG, "invalid ByteBuffer");
-									SecureWebSocket.this.emit("warn", "invalid ByteBuffer");
+									warn(TAG, "hacked ByteBuffer, ingore it");
+									SecureWebSocket.this.emit("warn", "hacked ByteBuffer, ingore it");
 								}
 							} else {
-								// TBD... String 
-								warn(TAG, "don't support string so far");
-								SecureWebSocket.this.emit("warn", "don't support string so far");
+								warn(TAG, "invalid ByteBuffer");
+								SecureWebSocket.this.emit("warn", "invalid ByteBuffer");
 							}
 						} else {
-							// Handle Shake process
-							if (SecureWebSocket.this.state == sws_state_t.SWS_STATE_HANDSHAKE_START) {
-								// extract ClientHello message
-								if (!event.isBinary()) {
-									// capture JSON parse exception
-									try {
-										client_hello_b chm = new client_hello_b(event.getData().toString());
+							// TBD... String 
+							warn(TAG, "don't support string so far");
+							SecureWebSocket.this.emit("warn", "don't support string so far");
+						}
+					} else {
+						// Handle Shake process
+						if (SecureWebSocket.this.state == sws_state_t.SWS_STATE_HANDSHAKE_START) {
+							// extract ClientHello message
+							if (!event.isBinary()) {
+								// capture JSON parse exception
+								try {
+									client_hello_b chm = new client_hello_b(event.getData().toString());
 
-										if (chm.opc == sws_opc_t.SWS_OPC_CLIENT_HELLO.opc() &&
-											chm.version == PROTO_VERSION) {
-											debug(TAG, "ClientHello message:"+event.getData().toString());
+									if (chm.opc == sws_opc_t.SWS_OPC_CLIENT_HELLO.opc() &&
+										chm.version == PROTO_VERSION) {
+										debug(TAG, "ClientHello message:"+event.getData().toString());
 
-											// update secure info
-											SecureWebSocket.this.theirPublicKey = chm.client_public_key;
-											SecureWebSocket.this.theirNonce = chm.nonce; 
-											
-											// send ServerHello message
-											server_hello_b shm = new server_hello_b();
-											shm.opc = sws_opc_t.SWS_OPC_SERVER_HELLO.opc();
-											shm.version = PROTO_VERSION;
-											
-											// nonce
-											shm.nonce = new byte[client_hello_b.nonceLength];
-											randombytes(shm.nonce, shm.nonce.length);
-							                
-							                // shared key
-											shm.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
-											randombytes(shm.share_key, shm.share_key.length);
-											
-											// update secure info
-											SecureWebSocket.this.myNonce = shm.nonce;
-											SecureWebSocket.this.txShareKey = shm.share_key;
-											
-											// construct NACL tx box
-											SecureWebSocket.this.txBox = new TweetNaclFast.Box(theirPublicKey, mySecretKey, toLong(SecureWebSocket.this.myNonce));
-											SecureWebSocket.this.txSecretBox = new TweetNaclFast.SecretBox(txShareKey, toLong(SecureWebSocket.this.myNonce));
+										// update secure info
+										SecureWebSocket.this.theirPublicKey = chm.client_public_key;
+										SecureWebSocket.this.theirNonce = chm.nonce; 
 
-											SecureWebSocket.this.ws.send(shm.stringify(), new WebSocket.SendOptions(false, false), new WriteCB(){
+										// send ServerHello message
+										server_hello_b shm = new server_hello_b();
+										shm.opc = sws_opc_t.SWS_OPC_SERVER_HELLO.opc();
+										shm.version = PROTO_VERSION;
 
-												@Override
-												public void writeDone(String error) throws Exception {
-													if (error != null) {
-														SecureWebSocket.this.emit("error", "send_client_ready:"+error);
-														// close ws
-														SecureWebSocket.this.ws.close(0, null);
-													} else {
-														// update state to SWS_STATE_SEND_SERVER_HELLO
-														SecureWebSocket.this.state = sws_state_t.SWS_STATE_SEND_SERVER_HELLO;
-													}					
-												}
-											});
-										} else {
-											SecureWebSocket.this.emit("warn", "invalid handshake client-hello message:"+event.getData().toString());
-										}
-									} catch (Exception e) {
-										SecureWebSocket.this.emit("warn", e.toString()+"parse handshake message failed, skip it:"+event.getData().toString());
-									} 
-								} else {
-									SecureWebSocket.this.emit("warn", "invalid handshake binary message:"+event.getData().toString());
-								}
-							} else if (SecureWebSocket.this.state == sws_state_t.SWS_STATE_SEND_SERVER_HELLO) {
-								// extract ClientHello message
-								if (!event.isBinary()) {
-									// capture JSON parse exception
-									try {
-										client_ready_b crm = new client_ready_b(event.getData().toString());
+										// nonce
+										shm.nonce = new byte[server_hello_b.nonceLength];
+										randombytes(shm.nonce, shm.nonce.length);
 
-										if (crm.opc == sws_opc_t.SWS_OPC_CLIENT_READY.opc() &&
-												crm.version == PROTO_VERSION) {
-											debug(TAG, "ClientReady message:"+event.getData().toString());
+										// shared key
+										shm.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
+										randombytes(shm.share_key, shm.share_key.length);
 
-											// update secure info
-											SecureWebSocket.this.rxSharekey = crm.share_key;
-											SecureWebSocket.this.theirNonce = crm.nonce; 
+										// server public key
+										shm.server_public_key = SecureWebSocket.this.myPublicKey;
+										
+										// update secure info
+										SecureWebSocket.this.myNonce = shm.nonce;
+										SecureWebSocket.this.txShareKey = shm.share_key;
+										
+										debug(TAG, "ServerHello message:"+shm.toString());
 
-											// update state to SWS_STATE_SEND_SERVER_HELLO
-											SecureWebSocket.this.state = sws_state_t.SWS_STATE_SEND_SERVER_HELLO;
+										// construct NACL tx box
+										SecureWebSocket.this.txBox = new TweetNaclFast.Box(
+												SecureWebSocket.this.theirPublicKey,
+												SecureWebSocket.this.mySecretKey,
+												toLong(SecureWebSocket.this.myNonce));
 
-											ctx.setTimeout(new NodeContext.TimeoutListener() {
+										SecureWebSocket.this.txSecretBox = new TweetNaclFast.SecretBox(
+												SecureWebSocket.this.txShareKey, 
+												toLong(SecureWebSocket.this.myNonce));
 
-												@Override
-												public void onTimeout() throws Exception {
-													// construct NACL rx box
-													SecureWebSocket.this.rxBox = new TweetNaclFast.Box(theirPublicKey, mySecretKey, toLong(SecureWebSocket.this.theirNonce));
-													SecureWebSocket.this.rxSecretBox = new TweetNaclFast.SecretBox(txShareKey, toLong(SecureWebSocket.this.theirNonce));
+										SecureWebSocket.this.ws.send(shm.stringify(), new WebSocket.SendOptions(false, false), new WriteCB(){
 
-													// set hand shake done
-													SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_DONE;
-
-													// Flush writeCache
-													for (write_cache_b c : SecureWebSocket.this.writeCache)
-														SecureWebSocket.this._write(c.chunk, c.encoding, c.cb);
-													SecureWebSocket.this.writeCache.clear();
-
-													// emit Secure event
-													SecureWebSocket.this.emit("secure");
-												}
-
-											}, 200); // 200ms delay
-										} else {
-											SecureWebSocket.this.emit("warn", "invalid handshake client-ready message:"+event.getData().toString());
-										}
-									} catch (Exception e) {
-										SecureWebSocket.this.emit("warn", e.toString()+"parse handshake message failed, skip it:"+event.getData().toString());
-									} 
-								} else {
-									SecureWebSocket.this.emit("warn", "invalid handshake binary message:"+event.getData().toString());
-								}
+											@Override
+											public void writeDone(String error) throws Exception {
+												if (error != null) {
+													SecureWebSocket.this.emit("error", "send_server_hello:"+error);
+													// close ws
+													SecureWebSocket.this.ws.close(0, null);
+												} else {
+													// update state to SWS_STATE_SEND_SERVER_HELLO
+													SecureWebSocket.this.state = sws_state_t.SWS_STATE_SEND_SERVER_HELLO;
+												}					
+											}
+										});
+									} else {
+										SecureWebSocket.this.emit("warn", "invalid handshake client-hello message:"+event.getData().toString());
+									}
+								} catch (Exception e) {
+									SecureWebSocket.this.emit("warn", e.toString()+"parse handshake message failed, skip it:"+event.getData().toString());
+								} 
 							} else {
-								SecureWebSocket.this.emit("warn", "unknown handshake message:"+event.getData().toString());
+								SecureWebSocket.this.emit("warn", "invalid handshake binary message:"+event.getData().toString());
 							}
+						} else if (SecureWebSocket.this.state == sws_state_t.SWS_STATE_SEND_SERVER_HELLO) {
+							// extract ClientHello message
+							if (!event.isBinary()) {
+								// capture JSON parse exception
+								try {
+									client_ready_b crm = new client_ready_b(event.getData().toString());
+
+									if (crm.opc == sws_opc_t.SWS_OPC_CLIENT_READY.opc() &&
+										crm.version == PROTO_VERSION) {
+										debug(TAG, "ClientReady message:"+event.getData().toString());
+
+										// clear hand shake timeout
+										SecureWebSocket.this.hs_tmo.close();
+
+										// update secure info
+										SecureWebSocket.this.rxSharekey = crm.share_key;
+										SecureWebSocket.this.theirNonce = crm.nonce; 
+
+										// construct NACL rx box
+										SecureWebSocket.this.rxBox = new TweetNaclFast.Box(
+												SecureWebSocket.this.theirPublicKey, 
+												SecureWebSocket.this.mySecretKey, 
+												toLong(SecureWebSocket.this.theirNonce));
+										
+										SecureWebSocket.this.rxSecretBox = new TweetNaclFast.SecretBox(
+												SecureWebSocket.this.rxSharekey, 
+												toLong(SecureWebSocket.this.theirNonce));
+
+										// set hand shake done
+										SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_DONE;
+
+										// Flush sendCache
+										for (send_cache_b c : SecureWebSocket.this.sendCache)
+											SecureWebSocket.this.send(c.chunk, c.options, c.cb);
+										SecureWebSocket.this.sendCache.clear();
+
+										// emit Secure event
+										SecureWebSocket.this.emit("secure");
+									} else {
+										SecureWebSocket.this.emit("warn", "invalid handshake client-ready message:"+event.getData().toString());
+									}
+								} catch (Exception e) {
+									SecureWebSocket.this.emit("warn", e.toString()+"parse handshake message failed, skip it:"+event.getData().toString());
+								} 
+							} else {
+								SecureWebSocket.this.emit("warn", "invalid handshake binary message:"+event.getData().toString());
+							}
+						} else {
+							SecureWebSocket.this.emit("warn", "unknown handshake message:"+event.getData().toString());
 						}
 					}
+				}
 
-				});
+			});
 
-				// update state to SWS_STATE_HANDSHAKE_START
-				SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_START;
-			}
-
-		});
+			// update state to SWS_STATE_HANDSHAKE_START
+			SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_START;
+		}
 
 		// start hand-shake timer
 		this.hs_tmo = ctx.setTimeout(new NodeContext.TimeoutListener() {
@@ -756,6 +821,8 @@ extends Duplex {
 			@Override
 			public void onTimeout() throws Exception {
 				if (SecureWebSocket.this.state != sws_state_t.SWS_STATE_HANDSHAKE_DONE) {
+					debug(TAG, "handshake timeout");
+					
 					SecureWebSocket.this.emit("timeout", "handshake timeout");
 
 					// close ws
@@ -765,25 +832,171 @@ extends Duplex {
 
 		}, HANDSHAKE_TIMEOUT);
 		
-		// write cache
-		this.writeCache = new LinkedList<write_cache_b>();
+		// Send cache
+		this.sendCache = new LinkedList<send_cache_b>();
 	}
 	
-	@Override
-	protected void _read(int size) throws Exception {
-		if (this.state == sws_state_t.SWS_STATE_HANDSHAKE_DONE)
-			this.ws.resume();
+	public void onclose(final oncloseListener cb) throws Exception {
+		this.ws.onclose(cb);
+	}
+	
+	public void onerror(final onerrorListener cb) throws Exception {
+		this.ws.onerror(cb);
 
-		return;
+		this.on("error", new Listener() {
+
+			@Override
+			public void onEvent(Object data) throws Exception {
+				cb.onError(new ErrorEvent(-1, data!=null? data.toString():"unknown", SecureWebSocket.this.ws));				
+			}
+
+		});
+	}
+	
+	public void onmessage(final onmessageListener cb) throws Exception {
+		final SecureWebSocket self = this;
+				
+        this.removeListener("message");
+        
+        this.on("message", new Listener(){
+
+			@Override
+			public void onEvent(Object raw) throws Exception {
+				message_data_b data = (message_data_b)raw;
+				
+                cb.onMessage(new MessageEvent(data.data, data.flags.binary ? "Binary" : "Text", self.ws));				
+			}
+        	
+        });
+	}
+	
+	public void onopen(final onopenListener cb) throws Exception {
+		final SecureWebSocket self = this;
+		
+        this.removeListener("secure");
+        
+        this.on("secure", new Listener(){
+
+			@Override
+			public void onEvent(Object data) throws Exception {
+                cb.onOpen(new OpenEvent(self.ws));				
+			}
+        	
+        });
+	}
+	
+	/*
+	 * @description Duplex stream wrapper 
+	 * */
+	public static class BinaryStream extends Duplex {
+		private static final String TAG = "SecureWebSocket:BinaryStream";
+
+		private final SecureWebSocket host;
+		
+		protected BinaryStream(NodeContext ctx, SecureWebSocket host) throws Exception {
+			super(ctx, new Duplex.Options(
+					new Readable2.Options(-1, null, false, "utf8", true), 
+					new Writable2.Options(-1, false, "utf8", false, true), 
+					false));
+			// TODO Auto-generated constructor stub
+
+			this.host = host;
+			
+			// capture plain message
+			this.host.onmessage(new onmessageListener(){
+
+				@Override
+				public void onMessage(MessageEvent event) throws Exception {
+					if (event.isBinary()) {
+						// push data with pause
+						if (!BinaryStream.this.push(event.getData(), null)) {
+							BinaryStream.this.host.pause();
+                		}
+					} else {
+						// TBD... String
+						warn(TAG, "don't support string");
+						BinaryStream.this.emit("warn", "don't support string");
+					}
+				}
+				
+			});
+		}
+
+		@Override
+		protected void _read(int size) throws Exception {
+			if (this.host.state == sws_state_t.SWS_STATE_HANDSHAKE_DONE)
+				this.host.resume();
+
+			return;
+		}
+
+		@Override
+		protected void _write(Object chunk, String encoding, WriteCB cb)
+				throws Exception {
+			if (chunk!=null && chunk instanceof ByteBuffer) {
+				this.host.send(chunk, new SendOptions(true, false), cb);
+			} else {
+				// TBD... String
+				warn(TAG, "Not support write string");
+				cb.writeDone("Not support write string");
+			}
+		}
+
 	}
 
-	@Override
-	protected void _write(Object chunk, String encoding, WriteCB cb)
-			throws Exception {
+	public BinaryStream binaryStream() throws Exception {
+		if (this.binaryStream == null)
+			this.binaryStream = new BinaryStream(this.context, this);
+		
+		return this.binaryStream;
+	}
+	
+	/*
+	 * @description expose WebSocket API
+	 * */
+	public void pause() throws Exception {
+		this.ws.pause();
+	}
+	public void resume() throws Exception {
+		this.ws.resume();
+	}
+	public void terminate() throws Exception {
+		this.ws.terminate();
+	}
+	public String getUrl() {
+		return this.ws.getUrl();	
+	}
+	public int getBytesReceived() {
+		return this.ws.getBytesReceived();	
+	}
+	public int bufferedAmount() {
+		return this.ws.bufferedAmount();
+	}
+	
+	public void close(int code, Object data) throws Exception {
+		this.ws.close(code, data);	
+	}
+
+	/* 
+	 * @description override send method
+	 * */
+	public boolean send(final Object chunk, final SendOptions options, final WriteCB cb) throws Exception {
 		if (this.state == sws_state_t.SWS_STATE_HANDSHAKE_DONE) {
 			if (chunk!=null) {
-				if (chunk instanceof ByteBuffer && encoding==null) {
-					ByteBuffer bb = (ByteBuffer) chunk;
+				if (options.binary) {
+					ByteBuffer bb;
+
+					if (chunk instanceof ByteBuffer)
+						bb = (ByteBuffer) chunk;
+					else if (chunk instanceof byte[])
+						bb = ByteBuffer.wrap((byte[]) chunk);
+					else {
+						warn(TAG, "Not support binary");
+						SecureWebSocket.this.emit("warn", "Not support binary");
+						
+						if (cb!=null) cb.writeDone("Not support binary");
+						return true;
+					}
 					
 					// authenticated encrypt plain to cipher buffer
 					byte[] cipher = SecureWebSocket.this.txSecretBox.box(bb.array(), bb.arrayOffset());
@@ -794,36 +1007,46 @@ extends Duplex {
 						SecureWebSocket.this.txSecretBox.incrNonce();
 
 						// write data out
-						SecureWebSocket.this.ws.send(cipher, null, cb);
+						SecureWebSocket.this.ws.send(ByteBuffer.wrap(cipher), new WebSocket.SendOptions(true, false), cb);
 					} else {
 						warn(TAG, "hacked write ByteBuffer, ingore it");
 						SecureWebSocket.this.emit("warn", "hacked write ByteBuffer, ingore it");
+						
+						if (cb!=null) cb.writeDone("hacked write ByteBuffer, ingore it");
 					}
 				} else {
 					// TBD... String 
 					warn(TAG, "don't support write string so far");
 					SecureWebSocket.this.emit("warn", "don't support write string so far");
+					
+					if (cb!=null) cb.writeDone("don't support write string so far");
 				}
 			} else {
 				warn(TAG, "invalid write data");
 				SecureWebSocket.this.emit("warn", "invalid write data");
+				
+				if (cb!=null) cb.writeDone("invalid write data");
 			}
 		} else {
 			// 3.
-			// cache write
-			this.writeCache.add(new write_cache_b(chunk, encoding, cb));
+			// cache Send
+			debug(TAG, "cache Send");
+			this.sendCache.add(new send_cache_b(chunk, options, cb));
+			return false;
 		}
+		
+		return true;
 	}
 
-	private List<write_cache_b> writeCache;
-	private class write_cache_b {
+	private List<send_cache_b> sendCache;
+	private class send_cache_b {
 		private Object chunk;
-		private String encoding;
+		private SendOptions options;
 		private WriteCB cb;
 
-		private write_cache_b(Object chunk, String encoding, WriteCB cb) {
+		private send_cache_b(Object chunk, SendOptions options, WriteCB cb) {
 			this.chunk = chunk;
-			this.encoding = encoding;
+			this.options = options;
 			this.cb = cb;
 		}
 	}
@@ -888,7 +1111,7 @@ extends Duplex {
 		
 		for (int i = 0; i < x.length; i ++) {
 			long tmp = x[i] & 0xffL;
-			ret |= tmp << (8*((7-i)%8));
+			ret |= tmp << (8*(7-i%8));
 		}
 		
 		return ret;

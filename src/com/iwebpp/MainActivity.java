@@ -19,6 +19,7 @@ import com.iwebpp.node.tests.StreamTest;
 import com.iwebpp.node.tests.TcpTest;
 import com.iwebpp.node.tests.UdtTest;
 import com.iwebpp.node.tests.UrlTest;
+import com.iwebpp.wspp.tests.SecureWebSocketServerTest;
 import com.iwebpp.wspp.tests.WebSocketServerTest;
 import com.iwebpp.wspp.tests.WebSocketTest;
 
@@ -76,7 +77,10 @@ public class MainActivity extends Activity {
 		
 		// Crypto tests
 		///new TweetNaclTest().start();*/
-		new TweetNaclFastTest().start();
+		///new TweetNaclFastTest().start();
+		
+		// SecureWebSocket tests
+		new SecureWebSocketServerTest().start();
 	}
 
 	@Override

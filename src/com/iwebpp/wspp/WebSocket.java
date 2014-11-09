@@ -1162,8 +1162,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 			this.error  = error;
 			this.target = target;
 		}
-		@SuppressWarnings("unused")
-		private ErrorEvent(){}
+		@SuppressWarnings("unused") ErrorEvent(){}
 	}
 
 
@@ -1513,7 +1512,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 	}
 
 	// POJO beans
-	private static class message_data_b {
+	protected static class message_data_b {
 		public     Object data;
 		public opcOptions flags;
 
@@ -1523,7 +1522,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 		}
 	}
 
-	private static class error_code_b {
+	protected static class error_code_b {
 		public    int errorCode;
 		public String reason;
 
@@ -1533,7 +1532,7 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 		}
 	}
 
-	private static class close_code_b {
+	protected static class close_code_b {
 		public    int closeCode;
 		public String message;
 
