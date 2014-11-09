@@ -36,12 +36,12 @@ extends EventEmitter2 {
 
 	private static final String TAG = "SecureWebSocket";
 
-	private static final int HANDSHAKE_TIMEOUT = 6000; // 6s
+	private static final int HANDSHAKE_TIMEOUT = 2000; // 2s
 
 	private final WebSocket ws;
 	private sws_state_t state;
 
-	private final TimerHandle hs_tmo;
+	private TimerHandle hs_tmo;
 
 	private static enum sws_state_t {
 		SWS_STATE_NEW               (0),
@@ -585,27 +585,29 @@ extends EventEmitter2 {
 
 				// update state to SWS_STATE_HANDSHAKE_START
 				SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_START;
+				
+				// 2.
+				// start hand-shake timer
+				SecureWebSocket.this.hs_tmo = ctx.setTimeout(new NodeContext.TimeoutListener() {
+
+					@Override
+					public void onTimeout() throws Exception {
+						if (SecureWebSocket.this.state != sws_state_t.SWS_STATE_HANDSHAKE_DONE) {
+							debug(TAG, "handshake timeout");
+
+							SecureWebSocket.this.emit("timeout", "handshake timeout");
+
+							// close ws
+							SecureWebSocket.this.ws.close(0, null);
+						}
+					}
+
+				}, HANDSHAKE_TIMEOUT);
+				
 			}
 
 		});
 
-		// start hand-shake timer
-		this.hs_tmo = ctx.setTimeout(new NodeContext.TimeoutListener() {
-
-			@Override
-			public void onTimeout() throws Exception {
-				if (SecureWebSocket.this.state != sws_state_t.SWS_STATE_HANDSHAKE_DONE) {
-					debug(TAG, "handshake timeout");
-
-					SecureWebSocket.this.emit("timeout", "handshake timeout");
-
-					// close ws
-					SecureWebSocket.this.ws.close(0, null);
-				}
-			}
-
-		}, HANDSHAKE_TIMEOUT);
-		
 		// Send cache
 		this.sendCache = new LinkedList<send_cache_b>();
 	}

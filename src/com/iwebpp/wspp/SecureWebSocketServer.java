@@ -2,20 +2,18 @@ package com.iwebpp.wspp;
 
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.EventEmitter.Listener;
 import com.iwebpp.wspp.SecureWebSocket.SecInfo;
 import com.iwebpp.wspp.WebSocketServer.ListeningCallback;
 import com.iwebpp.wspp.WebSocketServer.Options;
-import com.iwebpp.wspp.WebSocketServer.onconnectionListener;
 import com.iwebpp.wspp.WebSocketServer.onerrorListener;
 
 public final class SecureWebSocketServer 
 extends EventEmitter2 {
 	private static final String TAG = "SecureWebSocketServer";
 
-	private SecInfo mySecInfo;
+	private final SecInfo mySecInfo;
 
-	private WebSocketServer wss;
+	private final WebSocketServer wss;
 
 	public SecureWebSocketServer(
 			final NodeContext ctx,

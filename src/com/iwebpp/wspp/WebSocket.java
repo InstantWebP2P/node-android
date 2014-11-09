@@ -1162,7 +1162,8 @@ WebSocket.prototype.addEventListener = function(method, listener) {
 			this.error  = error;
 			this.target = target;
 		}
-		@SuppressWarnings("unused") ErrorEvent(){}
+		@SuppressWarnings("unused")
+		private ErrorEvent(){}
 	}
 
 
