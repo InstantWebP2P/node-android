@@ -365,38 +365,49 @@ extends EventEmitter2 {
 		}
 	}
 
-	// Client constructor
+	// Client Constructor
 	@SuppressWarnings("unused")
-	public SecureWebSocket(final NodeContext ctx, String address, WebSocket.Options options, SecInfo sec) throws Exception {		
+	public SecureWebSocket(
+			final NodeContext ctx, 
+			final String address,
+			final WebSocket.Options options,
+			final SecInfo sec) throws Exception {		
 		// context
 		this.context = ctx;
-		
-		// setup security info
-		this.mySecInfo   = sec;
-		this.myPublicKey = sec.getPublicKey();
-		this.mySecretKey = sec.getSecretKey();
-		this.caCert      = sec.getCa();
-		this.myCert      = sec.getCert();
-		
-		// check security info
+
+
+		// Setup security info ///////////////////////////////////////////////////////////////////
 		if (PROTO_VERSION >= 1) {
+			// setup V1
+			this.mySecInfo   = sec;
+			this.myPublicKey = sec.getPublicKey();
+			this.mySecretKey = sec.getSecretKey();
+			
+			// check V1
 			if (!(this.myPublicKey!=null && this.myPublicKey.length==TweetNaclFast.Box.publicKeyLength))
 				throw new Exception("Invalid nacl public key");
-			
+
 			if (!(this.mySecretKey!=null && this.mySecretKey.length==TweetNaclFast.Box.secretKeyLength))
 				throw new Exception("Invalid nacl secret key");
 		}
 		if (PROTO_VERSION >= 2) {
+			// setup V2
+			this.caCert      = sec.getCa();
+			this.myCert      = sec.getCert();
+			
+			// check V2
 			if (!(this.caCert!=null))
 				throw new Exception("Invalid nacl CA");
-			
+
 			if (!(this.myCert!=null))
 				throw new Exception("Invalid nacl cert");
 		}
-		
+		//////////////////////////////////////////////////////////////////////////////////////////////
+
+
 		// client
 		this.isServer = false;
-		
+
 		// FSM 
 		this.state = sws_state_t.SWS_STATE_NEW;
 
@@ -405,7 +416,7 @@ extends EventEmitter2 {
 
 			@Override
 			public void onOpen(OpenEvent event) throws Exception {
-				// TODO Auto-generated method stub
+
 				SecureWebSocket.this.state = sws_state_t.SWS_STATE_CONNECTED;
 
 				SecureWebSocket.this.ws.onmessage(new WebSocket.onmessageListener() {
@@ -421,20 +432,20 @@ extends EventEmitter2 {
 
 								if (bb!=null && bb.capacity()>0) {
 									// authenticated decrypt cipher to plain buffer
-                                    byte[] plain = SecureWebSocket.this.rxSecretBox.open(bb.array(), bb.arrayOffset());
-                                    		
-                                    // check security
-                                    if (plain != null) {
-                                    	// increase nonce
-                                    	SecureWebSocket.this.rxSecretBox.incrNonce();
+									byte[] plain = SecureWebSocket.this.rxSecretBox.open(bb.array(), bb.arrayOffset());
 
-                                    	// emit plain message
-                                    	message_data_b msg = new message_data_b(ByteBuffer.wrap(plain), new Receiver.opcOptions(false, null, true));
-                                    	SecureWebSocket.this.emit("message", msg);
-                                    } else {
-    									warn(TAG, "hacked ByteBuffer, ingore it");
-    									SecureWebSocket.this.emit("warn", "hacked ByteBuffer, ingore it");
-    								}
+									// check security
+									if (plain != null) {
+										// increase nonce
+										SecureWebSocket.this.rxSecretBox.incrNonce();
+
+										// emit plain message
+										message_data_b msg = new message_data_b(ByteBuffer.wrap(plain), new Receiver.opcOptions(false, null, true));
+										SecureWebSocket.this.emit("message", msg);
+									} else {
+										warn(TAG, "hacked ByteBuffer, ingore it");
+										SecureWebSocket.this.emit("warn", "hacked ByteBuffer, ingore it");
+									}
 								} else {
 									warn(TAG, "invalid ByteBuffer");
 									SecureWebSocket.this.emit("warn", "invalid ByteBuffer");
@@ -461,34 +472,34 @@ extends EventEmitter2 {
 											SecureWebSocket.this.theirPublicKey = shm.server_public_key;
 											SecureWebSocket.this.rxSharekey = shm.share_key;
 											SecureWebSocket.this.theirNonce = shm.nonce; 
-											
+
 											// send ClientReady message
 											client_ready_b crm = new client_ready_b();
 											crm.opc = sws_opc_t.SWS_OPC_CLIENT_READY.opc();
 											crm.version = PROTO_VERSION;
-											
+
 											// nonce
 											crm.nonce = new byte[client_hello_b.nonceLength];
 											randombytes(crm.nonce, crm.nonce.length);
-							                
-							                // shared key
-							                crm.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
+
+											// shared key
+											crm.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
 											randombytes(crm.share_key, crm.share_key.length);
-											
+
 											// update secure info
 											SecureWebSocket.this.myNonce = crm.nonce;
 											SecureWebSocket.this.txShareKey = crm.share_key;
-											
-											// constructor NACL tx box
+
+											// Constructor NACL tx box
 											SecureWebSocket.this.txBox = new TweetNaclFast.Box(
 													SecureWebSocket.this.theirPublicKey, 
 													SecureWebSocket.this.mySecretKey, 
 													toLong(SecureWebSocket.this.myNonce));
-											
+
 											SecureWebSocket.this.txSecretBox = new TweetNaclFast.SecretBox(
 													SecureWebSocket.this.txShareKey, 
 													toLong(SecureWebSocket.this.myNonce));
-											
+
 											SecureWebSocket.this.ws.send(crm.stringify(), new WebSocket.SendOptions(false, false), new WriteCB(){
 
 												@Override
@@ -506,33 +517,34 @@ extends EventEmitter2 {
 														// Am ready  
 														SecureWebSocket.this.state = sws_state_t.SWS_STATE_SEND_CLIENT_READY;
 
+														// Construct NACL rx box
+														SecureWebSocket.this.rxBox = new TweetNaclFast.Box(
+																SecureWebSocket.this.theirPublicKey, 
+																SecureWebSocket.this.mySecretKey, 
+																toLong(SecureWebSocket.this.theirNonce));
+
+														SecureWebSocket.this.rxSecretBox = new TweetNaclFast.SecretBox(
+																SecureWebSocket.this.rxSharekey, 
+																toLong(SecureWebSocket.this.theirNonce));
+
+														// defer hand-shake done 20ms(about RTT)
 														ctx.setTimeout(new NodeContext.TimeoutListener() {
 
 															@Override
 															public void onTimeout() throws Exception {
-																// construct NACL rx box
-																SecureWebSocket.this.rxBox = new TweetNaclFast.Box(
-																		SecureWebSocket.this.theirPublicKey, 
-																		SecureWebSocket.this.mySecretKey, 
-																		toLong(SecureWebSocket.this.theirNonce));
-																
-																SecureWebSocket.this.rxSecretBox = new TweetNaclFast.SecretBox(
-																		SecureWebSocket.this.rxSharekey, 
-																		toLong(SecureWebSocket.this.theirNonce));
-
 																// set hand shake done
 																SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_DONE;
 
-                                                                // Flush sendCache
+																// Flush sendCache
 																for (send_cache_b c : SecureWebSocket.this.sendCache)
 																	SecureWebSocket.this.send(c.chunk, c.options, c.cb);
 																SecureWebSocket.this.sendCache.clear();
-																
+
 																// emit Secure event
 																SecureWebSocket.this.emit("secure");
 															}
 
-														}, 50); // 50ms delay
+														}, 20); // 20ms delay
 													}					
 												}
 											});
@@ -559,13 +571,13 @@ extends EventEmitter2 {
 				chm.opc = sws_opc_t.SWS_OPC_CLIENT_HELLO.opc();
 				chm.version = PROTO_VERSION;
 				chm.client_public_key = SecureWebSocket.this.myPublicKey;
-				
+
 				chm.nonce = new byte[client_hello_b.nonceLength];
 				randombytes(chm.nonce, chm.nonce.length);
 
 				// update secure info
 				SecureWebSocket.this.myNonce = chm.nonce;
-				
+
 				SecureWebSocket.this.ws.send(chm.stringify(), new WebSocket.SendOptions(false, false), new WriteCB(){
 
 					@Override
@@ -584,7 +596,7 @@ extends EventEmitter2 {
 
 				// update state to SWS_STATE_HANDSHAKE_START
 				SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_START;
-				
+
 				// 2.
 				// start hand-shake timer
 				SecureWebSocket.this.hs_tmo = ctx.setTimeout(new NodeContext.TimeoutListener() {
@@ -602,7 +614,7 @@ extends EventEmitter2 {
 					}
 
 				}, HANDSHAKE_TIMEOUT);
-				
+
 			}
 
 		});
@@ -611,40 +623,50 @@ extends EventEmitter2 {
 		this.sendCache = new LinkedList<send_cache_b>();
 	}
 
-	// ServerClient constructor
+	// ServerClient Constructor
 	@SuppressWarnings("unused")
-	protected SecureWebSocket(final NodeContext ctx, WebSocket ws, SecInfo sec) throws Exception {
-		// setup security info
-		this.mySecInfo   = sec;
-		this.myPublicKey = sec.getPublicKey();
-		this.mySecretKey = sec.getSecretKey();
-		this.caCert          = sec.getCa();
-		this.myCert      = sec.getCert();
-		
-		// check security info
+	protected SecureWebSocket(final NodeContext ctx, final WebSocket ws, final SecInfo sec) throws Exception {
+		// context
+		this.context = ctx;
+
+
+		// Setup security info ///////////////////////////////////////////////////////////////////
 		if (PROTO_VERSION >= 1) {
+			// setup V1
+			this.mySecInfo   = sec;
+			this.myPublicKey = sec.getPublicKey();
+			this.mySecretKey = sec.getSecretKey();
+			
+			// check V1
 			if (!(this.myPublicKey!=null && this.myPublicKey.length==TweetNaclFast.Box.publicKeyLength))
 				throw new Exception("Invalid nacl public key");
-			
+
 			if (!(this.mySecretKey!=null && this.mySecretKey.length==TweetNaclFast.Box.secretKeyLength))
 				throw new Exception("Invalid nacl secret key");
 		}
 		if (PROTO_VERSION >= 2) {
+			// setup V2
+			this.caCert      = sec.getCa();
+			this.myCert      = sec.getCert();
+			
+			// check V2
 			if (!(this.caCert!=null))
 				throw new Exception("Invalid nacl CA");
-			
+
 			if (!(this.myCert!=null))
 				throw new Exception("Invalid nacl cert");
 		}
-		
+		//////////////////////////////////////////////////////////////////////////////////////////////
+
+
 		// server client
 		this.isServer = true;
-		
+
 		// FSM 
 		this.state = sws_state_t.SWS_STATE_NEW;
 
 		this.ws = ws;
-		
+
 		// Hand shake process
 		{
 			SecureWebSocket.this.state = sws_state_t.SWS_STATE_CONNECTED;
@@ -654,7 +676,7 @@ extends EventEmitter2 {
 				@Override
 				public void onMessage(MessageEvent event) throws Exception {
 					debug(TAG, "ServerClient got message:"+event.getData().toString());
-					
+
 					if (SecureWebSocket.this.state == sws_state_t.SWS_STATE_HANDSHAKE_DONE) {
 						// Secure Context process
 						if (event.isBinary()) {
@@ -717,14 +739,14 @@ extends EventEmitter2 {
 
 										// server public key
 										shm.server_public_key = SecureWebSocket.this.myPublicKey;
-										
+
 										// update secure info
 										SecureWebSocket.this.myNonce = shm.nonce;
 										SecureWebSocket.this.txShareKey = shm.share_key;
-										
+
 										debug(TAG, "ServerHello message:"+shm.toString());
 
-										// construct NACL tx box
+										// Construct NACL tx box
 										SecureWebSocket.this.txBox = new TweetNaclFast.Box(
 												SecureWebSocket.this.theirPublicKey,
 												SecureWebSocket.this.mySecretKey,
@@ -775,12 +797,12 @@ extends EventEmitter2 {
 										SecureWebSocket.this.rxSharekey = crm.share_key;
 										SecureWebSocket.this.theirNonce = crm.nonce; 
 
-										// construct NACL rx box
+										// Construct NACL rx box
 										SecureWebSocket.this.rxBox = new TweetNaclFast.Box(
 												SecureWebSocket.this.theirPublicKey, 
 												SecureWebSocket.this.mySecretKey, 
 												toLong(SecureWebSocket.this.theirNonce));
-										
+
 										SecureWebSocket.this.rxSecretBox = new TweetNaclFast.SecretBox(
 												SecureWebSocket.this.rxSharekey, 
 												toLong(SecureWebSocket.this.theirNonce));
@@ -823,7 +845,7 @@ extends EventEmitter2 {
 			public void onTimeout() throws Exception {
 				if (SecureWebSocket.this.state != sws_state_t.SWS_STATE_HANDSHAKE_DONE) {
 					debug(TAG, "handshake timeout");
-					
+
 					SecureWebSocket.this.emit("timeout", "handshake timeout");
 
 					// close ws
@@ -832,7 +854,7 @@ extends EventEmitter2 {
 			}
 
 		}, HANDSHAKE_TIMEOUT);
-		
+
 		// Send cache
 		this.sendCache = new LinkedList<send_cache_b>();
 	}
@@ -899,7 +921,6 @@ extends EventEmitter2 {
 					new Readable2.Options(-1, null, false, "utf8", true), 
 					new Writable2.Options(-1, false, "utf8", false, true), 
 					false));
-			// TODO Auto-generated constructor stub
 
 			this.host = host;
 			

@@ -20,5 +20,7 @@
 
 * 6. Both WebSocket client and server run on secure-context, done.
 
+### All exchanged data format is JSON.
+
 ### Copyright tom zhou<iwebpp@gmail.com>
 
