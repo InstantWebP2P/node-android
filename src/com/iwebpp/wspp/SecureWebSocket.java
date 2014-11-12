@@ -1,3 +1,6 @@
+// Copyright (c) 2014 Tom Zhou<iwebpp@gmail.com>
+
+
 package com.iwebpp.wspp;
 
 import java.nio.ByteBuffer;
@@ -13,18 +16,14 @@ import com.iwebpp.crypto.TweetNaclFast;
 import com.iwebpp.libuvpp.handles.TimerHandle;
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
-import com.iwebpp.node.EventEmitter.Listener;
-import com.iwebpp.node.http.IncomingMessage;
 import com.iwebpp.node.stream.Duplex;
 import com.iwebpp.node.stream.Readable2;
 import com.iwebpp.node.stream.Writable.WriteCB;
 import com.iwebpp.node.stream.Writable2;
-import com.iwebpp.wspp.Receiver.opcOptions;
 import com.iwebpp.wspp.WebSocket.ErrorEvent;
 import com.iwebpp.wspp.WebSocket.MessageEvent;
 import com.iwebpp.wspp.WebSocket.OpenEvent;
 import com.iwebpp.wspp.WebSocket.SendOptions;
-import com.iwebpp.wspp.WebSocket.error_code_b;
 import com.iwebpp.wspp.WebSocket.message_data_b;
 import com.iwebpp.wspp.WebSocket.oncloseListener;
 import com.iwebpp.wspp.WebSocket.onerrorListener;
@@ -317,7 +316,7 @@ extends EventEmitter2 {
 						
 			byte[] nonce_share_key = tmpBox.open(s_nonce_share_key);
 			if (!(nonce_share_key!=null && nonce_share_key.length==(s_nonce_share_key.length-TweetNaclFast.Box.overheadLength)))
-				throw new Exception("server_hello_b decrypt nonce_share_key failed");
+				throw new Exception("client_ready_b decrypt nonce_share_key failed");
 			
 			// extract nonce
 			this.nonce = new byte[nonceLength];
@@ -376,7 +375,7 @@ extends EventEmitter2 {
 		this.mySecInfo   = sec;
 		this.myPublicKey = sec.getPublicKey();
 		this.mySecretKey = sec.getSecretKey();
-		this.ca          = sec.getCa();
+		this.caCert      = sec.getCa();
 		this.myCert      = sec.getCert();
 		
 		// check security info
@@ -388,7 +387,7 @@ extends EventEmitter2 {
 				throw new Exception("Invalid nacl secret key");
 		}
 		if (PROTO_VERSION >= 2) {
-			if (!(this.ca!=null))
+			if (!(this.caCert!=null))
 				throw new Exception("Invalid nacl CA");
 			
 			if (!(this.myCert!=null))
@@ -619,7 +618,7 @@ extends EventEmitter2 {
 		this.mySecInfo   = sec;
 		this.myPublicKey = sec.getPublicKey();
 		this.mySecretKey = sec.getSecretKey();
-		this.ca          = sec.getCa();
+		this.caCert          = sec.getCa();
 		this.myCert      = sec.getCert();
 		
 		// check security info
@@ -631,7 +630,7 @@ extends EventEmitter2 {
 				throw new Exception("Invalid nacl secret key");
 		}
 		if (PROTO_VERSION >= 2) {
-			if (!(this.ca!=null))
+			if (!(this.caCert!=null))
 				throw new Exception("Invalid nacl CA");
 			
 			if (!(this.myCert!=null))
@@ -1054,16 +1053,28 @@ extends EventEmitter2 {
 	}
 	
 	// NACL authenticated encryption
+	// my security info
 	private byte[] mySecretKey;
 	private byte[] myPublicKey;
 	private String myCert;
 	
+	private byte[] mySignSecretKey;
+	private byte[] mySignPublicKey;
+	private TweetNaclFast.Signature selfSignature;
+
+	// peer security info
 	private byte[] theirPublicKey;
 	private String theirCert;
 	
-	private String ca;
-	private byte[] caPublicKey;
-	
+	private byte[] theirSignPublicKey;
+	private TweetNaclFast.Signature theirSignature;
+
+	// CA security info
+	private String caCert;
+	private byte[] caSignPublicKey;
+	private TweetNaclFast.Signature caSignature;
+
+	// authenticated encryption info
 	private byte[] myNonce;
 	private byte[] theirNonce;
 	
@@ -1076,8 +1087,6 @@ extends EventEmitter2 {
 	private TweetNaclFast.SecretBox txSecretBox;
 	private TweetNaclFast.SecretBox rxSecretBox;
 
-	private TweetNaclFast.Signature signature;
-	
 	/*
 	 * @description
 	 *   Java Random generator
