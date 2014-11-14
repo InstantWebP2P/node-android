@@ -1143,7 +1143,7 @@ extends EventEmitter2 {
 		
 		for (int i = 0; i < x.length; i ++) {
 			long tmp = x[i] & 0xffL;
-			ret |= tmp << (8*(7-i%8));
+			ret |= tmp << (8*(i%8));
 		}
 		
 		return ret;
