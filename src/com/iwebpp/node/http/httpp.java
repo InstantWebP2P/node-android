@@ -15,6 +15,16 @@ public final class httpp extends SimpleDebug {
 			HttpServer.requestListener onreq) throws Exception {
 		  return new HttppServer(ctx, onreq);
 	}
+	
+	public static HttppServer listen(
+			NodeContext ctx, 
+			int port,
+			String host,
+			HttpServer.requestListener onreq) throws Exception {
+		HttppServer srv = createServer(ctx, onreq);
+		srv.listen(port, host);
+		return srv;
+	}
 
 	// httpp.request(options, [callback])
 	public static ClientRequest request(

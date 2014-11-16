@@ -357,7 +357,17 @@ public final class UDT extends SimpleDebug {
 			final Server.ConnectionListener listener) throws Exception {
 		return new Server(context, new Server.Options(false), listener);
 	}
-
+	
+	public static Server listen(
+			final NodeContext context, 
+			final String host,
+			final int port, 
+			final Server.ConnectionListener listener) throws Exception {
+		Server srv = createServer(context, listener);
+		srv.listen(host, port, null);
+		return srv;
+	}
+	
 	// Target API:
 	//
 	// var s = net.connect({port: 80, host: 'google.com'}, function() {

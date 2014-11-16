@@ -234,6 +234,16 @@ public final class http extends SimpleDebug {
 			HttpServer.requestListener onreq) throws Exception {
 		  return new HttpServer(ctx, onreq);
 	}
+	
+	public static HttpServer listen(
+			NodeContext ctx, 
+			int port,
+			String host,
+			HttpServer.requestListener onreq) throws Exception {
+		HttpServer srv = createServer(ctx, onreq);
+		srv.listen(port, host);
+		return srv;
+	}
 
 	// http.request(options, [callback])
 	public static ClientRequest request(
