@@ -38,7 +38,7 @@ rewrite tweetnacl.c in pure Java
 ### Refer to com.iwebpp.crypto.tests for details
 
 
-### NaclCert spec refer to 
+### NaclCert spec refer to https://github.com/InstantWebP2P/nacl-cert
 
 
 ### License MIT
