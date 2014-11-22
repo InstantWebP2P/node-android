@@ -4,6 +4,7 @@
 package com.iwebpp.crypto;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -23,6 +24,8 @@ public final class NaclCert extends SimpleDebug {
 	// Root CA, CA name to Cert map
 	private static Map<String, SelfCert> rootCA; 
 	static {
+		rootCA = new Hashtable<String, SelfCert>();
+		
 		// default CA by iwebpp.com
 		SelfCert ca_iwebpp = new SelfCert();
 		rootCA.put("iwebpp.com", ca_iwebpp);
@@ -429,7 +432,7 @@ public final class NaclCert extends SimpleDebug {
 	// @param cakey, nacl sign secretkey
 	// @param cacert, nacl sign self cert
 	// @return cert on success, null on fail
-	public static CaCert generate(ReqDescSignByCa req, byte[] cakey, CaCert ca) throws Exception {
+	public static CaCert generate(ReqDescSignByCa req, byte[] cakey, SelfCert ca) throws Exception {
 		CaCert cert = new CaCert();
 
 		// check type
@@ -618,4 +621,77 @@ public final class NaclCert extends SimpleDebug {
 		return ret;
 	}
 
+	// @description Check domain
+	public static boolean checkDomain(CaCert cert, String expectDomain) {
+		boolean ret = false;
+
+		if (cert.desc.reqdesc.names!=null)
+			for (String name : cert.desc.reqdesc.names)
+				if (name.equalsIgnoreCase(expectDomain)) {
+					ret = true;
+					break;
+				}
+
+		return ret;
+	}
+
+	// @description Check ip
+	public static boolean checkIP(CaCert cert, String expectIP) {
+		boolean ret = false;
+
+		if (cert.desc.reqdesc.ips!=null)
+			for (String ip : cert.desc.reqdesc.ips)
+				if (ip.equalsIgnoreCase(expectIP)) {
+					ret = true;
+					break;
+				}
+
+		return ret;
+	}
+
+	// @description Generate self-sign CA
+	public static class CAInfo {
+		public String ca;        // CA name
+		public long  tte;        // time-to-expire as ms
+
+		public SelfCert cert;    // self-signed cert
+		public byte[] secretkey; // Nacl sign secret key
+		
+		public String toString() {
+			String str = "ca:"+ca+"\n";
+			str += "tte:"+tte+"\n";
+			if (cert!=null)
+				try {
+					str += cert.stringify();
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					///e.printStackTrace();
+				}
+			if (secretkey!=null) str += "secretkey:"+secretkey.toString();
+			
+			return str;
+		}
+	}
+	public static CAInfo generateCA(CAInfo info) throws Exception {
+		// prepare self-sign reqdesc
+		ReqDescSignBySelf reqdesc = new ReqDescSignBySelf();
+		reqdesc.version = CERT_VERSION;
+		reqdesc.type    = "self";
+		reqdesc.ca      = info.ca;
+		reqdesc.tte     = info.tte;
+		
+		// genereate Sign keypair
+		TweetNaclFast.Signature.KeyPair skp = TweetNaclFast.Signature.keyPair();
+		reqdesc.publickey = skp.getPublicKey();
+		
+		// generate cert
+		SelfCert cert = generate(reqdesc, skp.getSecretKey());
+		
+		// fill cert and secret key in CAInfo
+		info.cert = cert;
+		info.secretkey = skp.getSecretKey();
+		
+		return info;
+	}
+		
 }

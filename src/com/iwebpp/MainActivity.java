@@ -1,5 +1,6 @@
 package com.iwebpp;
 
+import com.iwebpp.crypto.tests.NaclCertTest;
 import com.iwebpp.crypto.tests.TweetNaclFastTest;
 import com.iwebpp.crypto.tests.TweetNaclTest;
 import com.iwebpp.libuvpp.R;
@@ -78,6 +79,7 @@ public class MainActivity extends Activity {
 		// Crypto tests
 		///new TweetNaclTest().start();*/
 		///new TweetNaclFastTest().start();
+		new NaclCertTest().start();
 		
 		// SecureWebSocket tests
 		new SecureWebSocketServerTest().start();
