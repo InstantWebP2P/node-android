@@ -458,6 +458,12 @@ public final class NaclCert extends SimpleDebug {
 			e(TAG, "Invalid CA secret key");
 			return null;
 		}
+		
+		// check CA 
+		if (!validate(ca)) {
+			e(TAG, "Invalid CA cert");
+			return null;
+		}
 
 		// override CA field
 		req.ca = ca.desc.reqdesc.ca;
@@ -693,5 +699,9 @@ public final class NaclCert extends SimpleDebug {
 		
 		return info;
 	}
-		
+	
+	public static CaCert generate(ReqDescSignByCa req, CAInfo ca) throws Exception {
+		return generate(req, ca.secretkey, ca.cert);
+	}
+	
 }
