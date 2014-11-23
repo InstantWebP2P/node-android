@@ -59,7 +59,7 @@ public final class NaclCertTest {
 		desc.ips.add("127.0.0.1");
 		desc.ips.add("10.1.1.1");
 
-		NaclCert.CaCert cert = NaclCert.generate(desc, ca.secretkey, ca.cert);
+		NaclCert.Cert cert = NaclCert.generate(desc, ca.secretkey, ca.cert);
 		if (cert!=null)
 			Log.d(TAG, "\n\ttestCaCert/cert:"+cert.stringify());
 		else {

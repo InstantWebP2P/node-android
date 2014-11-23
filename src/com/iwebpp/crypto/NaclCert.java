@@ -25,7 +25,7 @@ public final class NaclCert extends SimpleDebug {
 	private static Map<String, SelfCert> rootCA; 
 	static {
 		rootCA = new Hashtable<String, SelfCert>();
-		
+
 		// default CA by iwebpp.com
 		SelfCert ca_iwebpp = new SelfCert();
 		rootCA.put("iwebpp.com", ca_iwebpp);
@@ -59,7 +59,7 @@ public final class NaclCert extends SimpleDebug {
 	public static class DescSignBySelf {
 		ReqDescSignBySelf reqdesc;
 		AppendDesc        append;
-		
+
 		public DescSignBySelf() {
 			reqdesc = new ReqDescSignBySelf();
 			append  = new AppendDesc();
@@ -132,12 +132,12 @@ public final class NaclCert extends SimpleDebug {
 	public static class DescSignByCa {
 		ReqDescSignByCa reqdesc;
 		AppendDesc      append;
-		
+
 		public DescSignByCa() {
 			reqdesc = new ReqDescSignByCa();
 			append  = new AppendDesc();
 		}
-		
+
 		public JSONObject toJSON() throws JSONException {
 			JSONObject json = new JSONObject();
 
@@ -283,7 +283,7 @@ public final class NaclCert extends SimpleDebug {
 	public static class SelfCert {
 		public DescSignBySelf desc;
 		public Signature      sign;
-		
+
 		public SelfCert() {
 			desc = new DescSignBySelf();
 			sign = new Signature();
@@ -323,15 +323,15 @@ public final class NaclCert extends SimpleDebug {
 		}
 	}
 
-	public static class CaCert {
+	public static class Cert {
 		public DescSignByCa desc;
 		public Signature    sign;
-		
-		public CaCert() {
+
+		public Cert() {
 			desc = new DescSignByCa();
 			sign = new Signature();
 		}
-		
+
 		public JSONObject toJSON() throws JSONException {
 			JSONObject json = new JSONObject();
 
@@ -344,21 +344,21 @@ public final class NaclCert extends SimpleDebug {
 		public String stringify() throws JSONException {
 			String jstr = toJSON().toString();
 
-			debug(TAG, "CaCert->:" + jstr);
+			debug(TAG, "Cert->:" + jstr);
 
 			return jstr;
 		}
 
-		public static CaCert parse(JSONObject json) throws JSONException {
-			CaCert cert = new CaCert();
+		public static Cert parse(JSONObject json) throws JSONException {
+			Cert cert = new Cert();
 			cert.desc = DescSignByCa.parse((JSONObject)(json.get("desc")));
 			cert.sign = Signature.parse((JSONObject)(json.get("sign")));
 
 			return cert;
 		}
 
-		public static CaCert parse(String jstr) throws JSONException {
-			debug(TAG, "CaCert<-:" + jstr);
+		public static Cert parse(String jstr) throws JSONException {
+			debug(TAG, "Cert<-:" + jstr);
 
 			JSONObject json = new JSONObject(jstr);
 
@@ -427,13 +427,13 @@ public final class NaclCert extends SimpleDebug {
 		return cert;
 	}
 
-	// @description Generate CaCert
+	// @description Generate Cert
 	// @param req, CA reqdesc
 	// @param cakey, nacl sign secretkey
 	// @param cacert, nacl sign self cert
 	// @return cert on success, null on fail
-	public static CaCert generate(ReqDescSignByCa req, byte[] cakey, SelfCert ca) throws Exception {
-		CaCert cert = new CaCert();
+	public static Cert generate(ReqDescSignByCa req, byte[] cakey, SelfCert ca) throws Exception {
+		Cert cert = new Cert();
 
 		// check type
 		if (!req.type.equalsIgnoreCase("ca")) {
@@ -458,7 +458,7 @@ public final class NaclCert extends SimpleDebug {
 			e(TAG, "Invalid CA secret key");
 			return null;
 		}
-		
+
 		// check CA 
 		if (!validate(ca)) {
 			e(TAG, "Invalid CA cert");
@@ -556,11 +556,11 @@ public final class NaclCert extends SimpleDebug {
 		return ret;
 	}
 
-	// @description Validate CaCert
+	// @description Validate Cert
 	// @param cert, cert signed by CA
 	// @param ca, CA cert signed by self
 	// @return true on success, false on fail
-	public static boolean validate(CaCert cert, SelfCert ca) throws Exception {
+	public static boolean validate(Cert cert, SelfCert ca) throws Exception {
 		boolean ret = true;
 
 		// check type
@@ -628,7 +628,7 @@ public final class NaclCert extends SimpleDebug {
 	}
 
 	// @description Check domain
-	public static boolean checkDomain(CaCert cert, String expectDomain) {
+	public static boolean checkDomain(Cert cert, String expectDomain) {
 		boolean ret = false;
 
 		if (cert.desc.reqdesc.names!=null)
@@ -642,7 +642,7 @@ public final class NaclCert extends SimpleDebug {
 	}
 
 	// @description Check ip
-	public static boolean checkIP(CaCert cert, String expectIP) {
+	public static boolean checkIP(Cert cert, String expectIP) {
 		boolean ret = false;
 
 		if (cert.desc.reqdesc.ips!=null)
@@ -662,7 +662,7 @@ public final class NaclCert extends SimpleDebug {
 
 		public SelfCert cert;    // self-signed cert
 		public byte[] secretkey; // Nacl sign secret key
-		
+
 		public String toString() {
 			String str = "ca:"+ca+"\n";
 			str += "tte:"+tte+"\n";
@@ -674,7 +674,7 @@ public final class NaclCert extends SimpleDebug {
 					///e.printStackTrace();
 				}
 			if (secretkey!=null) str += "secretkey:"+secretkey.toString();
-			
+
 			return str;
 		}
 	}
@@ -685,23 +685,23 @@ public final class NaclCert extends SimpleDebug {
 		reqdesc.type    = "self";
 		reqdesc.ca      = info.ca;
 		reqdesc.tte     = info.tte;
-		
+
 		// genereate Sign keypair
 		TweetNaclFast.Signature.KeyPair skp = TweetNaclFast.Signature.keyPair();
 		reqdesc.publickey = skp.getPublicKey();
-		
+
 		// generate cert
 		SelfCert cert = generate(reqdesc, skp.getSecretKey());
-		
+
 		// fill cert and secret key in CAInfo
 		info.cert = cert;
 		info.secretkey = skp.getSecretKey();
-		
+
 		return info;
 	}
-	
-	public static CaCert generate(ReqDescSignByCa req, CAInfo ca) throws Exception {
+
+	public static Cert generate(ReqDescSignByCa req, CAInfo ca) throws Exception {
 		return generate(req, ca.secretkey, ca.cert);
 	}
-	
+
 }
