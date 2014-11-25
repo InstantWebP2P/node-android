@@ -12,10 +12,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.iwebpp.crypto.NaclCert;
 import com.iwebpp.crypto.TweetNaclFast;
 import com.iwebpp.libuvpp.handles.TimerHandle;
 import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.NodeContext;
+import com.iwebpp.node.Url;
+import com.iwebpp.node.Url.UrlObj;
 import com.iwebpp.node.stream.Duplex;
 import com.iwebpp.node.stream.Readable2;
 import com.iwebpp.node.stream.Writable.WriteCB;
@@ -84,9 +87,11 @@ extends EventEmitter2 {
 	}
 	
 	private boolean isServer;
-
-	// protocol version 1
-	private static final int PROTO_VERSION = 1;
+	private String url;
+    private NaclCert.Cert peerCert;
+	
+	// protocol version default as 1
+	private int PROTO_VERSION = 1;
 	
 	private SecInfo mySecInfo;
 
@@ -106,28 +111,50 @@ extends EventEmitter2 {
 		public byte[] client_public_key; // 32 bytes 
 		
 		public final static int nonceLength = 8; // 8 bytes
-		
-		public String stringify() throws JSONException {
+
+		public JSONObject toJSON() throws JSONException {
 			JSONObject json = new JSONObject();
-			
+
 			json.put("opc", opc);
 			json.put("version", version);
-			
+
 			JSONArray na = new JSONArray(); 
 			for (int i = 0; i < nonce.length; i ++)
 				na.put(i, nonce[i]&0xff);
 			json.put("nonce", na);
-			
+
 			JSONArray cpka = new JSONArray(); 
 			for (int i = 0; i < client_public_key.length; i ++)
 				cpka.put(i, client_public_key[i]&0xff);
 			json.put("client_public_key", cpka);
 
-			debug(TAG, "client_hello_b->:" + json.toString());
-			
-			return json.toString();
+			return json;
 		}
 
+		public String stringify() throws JSONException {
+			String jstr = toJSON().toString();
+
+			debug(TAG, "client_hello_b->:" + jstr);
+
+			return jstr;
+		}
+		
+		@SuppressWarnings("unused")
+		public client_hello_b(JSONObject json) throws JSONException {
+			this.opc = json.getInt("opc");
+			this.version = json.getInt("version");
+
+			this.nonce = new byte[nonceLength];
+			JSONArray na = json.getJSONArray("nonce");
+			for (int i = 0; i < na.length(); i ++)
+				this.nonce[i] = (byte) (na.getInt(i)&0xff);
+
+			this.client_public_key = new byte[TweetNaclFast.Box.publicKeyLength];
+			JSONArray cpka = json.getJSONArray("client_public_key");
+			for (int i = 0; i < cpka.length(); i ++)
+				this.client_public_key[i] = (byte) (cpka.getInt(i)&0xff);
+		}
+		
 		public client_hello_b(String jstr) throws JSONException {
 			debug(TAG, "client_hello_b<-:" + jstr);
 
@@ -146,8 +173,11 @@ extends EventEmitter2 {
 			for (int i = 0; i < cpka.length(); i ++)
 				this.client_public_key[i] = (byte) (cpka.getInt(i)&0xff);
 		}
+		
 		public client_hello_b() {}
 	}
+	
+	// client hello message V2 same as V1
 	
 	private class server_hello_b {
 		public int opc;
@@ -162,25 +192,25 @@ extends EventEmitter2 {
 		
 		public final static int nonceLength = 8; // 8 bytes
 
-		public String stringify() throws Exception {
+		public JSONObject toJSON() throws Exception {
 			JSONObject json = new JSONObject();
-			
+
 			json.put("opc", opc);
 			json.put("version", version);
-			
+
 			JSONArray spka = new JSONArray(); 
 			for (int i = 0; i < server_public_key.length; i ++)
 				spka.put(i, server_public_key[i]&0xff);
 			json.put("server_public_key", spka);
-			
+
 			// encrypt nonce, share_key
 			byte[] nonce_share_key = new byte[nonce.length+share_key.length];
 			for (int i = 0; i < nonce.length; i ++)
 				nonce_share_key[i] = nonce[i];
-			
+
 			for (int i = 0; i < share_key.length; i ++)
 				nonce_share_key[i+nonce.length] = share_key[i];
-			
+
 			// Constructor temp NACL tx box
 			TweetNaclFast.Box tmpBox = new TweetNaclFast.Box(
 					SecureWebSocket.this.theirPublicKey,
@@ -190,16 +220,22 @@ extends EventEmitter2 {
 			byte[] s_nonce_share_key = tmpBox.box(nonce_share_key);
 			if (!(s_nonce_share_key!=null && s_nonce_share_key.length==(nonce_share_key.length+TweetNaclFast.Box.overheadLength)))
 				throw new Exception("server_hello_b encrypt nonce_share_key failed");
-			
+
 			// 
 			JSONArray s_nonce_share_key_a = new JSONArray(); 
 			for (int i = 0; i < s_nonce_share_key.length; i ++)
 				s_nonce_share_key_a.put(i, s_nonce_share_key[i]&0xff);
-			json.put("s_nonce_share_key_a", s_nonce_share_key_a);
-			
-			debug(TAG, "server_hello_b->:" + json.toString());
+			json.put("s_blackbox_a", s_nonce_share_key_a);
 
-			return json.toString();
+			return json;
+		}
+		
+		public String stringify() throws Exception {
+			String jstr = toJSON().toString();
+			
+			debug(TAG, "server_hello_b->:" + jstr);
+
+			return jstr;
 		}
 		
 		public server_hello_b(String jstr) throws Exception {
@@ -217,27 +253,27 @@ extends EventEmitter2 {
 				this.server_public_key[i] = (byte) (spka.getInt(i)&0xff);
 
 			// decrypt nonce, share_key
-			JSONArray s_nonce_share_key_a = json.getJSONArray("s_nonce_share_key_a");
-            byte[] s_nonce_share_key = new byte[s_nonce_share_key_a.length()];
-			
+			JSONArray s_nonce_share_key_a = json.getJSONArray("s_blackbox_a");
+			byte[] s_nonce_share_key = new byte[s_nonce_share_key_a.length()];
+
 			for (int i = 0; i < s_nonce_share_key_a.length(); i ++)
 				s_nonce_share_key[i] = (byte) (s_nonce_share_key_a.getInt(i)&0xff);
-			
+
 			// Constructor temp NACL rx box
 			TweetNaclFast.Box tmpBox = new TweetNaclFast.Box(
 					this.server_public_key,
 					SecureWebSocket.this.mySecretKey,
 					toLong(SecureWebSocket.this.myNonce));
-			
+
 			byte[] nonce_share_key = tmpBox.open(s_nonce_share_key);
 			if (!(nonce_share_key!=null && nonce_share_key.length==(s_nonce_share_key.length-TweetNaclFast.Box.overheadLength)))
 				throw new Exception("server_hello_b decrypt nonce_share_key failed");
-			
+
 			// extract nonce
 			this.nonce = new byte[nonceLength];
 			for (int i = 0; i < nonce.length; i ++)
 				this.nonce[i] = nonce_share_key[i];
-			
+
 			// extract shared key
 			this.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
 			for (int i = 0; i < share_key.length; i ++)
@@ -246,29 +282,164 @@ extends EventEmitter2 {
 		
 		public server_hello_b(){}
 	}
-	
-	private class client_ready_b {
+	// server hello message V2
+	private class server_hello_b_v2 {
 		public int opc;
-		
-		public int version; // sws protocol version: 1
 
+		public int version; // sws protocol version: 1
+		
+		public byte[] server_public_key;
+		
 		// encrypted nonce, share_key
 		public byte[] nonce; // 8 bytes
 		public byte[] share_key; 
 		
 		public final static int nonceLength = 8; // 8 bytes
-
-		public String stringify() throws Exception {
+		
+		public NaclCert.Cert cert;
+		public boolean requireCert;
+		
+		public JSONObject toJSON() throws Exception {
 			JSONObject json = new JSONObject();
-			
+
 			json.put("opc", opc);
 			json.put("version", version);
+
+			JSONArray spka = new JSONArray(); 
+			for (int i = 0; i < server_public_key.length; i ++)
+				spka.put(i, server_public_key[i]&0xff);
+			json.put("server_public_key", spka);
+
+			// cert, requireCert
+			JSONObject crobj = new JSONObject();
+			crobj.put("requireCert", requireCert);
+			crobj.put("cert", cert.toJSON());
+			String crstr = crobj.toString();
+			byte [] crbuf = crstr.getBytes("utf-8");
+
+			// encrypt nonce, share_key, cert, requireCert
+			byte[] nonce_share_key_cert_requirecert = new byte[nonce.length+share_key.length+crbuf.length];
+			for (int i = 0; i < nonce.length; i ++)
+				nonce_share_key_cert_requirecert[i] = nonce[i];
+
+			for (int i = 0; i < share_key.length; i ++)
+				nonce_share_key_cert_requirecert[i+nonce.length] = share_key[i];
 			
+			for (int i = 0; i < crbuf.length; i ++)
+				nonce_share_key_cert_requirecert[i+nonce.length+share_key.length] = crbuf[i];
+
+			// Constructor temp NACL tx box
+			TweetNaclFast.Box tmpBox = new TweetNaclFast.Box(
+					SecureWebSocket.this.theirPublicKey,
+					SecureWebSocket.this.mySecretKey,
+					toLong(SecureWebSocket.this.theirNonce));
+
+			byte[] s_nonce_share_key_cert_requirecert = tmpBox.box(nonce_share_key_cert_requirecert);
+			if (!(s_nonce_share_key_cert_requirecert!=null && 
+				  s_nonce_share_key_cert_requirecert.length==
+				 (nonce_share_key_cert_requirecert.length+TweetNaclFast.Box.overheadLength)))
+				throw new Exception("server_hello_b_v2 encrypt nonce_share_key failed");
+
+			// 
+			JSONArray s_nonce_share_key_cert_requirecert_a = new JSONArray(); 
+			for (int i = 0; i < s_nonce_share_key_cert_requirecert.length; i ++)
+				s_nonce_share_key_cert_requirecert_a.put(i, s_nonce_share_key_cert_requirecert[i]&0xff);
+			json.put("s_blackbox_a", s_nonce_share_key_cert_requirecert_a);
+			
+			return json;
+		}
+		
+		public String stringify() throws Exception {
+			String jstr = toJSON().toString();
+			
+			debug(TAG, "server_hello_b_v2->:" + jstr);
+
+			return jstr;
+		}
+		
+		
+		@SuppressWarnings("unused")
+		public server_hello_b_v2(String jstr) throws Exception {
+			debug(TAG, "server_hello_b_v2<-:" + jstr);
+
+			JSONObject json = new JSONObject(jstr);
+
+			this.opc = json.getInt("opc");
+			this.version = json.getInt("version");
+
+			JSONArray spka = json.getJSONArray("server_public_key");
+			this.server_public_key = new byte[spka.length()];
+
+			for (int i = 0; i < spka.length(); i ++)
+				this.server_public_key[i] = (byte) (spka.getInt(i)&0xff);
+
+			// decrypt nonce, share_key, cert, requirecert
+			JSONArray s_nonce_share_key_cert_requirecert_a = json.getJSONArray("s_blackbox_a");
+			byte[] s_nonce_share_key_cert_requirecert = new byte[s_nonce_share_key_cert_requirecert_a.length()];
+
+			for (int i = 0; i < s_nonce_share_key_cert_requirecert_a.length(); i ++)
+				s_nonce_share_key_cert_requirecert[i] = (byte) (s_nonce_share_key_cert_requirecert_a.getInt(i)&0xff);
+
+			// Constructor temp NACL rx box
+			TweetNaclFast.Box tmpBox = new TweetNaclFast.Box(
+					this.server_public_key,
+					SecureWebSocket.this.mySecretKey,
+					toLong(SecureWebSocket.this.myNonce));
+
+			byte[] nonce_share_key_cert_requirecert = tmpBox.open(s_nonce_share_key_cert_requirecert);
+			if (!(nonce_share_key_cert_requirecert!=null && 
+				  nonce_share_key_cert_requirecert.length==(s_nonce_share_key_cert_requirecert.length-TweetNaclFast.Box.overheadLength)))
+				throw new Exception("server_hello_b_v2 decrypt nonce_share_key failed");
+
+			// extract nonce
+			this.nonce = new byte[nonceLength];
+			for (int i = 0; i < nonce.length; i ++)
+				this.nonce[i] = nonce_share_key_cert_requirecert[i];
+
+			// extract shared key
+			this.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
+			for (int i = 0; i < share_key.length; i ++)
+				this.share_key[i] = nonce_share_key_cert_requirecert[i+nonce.length];
+
+			// extract cert, requireCert
+			byte[] crbuf = new byte[nonce_share_key_cert_requirecert.length - nonce.length - share_key.length];
+			for (int i = 0; i < crbuf.length; i ++)
+				crbuf[i] = nonce_share_key_cert_requirecert[i+nonce.length+share_key.length];
+			JSONObject crobj = new JSONObject(new String(crbuf, "utf-8"));
+			
+			// cert
+			this.cert = NaclCert.Cert.parse(crobj.getJSONObject("cert"));
+
+			// requireCert
+			this.requireCert = crobj.getBoolean("requireCert");
+		}
+		
+		@SuppressWarnings("unused")
+		public server_hello_b_v2(){}
+	}
+
+	private class client_ready_b {
+		public int opc;
+
+		public int version; // sws protocol version: 1
+
+		// encrypted nonce, share_key
+		public byte[] nonce; // 8 bytes
+		public byte[] share_key; 
+
+		public final static int nonceLength = 8; // 8 bytes
+
+		public JSONObject toJSON() throws Exception {
+			JSONObject json = new JSONObject();
+
+			json.put("opc", opc);
+			json.put("version", version);
+
 			// encrypt nonce, share_key
 			byte[] nonce_share_key = new byte[nonce.length+share_key.length];
 			for (int i = 0; i < nonce.length; i ++)
 				nonce_share_key[i] = nonce[i];
-			
+
 			for (int i = 0; i < share_key.length; i ++)
 				nonce_share_key[i+nonce.length] = share_key[i];
 
@@ -281,16 +452,55 @@ extends EventEmitter2 {
 			byte[] s_nonce_share_key = tmpBox.box(nonce_share_key);
 			if (!(s_nonce_share_key!=null && s_nonce_share_key.length==(nonce_share_key.length+TweetNaclFast.Box.overheadLength)))
 				throw new Exception("client_ready_b encrypt nonce_share_key failed");
-			
+
 			// 
 			JSONArray s_nonce_share_key_a = new JSONArray(); 
 			for (int i = 0; i < s_nonce_share_key.length; i ++)
 				s_nonce_share_key_a.put(i, s_nonce_share_key[i]&0xff);
-			json.put("s_nonce_share_key_a", s_nonce_share_key_a);
-			
-			debug(TAG, "client_ready_b->:" + json.toString());
+			json.put("s_blackbox_a", s_nonce_share_key_a);
 
-			return json.toString();
+			return json;
+		}
+
+		public String stringify() throws Exception {
+			String jstr = toJSON().toString();
+
+			debug(TAG, "client_ready_b->:" + jstr);
+
+			return jstr;
+		}
+
+		@SuppressWarnings("unused")
+		public client_ready_b(JSONObject json) throws Exception {
+			this.opc = json.getInt("opc");
+			this.version = json.getInt("version");
+
+			// decrypt nonce, share_key
+			JSONArray s_nonce_share_key_a = json.getJSONArray("s_blackbox_a");
+			byte[] s_nonce_share_key = new byte[s_nonce_share_key_a.length()];
+
+			for (int i = 0; i < s_nonce_share_key_a.length(); i ++)
+				s_nonce_share_key[i] = (byte) (s_nonce_share_key_a.getInt(i)&0xff);
+
+			// Constructor temp NACL rx box
+			TweetNaclFast.Box tmpBox = new TweetNaclFast.Box(
+					SecureWebSocket.this.theirPublicKey,
+					SecureWebSocket.this.mySecretKey,
+					toLong(SecureWebSocket.this.myNonce));
+
+			byte[] nonce_share_key = tmpBox.open(s_nonce_share_key);
+			if (!(nonce_share_key!=null && nonce_share_key.length==(s_nonce_share_key.length-TweetNaclFast.Box.overheadLength)))
+				throw new Exception("client_ready_b decrypt nonce_share_key failed");
+
+			// extract nonce
+			this.nonce = new byte[nonceLength];
+			for (int i = 0; i < nonce.length; i ++)
+				this.nonce[i] = nonce_share_key[i];
+
+			// extract shared key
+			this.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
+			for (int i = 0; i < share_key.length; i ++)
+				this.share_key[i] = nonce_share_key[i+nonce.length];
 		}
 
 		public client_ready_b(String jstr) throws Exception {
@@ -302,9 +512,9 @@ extends EventEmitter2 {
 			this.version = json.getInt("version");
 
 			// decrypt nonce, share_key
-			JSONArray s_nonce_share_key_a = json.getJSONArray("s_nonce_share_key_a");
-            byte[] s_nonce_share_key = new byte[s_nonce_share_key_a.length()];
-			
+			JSONArray s_nonce_share_key_a = json.getJSONArray("s_blackbox_a");
+			byte[] s_nonce_share_key = new byte[s_nonce_share_key_a.length()];
+
 			for (int i = 0; i < s_nonce_share_key_a.length(); i ++)
 				s_nonce_share_key[i] = (byte) (s_nonce_share_key_a.getInt(i)&0xff);
 
@@ -313,40 +523,169 @@ extends EventEmitter2 {
 					SecureWebSocket.this.theirPublicKey,
 					SecureWebSocket.this.mySecretKey,
 					toLong(SecureWebSocket.this.myNonce));
-						
+
 			byte[] nonce_share_key = tmpBox.open(s_nonce_share_key);
 			if (!(nonce_share_key!=null && nonce_share_key.length==(s_nonce_share_key.length-TweetNaclFast.Box.overheadLength)))
 				throw new Exception("client_ready_b decrypt nonce_share_key failed");
-			
+
 			// extract nonce
 			this.nonce = new byte[nonceLength];
 			for (int i = 0; i < nonce.length; i ++)
 				this.nonce[i] = nonce_share_key[i];
-			
+
 			// extract shared key
 			this.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
 			for (int i = 0; i < share_key.length; i ++)
 				this.share_key[i] = nonce_share_key[i+nonce.length];
 		}
-		
+
 		public client_ready_b() {}
 	}
-	
+	// client ready message V2
+	private class client_ready_b_v2 {
+		public int opc;
+
+		public int version; // sws protocol version: 1
+
+		// encrypted nonce, share_key
+		public byte[] nonce; // 8 bytes
+		public byte[] share_key; 
+
+		public final static int nonceLength = 8; // 8 bytes
+		
+		public NaclCert.Cert cert;
+
+		public JSONObject toJSON() throws Exception {
+			JSONObject json = new JSONObject();
+
+			json.put("opc", opc);
+			json.put("version", version);
+
+			// stringify cert
+			String certstr = cert!=null ? cert.toJSON().toString() : "{}";
+			byte[] certbuf = certstr.getBytes("utf-8");
+			
+			// encrypt nonce, share_key, cert
+			byte[] nonce_share_key_cert = new byte[nonce.length+share_key.length+certbuf.length];
+			for (int i = 0; i < nonce.length; i ++)
+				nonce_share_key_cert[i] = nonce[i];
+
+			for (int i = 0; i < share_key.length; i ++)
+				nonce_share_key_cert[i+nonce.length] = share_key[i];
+
+			for (int i = 0; i < certbuf.length; i ++)
+				nonce_share_key_cert[i+nonce.length+share_key.length] = certbuf[i];
+			
+			// Constructor temp NACL tx box
+			TweetNaclFast.Box tmpBox = new TweetNaclFast.Box(
+					SecureWebSocket.this.theirPublicKey,
+					SecureWebSocket.this.mySecretKey,
+					toLong(SecureWebSocket.this.theirNonce));
+
+			byte[] s_nonce_share_key_cert = tmpBox.box(nonce_share_key_cert);
+			if (!(s_nonce_share_key_cert!=null && s_nonce_share_key_cert.length==(nonce_share_key_cert.length+TweetNaclFast.Box.overheadLength)))
+				throw new Exception("client_ready_b_v2 encrypt nonce_share_key failed");
+
+			// 
+			JSONArray s_nonce_share_key_cert_a = new JSONArray(); 
+			for (int i = 0; i < s_nonce_share_key_cert.length; i ++)
+				s_nonce_share_key_cert_a.put(i, s_nonce_share_key_cert[i]&0xff);
+			json.put("s_blackbox_a", s_nonce_share_key_cert_a);
+
+			return json;
+		}
+
+		public String stringify() throws Exception {
+			String jstr = toJSON().toString();
+
+			debug(TAG, "client_ready_b_v2->:" + jstr);
+
+			return jstr;
+		}
+
+		public client_ready_b_v2(String jstr) throws Exception {
+			debug(TAG, "client_ready_b_v2<-:" + jstr);
+
+			JSONObject json = new JSONObject(jstr);			
+
+			this.opc = json.getInt("opc");
+			this.version = json.getInt("version");
+
+			// decrypt nonce, share_key, cert
+			JSONArray s_nonce_share_key_cert_a = json.getJSONArray("s_blackbox_a");
+			byte[] s_nonce_share_key_cert = new byte[s_nonce_share_key_cert_a.length()];
+
+			for (int i = 0; i < s_nonce_share_key_cert_a.length(); i ++)
+				s_nonce_share_key_cert[i] = (byte) (s_nonce_share_key_cert_a.getInt(i)&0xff);
+
+			// Constructor temp NACL rx box
+			TweetNaclFast.Box tmpBox = new TweetNaclFast.Box(
+					SecureWebSocket.this.theirPublicKey,
+					SecureWebSocket.this.mySecretKey,
+					toLong(SecureWebSocket.this.myNonce));
+
+			byte[] nonce_share_key_cert = tmpBox.open(s_nonce_share_key_cert);
+			if (!(nonce_share_key_cert!=null && nonce_share_key_cert.length==(s_nonce_share_key_cert.length-TweetNaclFast.Box.overheadLength)))
+				throw new Exception("client_ready_b_v2 decrypt nonce_share_key failed");
+
+			// extract nonce
+			this.nonce = new byte[nonceLength];
+			for (int i = 0; i < nonce.length; i ++)
+				this.nonce[i] = nonce_share_key_cert[i];
+
+			// extract shared key
+			this.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
+			for (int i = 0; i < share_key.length; i ++)
+				this.share_key[i] = nonce_share_key_cert[i+nonce.length];
+
+			// extract cert
+			byte [] certbuf = new byte[nonce_share_key_cert.length - nonce.length - share_key.length];
+			for (int i = 0; i < certbuf.length; i ++)
+				certbuf[i] = nonce_share_key_cert[i+nonce.length+share_key.length];
+			this.cert = NaclCert.Cert.parse(new String(certbuf, "utf-8"));
+		}
+
+		@SuppressWarnings("unused")
+		public client_ready_b_v2(){}
+	}
+
 	// secure info
 	public static class SecInfo {
-		private byte[] pk;
-		private byte[] sk;
-		private String cert;
-		private String ca;
-		private boolean rejectUnauthorized;
+		private int               version;     // protocol version, 1 or 2
+		private byte[]            pk;          // nacl box publickey
+		private byte[]            sk;          // nacl box secretkey
+		private NaclCert.Cert     cert;        // nacl box publickey cert signed by CA
+		private NaclCert.SelfCert ca;          // nacl signature publickey cert signed by self
+		private boolean           requireCert; // whether need peer's cert
 
+		// version 1
 		public SecInfo(byte[] pk, byte[] sk) {
+			this.version = 1;
+			
 			this.pk = pk;
 			this.sk = sk;
 
 			this.cert = null;
 			this.ca   = null;
-			this.rejectUnauthorized = false;
+			this.requireCert = false;
+		}
+		// version 2
+		public SecInfo(byte[] pk, byte[] sk, 
+				NaclCert.Cert cert, NaclCert.SelfCert ca, boolean requireCert) {
+			this.version = 2;
+			
+			this.pk = pk;
+			this.sk = sk;
+
+			this.cert = cert;
+			this.ca   = ca;
+			this.requireCert = requireCert;
+		}
+		@SuppressWarnings("unused")
+		private SecInfo() {}
+		
+		public int getVersion() {
+			return this.version;
 		}
 		public byte[] getPublicKey() {
 			return this.pk;
@@ -354,14 +693,17 @@ extends EventEmitter2 {
 		public byte[] getSecretKey() {
 			return this.sk;
 		}
-		public String getCert() {
+		public NaclCert.Cert getCert() {
 			return this.cert;
 		}
-		public String getCa() {
-			return this.ca;
+		public NaclCert.SelfCert getCa() {
+			if (this.ca != null)
+				return this.ca;
+			else 
+				return NaclCert.rootCA.get("iwebpp.com");
 		}
-		public boolean isRejectUnauthorized() {
-			return rejectUnauthorized;
+		public boolean requireCert() {
+			return requireCert;
 		}
 	}
 
@@ -375,6 +717,12 @@ extends EventEmitter2 {
 		// context
 		this.context = ctx;
 
+		// client
+		this.isServer = false;
+		this.url = address;
+
+		// check version
+		PROTO_VERSION = sec!=null ? sec.getVersion() : 1;
 
 		// Setup security info ///////////////////////////////////////////////////////////////////
 		if (PROTO_VERSION >= 1) {
@@ -394,19 +742,12 @@ extends EventEmitter2 {
 			// setup V2
 			this.caCert      = sec.getCa();
 			this.myCert      = sec.getCert();
-			
-			// check V2
-			if (!(this.caCert!=null))
-				throw new Exception("Invalid nacl CA");
 
-			if (!(this.myCert!=null))
-				throw new Exception("Invalid nacl cert");
+			// client always request server's Cert
+			// server can request or not-request client's Cert
+			this.requireCert = true;
 		}
 		//////////////////////////////////////////////////////////////////////////////////////////////
-
-
-		// client
-		this.isServer = false;
 
 		// FSM 
 		this.state = sws_state_t.SWS_STATE_NEW;
@@ -462,98 +803,235 @@ extends EventEmitter2 {
 								if (!event.isBinary()) {
 									// capture JSON parse exception
 									try {
-										server_hello_b shm = new server_hello_b(event.getData().toString());
+										// V1
+										if (PROTO_VERSION == 1) {
+											server_hello_b shm = new server_hello_b(event.getData().toString());
 
-										if (shm.opc == sws_opc_t.SWS_OPC_SERVER_HELLO.opc() &&
-											shm.version == PROTO_VERSION) {
-											debug(TAG, "ServerHello message:"+event.getData().toString());
+											if (shm.opc == sws_opc_t.SWS_OPC_SERVER_HELLO.opc() &&
+													shm.version == PROTO_VERSION) {
+												debug(TAG, "ServerHello message:"+event.getData().toString());
 
-											// update secure info
-											SecureWebSocket.this.theirPublicKey = shm.server_public_key;
-											SecureWebSocket.this.rxSharekey = shm.share_key;
-											SecureWebSocket.this.theirNonce = shm.nonce; 
+												// update secure info
+												SecureWebSocket.this.theirPublicKey = shm.server_public_key;
+												SecureWebSocket.this.rxSharekey = shm.share_key;
+												SecureWebSocket.this.theirNonce = shm.nonce; 
 
-											// send ClientReady message
-											client_ready_b crm = new client_ready_b();
-											crm.opc = sws_opc_t.SWS_OPC_CLIENT_READY.opc();
-											crm.version = PROTO_VERSION;
+												// send ClientReady message
+												client_ready_b crm = new client_ready_b();
+												crm.opc = sws_opc_t.SWS_OPC_CLIENT_READY.opc();
+												crm.version = PROTO_VERSION;
 
-											// nonce
-											crm.nonce = new byte[client_hello_b.nonceLength];
-											randombytes(crm.nonce, crm.nonce.length);
+												// nonce
+												crm.nonce = new byte[client_hello_b.nonceLength];
+												randombytes(crm.nonce, crm.nonce.length);
 
-											// shared key
-											crm.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
-											randombytes(crm.share_key, crm.share_key.length);
+												// shared key
+												crm.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
+												randombytes(crm.share_key, crm.share_key.length);
 
-											// update secure info
-											SecureWebSocket.this.myNonce = crm.nonce;
-											SecureWebSocket.this.txShareKey = crm.share_key;
+												// update secure info
+												SecureWebSocket.this.myNonce = crm.nonce;
+												SecureWebSocket.this.txShareKey = crm.share_key;
 
-											// Constructor NACL tx box
-											SecureWebSocket.this.txBox = new TweetNaclFast.Box(
-													SecureWebSocket.this.theirPublicKey, 
-													SecureWebSocket.this.mySecretKey, 
-													toLong(SecureWebSocket.this.myNonce));
+												// Constructor NACL tx box
+												SecureWebSocket.this.txBox = new TweetNaclFast.Box(
+														SecureWebSocket.this.theirPublicKey, 
+														SecureWebSocket.this.mySecretKey, 
+														toLong(SecureWebSocket.this.myNonce));
 
-											SecureWebSocket.this.txSecretBox = new TweetNaclFast.SecretBox(
-													SecureWebSocket.this.txShareKey, 
-													toLong(SecureWebSocket.this.myNonce));
+												SecureWebSocket.this.txSecretBox = new TweetNaclFast.SecretBox(
+														SecureWebSocket.this.txShareKey, 
+														toLong(SecureWebSocket.this.myNonce));
 
-											SecureWebSocket.this.ws.send(crm.stringify(), new WebSocket.SendOptions(false, false), new WriteCB(){
+												SecureWebSocket.this.ws.send(crm.stringify(), new WebSocket.SendOptions(false, false), new WriteCB(){
 
-												@Override
-												public void writeDone(String error) throws Exception {
-													if (error != null) {
-														SecureWebSocket.this.emit("error", "send_client_ready:"+error);
-														// close ws
-														SecureWebSocket.this.ws.close(0, null);
-													} else {
-														// clear hand shake timeout
-														SecureWebSocket.this.hs_tmo.close();
+													@Override
+													public void writeDone(String error) throws Exception {
+														if (error != null) {
+															SecureWebSocket.this.emit("error", "send_client_ready:"+error);
+															// close ws
+															SecureWebSocket.this.ws.close(0, null);
+														} else {
+															// clear hand shake timeout
+															SecureWebSocket.this.hs_tmo.close();
 
-														// update state to SWS_STATE_SEND_CLIENT_READY
+															// update state to SWS_STATE_SEND_CLIENT_READY
 
-														// Am ready  
-														SecureWebSocket.this.state = sws_state_t.SWS_STATE_SEND_CLIENT_READY;
+															// Am ready  
+															SecureWebSocket.this.state = sws_state_t.SWS_STATE_SEND_CLIENT_READY;
 
-														// Construct NACL rx box
-														SecureWebSocket.this.rxBox = new TweetNaclFast.Box(
-																SecureWebSocket.this.theirPublicKey, 
-																SecureWebSocket.this.mySecretKey, 
-																toLong(SecureWebSocket.this.theirNonce));
+															// Construct NACL rx box
+															SecureWebSocket.this.rxBox = new TweetNaclFast.Box(
+																	SecureWebSocket.this.theirPublicKey, 
+																	SecureWebSocket.this.mySecretKey, 
+																	toLong(SecureWebSocket.this.theirNonce));
 
-														SecureWebSocket.this.rxSecretBox = new TweetNaclFast.SecretBox(
-																SecureWebSocket.this.rxSharekey, 
-																toLong(SecureWebSocket.this.theirNonce));
+															SecureWebSocket.this.rxSecretBox = new TweetNaclFast.SecretBox(
+																	SecureWebSocket.this.rxSharekey, 
+																	toLong(SecureWebSocket.this.theirNonce));
 
-														// defer hand-shake done 20ms(about RTT)
-														ctx.setTimeout(new NodeContext.TimeoutListener() {
+															// defer hand-shake done 20ms(about RTT)
+															ctx.setTimeout(new NodeContext.TimeoutListener() {
 
-															@Override
-															public void onTimeout() throws Exception {
-																// set hand shake done
-																SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_DONE;
+																@Override
+																public void onTimeout() throws Exception {
+																	// set hand shake done
+																	SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_DONE;
 
-																// Flush sendCache
-																for (send_cache_b c : SecureWebSocket.this.sendCache)
-																	SecureWebSocket.this.send(c.chunk, c.options, c.cb);
-																SecureWebSocket.this.sendCache.clear();
+																	// Flush sendCache
+																	for (send_cache_b c : SecureWebSocket.this.sendCache)
+																		SecureWebSocket.this.send(c.chunk, c.options, c.cb);
+																	SecureWebSocket.this.sendCache.clear();
 
-																// emit Secure event
-																SecureWebSocket.this.emit("secure");
-															}
+																	// emit Secure event
+																	SecureWebSocket.this.emit("secure");
+																}
 
-														}, 20); // 20ms delay
-													}					
+															}, 20); // 20ms delay
+														}					
+													}
+												});
+											} else {
+												SecureWebSocket.this.emit("warn", "invalid handshake server-hello message:"+event.getData().toString());
+											}
+										} else
+										// V2	
+										if (PROTO_VERSION == 2) {
+											server_hello_b_v2 shm = new server_hello_b_v2(event.getData().toString());
+
+											if (shm.opc == sws_opc_t.SWS_OPC_SERVER_HELLO.opc() &&
+												shm.version == PROTO_VERSION) {
+												debug(TAG, "ServerHello message V2:"+event.getData().toString());
+
+												// check server's PublicKey Cert /////////////////////////////////
+												if (!(NaclCert.validate(shm.cert, SecureWebSocket.this.caCert) && 
+													  shm.server_public_key.equals(shm.cert.desc.reqdesc.publickey))) {
+													debug(TAG, "Invalid server cert");
+													SecureWebSocket.this.emit("error", "Invalid server cert");
+													SecureWebSocket.this.ws.close(0, null);
+													return;
 												}
-											});
+												// check domain or ip
+												UrlObj serverUrl = Url.parse(SecureWebSocket.this.url);
+												String srvDomain = serverUrl.hostname!=null ? serverUrl.hostname : "";
+												String srvIP = SecureWebSocket.this.ws.remoteAddress();
+												debug(TAG, "expected server ip:"+srvIP);
+												debug(TAG, "expected server domain:"+srvDomain);
+												if (!(NaclCert.checkDomain(shm.cert, srvDomain) ||
+													  NaclCert.checkIP(shm.cert, srvIP))) {
+													error(TAG, "Invalid server endpoing");
+													SecureWebSocket.this.emit("error", "Invalid server endpoing");
+													SecureWebSocket.this.ws.close(0, null);
+													return;
+												}
+												// record server's cert
+												SecureWebSocket.this.peerCert = shm.cert;
+												/////////////////////////////////////////////////////////////////////////
+												
+												// update secure info
+												SecureWebSocket.this.theirPublicKey = shm.server_public_key;
+												SecureWebSocket.this.rxSharekey = shm.share_key;
+												SecureWebSocket.this.theirNonce = shm.nonce; 
+												
+												// send ClientReady message
+												client_ready_b_v2 crm = new client_ready_b_v2();
+												crm.opc = sws_opc_t.SWS_OPC_CLIENT_READY.opc();
+												crm.version = PROTO_VERSION;
+
+												// nonce
+												crm.nonce = new byte[client_hello_b.nonceLength];
+												randombytes(crm.nonce, crm.nonce.length);
+
+												// shared key
+												crm.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
+												randombytes(crm.share_key, crm.share_key.length);
+
+												//  check if need cert /////////////////////////////////////
+												if (shm.requireCert) {
+													if (SecureWebSocket.this.myCert != null) {
+														crm.cert = SecureWebSocket.this.myCert;
+													} else {
+														error(TAG, "Miss client cert");
+														SecureWebSocket.this.emit("error", "Miss client cert");
+														SecureWebSocket.this.ws.close(0, null);
+														return;
+													}
+												}
+												/////////////////////////////////////////////////////////////
+												
+												// update secure info
+												SecureWebSocket.this.myNonce = crm.nonce;
+												SecureWebSocket.this.txShareKey = crm.share_key;
+
+												// Constructor NACL tx box
+												SecureWebSocket.this.txBox = new TweetNaclFast.Box(
+														SecureWebSocket.this.theirPublicKey, 
+														SecureWebSocket.this.mySecretKey, 
+														toLong(SecureWebSocket.this.myNonce));
+
+												SecureWebSocket.this.txSecretBox = new TweetNaclFast.SecretBox(
+														SecureWebSocket.this.txShareKey, 
+														toLong(SecureWebSocket.this.myNonce));
+
+												SecureWebSocket.this.ws.send(crm.stringify(), new WebSocket.SendOptions(false, false), new WriteCB(){
+
+													@Override
+													public void writeDone(String error) throws Exception {
+														if (error != null) {
+															SecureWebSocket.this.emit("error", "send_client_ready:"+error);
+															// close ws
+															SecureWebSocket.this.ws.close(0, null);
+														} else {
+															// clear hand shake timeout
+															SecureWebSocket.this.hs_tmo.close();
+
+															// update state to SWS_STATE_SEND_CLIENT_READY
+
+															// Am ready  
+															SecureWebSocket.this.state = sws_state_t.SWS_STATE_SEND_CLIENT_READY;
+
+															// Construct NACL rx box
+															SecureWebSocket.this.rxBox = new TweetNaclFast.Box(
+																	SecureWebSocket.this.theirPublicKey, 
+																	SecureWebSocket.this.mySecretKey, 
+																	toLong(SecureWebSocket.this.theirNonce));
+
+															SecureWebSocket.this.rxSecretBox = new TweetNaclFast.SecretBox(
+																	SecureWebSocket.this.rxSharekey, 
+																	toLong(SecureWebSocket.this.theirNonce));
+
+															// defer hand-shake done 20ms(about RTT)
+															ctx.setTimeout(new NodeContext.TimeoutListener() {
+
+																@Override
+																public void onTimeout() throws Exception {
+																	// set hand shake done
+																	SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_DONE;
+
+																	// Flush sendCache
+																	for (send_cache_b c : SecureWebSocket.this.sendCache)
+																		SecureWebSocket.this.send(c.chunk, c.options, c.cb);
+																	SecureWebSocket.this.sendCache.clear();
+
+																	// emit Secure event
+																	SecureWebSocket.this.emit("secure");
+																}
+
+															}, 20); // 20ms delay
+														}					
+													}
+												});
+											} else {
+												SecureWebSocket.this.emit("warn", "invalid handshake server-hello message:"+event.getData().toString());
+											}
 										} else {
-											SecureWebSocket.this.emit("warn", "invalid handshake server-hello message:"+event.getData().toString());
+											SecureWebSocket.this.emit("error", "Invalid protocol version");
+											// close ws
+											SecureWebSocket.this.ws.close(0, null);
 										}
 									} catch (Exception e) {
 										SecureWebSocket.this.emit("warn", e.toString()+"parse handshake message failed, skip it:"+event.getData().toString());
-									} 
+									}
 								} else {
 									SecureWebSocket.this.emit("warn", "invalid handshake binary message:"+event.getData().toString());
 								}
@@ -629,6 +1107,8 @@ extends EventEmitter2 {
 		// context
 		this.context = ctx;
 
+		// server client
+		this.isServer = true;
 
 		// Setup security info ///////////////////////////////////////////////////////////////////
 		if (PROTO_VERSION >= 1) {
@@ -648,19 +1128,12 @@ extends EventEmitter2 {
 			// setup V2
 			this.caCert      = sec.getCa();
 			this.myCert      = sec.getCert();
-			
-			// check V2
-			if (!(this.caCert!=null))
-				throw new Exception("Invalid nacl CA");
 
-			if (!(this.myCert!=null))
-				throw new Exception("Invalid nacl cert");
+			// client always request server's Cert
+			// server can request or not-request client's Cert
+			this.requireCert = sec!=null ? sec.requireCert() : false;
 		}
 		//////////////////////////////////////////////////////////////////////////////////////////////
-
-
-		// server client
-		this.isServer = true;
 
 		// FSM 
 		this.state = sws_state_t.SWS_STATE_NEW;
@@ -714,65 +1187,146 @@ extends EventEmitter2 {
 							if (!event.isBinary()) {
 								// capture JSON parse exception
 								try {
-									client_hello_b chm = new client_hello_b(event.getData().toString());
+									// V1
+									if (PROTO_VERSION == 1) {
+										client_hello_b chm = new client_hello_b(event.getData().toString());
 
-									if (chm.opc == sws_opc_t.SWS_OPC_CLIENT_HELLO.opc() &&
-										chm.version == PROTO_VERSION) {
-										debug(TAG, "ClientHello message:"+event.getData().toString());
+										if (chm.opc == sws_opc_t.SWS_OPC_CLIENT_HELLO.opc() &&
+												chm.version == PROTO_VERSION) {
+											debug(TAG, "ClientHello message:"+event.getData().toString());
 
-										// update secure info
-										SecureWebSocket.this.theirPublicKey = chm.client_public_key;
-										SecureWebSocket.this.theirNonce = chm.nonce; 
+											// update secure info
+											SecureWebSocket.this.theirPublicKey = chm.client_public_key;
+											SecureWebSocket.this.theirNonce = chm.nonce; 
 
-										// send ServerHello message
-										server_hello_b shm = new server_hello_b();
-										shm.opc = sws_opc_t.SWS_OPC_SERVER_HELLO.opc();
-										shm.version = PROTO_VERSION;
+											// send ServerHello message
+											server_hello_b shm = new server_hello_b();
+											shm.opc = sws_opc_t.SWS_OPC_SERVER_HELLO.opc();
+											shm.version = PROTO_VERSION;
 
-										// nonce
-										shm.nonce = new byte[server_hello_b.nonceLength];
-										randombytes(shm.nonce, shm.nonce.length);
+											// nonce
+											shm.nonce = new byte[server_hello_b.nonceLength];
+											randombytes(shm.nonce, shm.nonce.length);
 
-										// shared key
-										shm.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
-										randombytes(shm.share_key, shm.share_key.length);
+											// shared key
+											shm.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
+											randombytes(shm.share_key, shm.share_key.length);
 
-										// server public key
-										shm.server_public_key = SecureWebSocket.this.myPublicKey;
+											// server public key
+											shm.server_public_key = SecureWebSocket.this.myPublicKey;
 
-										// update secure info
-										SecureWebSocket.this.myNonce = shm.nonce;
-										SecureWebSocket.this.txShareKey = shm.share_key;
+											// update secure info
+											SecureWebSocket.this.myNonce = shm.nonce;
+											SecureWebSocket.this.txShareKey = shm.share_key;
 
-										debug(TAG, "ServerHello message:"+shm.toString());
+											debug(TAG, "ServerHello message:"+shm.toString());
 
-										// Construct NACL tx box
-										SecureWebSocket.this.txBox = new TweetNaclFast.Box(
-												SecureWebSocket.this.theirPublicKey,
-												SecureWebSocket.this.mySecretKey,
-												toLong(SecureWebSocket.this.myNonce));
+											// Construct NACL tx box
+											SecureWebSocket.this.txBox = new TweetNaclFast.Box(
+													SecureWebSocket.this.theirPublicKey,
+													SecureWebSocket.this.mySecretKey,
+													toLong(SecureWebSocket.this.myNonce));
 
-										SecureWebSocket.this.txSecretBox = new TweetNaclFast.SecretBox(
-												SecureWebSocket.this.txShareKey, 
-												toLong(SecureWebSocket.this.myNonce));
+											SecureWebSocket.this.txSecretBox = new TweetNaclFast.SecretBox(
+													SecureWebSocket.this.txShareKey, 
+													toLong(SecureWebSocket.this.myNonce));
 
-										SecureWebSocket.this.ws.send(shm.stringify(), new WebSocket.SendOptions(false, false), new WriteCB(){
+											SecureWebSocket.this.ws.send(shm.stringify(), new WebSocket.SendOptions(false, false), new WriteCB(){
 
-											@Override
-											public void writeDone(String error) throws Exception {
-												if (error != null) {
-													SecureWebSocket.this.emit("error", "send_server_hello:"+error);
-													// close ws
-													SecureWebSocket.this.ws.close(0, null);
+												@Override
+												public void writeDone(String error) throws Exception {
+													if (error != null) {
+														SecureWebSocket.this.emit("error", "send_server_hello:"+error);
+														// close ws
+														SecureWebSocket.this.ws.close(0, null);
+													} else {
+														// update state to SWS_STATE_SEND_SERVER_HELLO
+														SecureWebSocket.this.state = sws_state_t.SWS_STATE_SEND_SERVER_HELLO;
+													}					
+												}
+											});
+										} else {
+											SecureWebSocket.this.emit("warn", "invalid handshake client-hello message:"+event.getData().toString());
+										}
+									} else
+										// V2	
+										if (PROTO_VERSION == 2) {
+											client_hello_b chm = new client_hello_b(event.getData().toString());
+
+											if (chm.opc == sws_opc_t.SWS_OPC_CLIENT_HELLO.opc() &&
+												chm.version == PROTO_VERSION) {
+												debug(TAG, "ClientHello message:"+event.getData().toString());
+
+												// update secure info
+												SecureWebSocket.this.theirPublicKey = chm.client_public_key;
+												SecureWebSocket.this.theirNonce = chm.nonce; 
+
+												// send ServerHello message V2
+												server_hello_b_v2 shm = new server_hello_b_v2();
+												shm.opc = sws_opc_t.SWS_OPC_SERVER_HELLO.opc();
+												shm.version = PROTO_VERSION;
+
+												// nonce
+												shm.nonce = new byte[server_hello_b.nonceLength];
+												randombytes(shm.nonce, shm.nonce.length);
+
+												// shared key
+												shm.share_key = new byte[TweetNaclFast.SecretBox.keyLength];
+												randombytes(shm.share_key, shm.share_key.length);
+
+												// server public key
+												shm.server_public_key = SecureWebSocket.this.myPublicKey;
+
+												// add server cert ///////////////////////////////////////
+												if (SecureWebSocket.this.myCert != null) {
+													shm.cert = SecureWebSocket.this.myCert;
+													shm.requireCert = SecureWebSocket.this.requireCert;
 												} else {
-													// update state to SWS_STATE_SEND_SERVER_HELLO
-													SecureWebSocket.this.state = sws_state_t.SWS_STATE_SEND_SERVER_HELLO;
-												}					
+													error(TAG, "Miss server cert");
+													SecureWebSocket.this.emit("error", "Miss server cert");
+													SecureWebSocket.this.ws.close(0, null);
+													return;
+												}
+												////////////////////////////////////////////////////////
+
+												// update secure info
+												SecureWebSocket.this.myNonce = shm.nonce;
+												SecureWebSocket.this.txShareKey = shm.share_key;
+
+												debug(TAG, "ServerHello message:"+shm.toString());
+
+												// Construct NACL tx box
+												SecureWebSocket.this.txBox = new TweetNaclFast.Box(
+														SecureWebSocket.this.theirPublicKey,
+														SecureWebSocket.this.mySecretKey,
+														toLong(SecureWebSocket.this.myNonce));
+
+												SecureWebSocket.this.txSecretBox = new TweetNaclFast.SecretBox(
+														SecureWebSocket.this.txShareKey, 
+														toLong(SecureWebSocket.this.myNonce));
+
+												SecureWebSocket.this.ws.send(shm.stringify(), new WebSocket.SendOptions(false, false), new WriteCB(){
+
+													@Override
+													public void writeDone(String error) throws Exception {
+														if (error != null) {
+															SecureWebSocket.this.emit("error", "send_server_hello:"+error);
+															// close ws
+															SecureWebSocket.this.ws.close(0, null);
+														} else {
+															// update state to SWS_STATE_SEND_SERVER_HELLO
+															SecureWebSocket.this.state = sws_state_t.SWS_STATE_SEND_SERVER_HELLO;
+														}					
+													}
+												});
+											} else {
+												SecureWebSocket.this.emit("warn", "invalid handshake client-hello message:"+event.getData().toString());
 											}
-										});
-									} else {
-										SecureWebSocket.this.emit("warn", "invalid handshake client-hello message:"+event.getData().toString());
-									}
+										} else {
+											SecureWebSocket.this.emit("error", "Invalid protocol version");
+											// close ws
+											SecureWebSocket.this.ws.close(0, null);
+										}
 								} catch (Exception e) {
 									SecureWebSocket.this.emit("warn", e.toString()+"parse handshake message failed, skip it:"+event.getData().toString());
 								} 
@@ -784,42 +1338,112 @@ extends EventEmitter2 {
 							if (!event.isBinary()) {
 								// capture JSON parse exception
 								try {
-									client_ready_b crm = new client_ready_b(event.getData().toString());
+									// V1
+									if (PROTO_VERSION == 1) {
+										client_ready_b crm = new client_ready_b(event.getData().toString());
 
-									if (crm.opc == sws_opc_t.SWS_OPC_CLIENT_READY.opc() &&
-										crm.version == PROTO_VERSION) {
-										debug(TAG, "ClientReady message:"+event.getData().toString());
+										if (crm.opc == sws_opc_t.SWS_OPC_CLIENT_READY.opc() &&
+												crm.version == PROTO_VERSION) {
+											debug(TAG, "ClientReady message:"+event.getData().toString());
 
-										// clear hand shake timeout
-										SecureWebSocket.this.hs_tmo.close();
+											// clear hand shake timeout
+											SecureWebSocket.this.hs_tmo.close();
 
-										// update secure info
-										SecureWebSocket.this.rxSharekey = crm.share_key;
-										SecureWebSocket.this.theirNonce = crm.nonce; 
+											// update secure info
+											SecureWebSocket.this.rxSharekey = crm.share_key;
+											SecureWebSocket.this.theirNonce = crm.nonce; 
 
-										// Construct NACL rx box
-										SecureWebSocket.this.rxBox = new TweetNaclFast.Box(
-												SecureWebSocket.this.theirPublicKey, 
-												SecureWebSocket.this.mySecretKey, 
-												toLong(SecureWebSocket.this.theirNonce));
+											// Construct NACL rx box
+											SecureWebSocket.this.rxBox = new TweetNaclFast.Box(
+													SecureWebSocket.this.theirPublicKey, 
+													SecureWebSocket.this.mySecretKey, 
+													toLong(SecureWebSocket.this.theirNonce));
 
-										SecureWebSocket.this.rxSecretBox = new TweetNaclFast.SecretBox(
-												SecureWebSocket.this.rxSharekey, 
-												toLong(SecureWebSocket.this.theirNonce));
+											SecureWebSocket.this.rxSecretBox = new TweetNaclFast.SecretBox(
+													SecureWebSocket.this.rxSharekey, 
+													toLong(SecureWebSocket.this.theirNonce));
 
-										// set hand shake done
-										SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_DONE;
+											// set hand shake done
+											SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_DONE;
 
-										// Flush sendCache
-										for (send_cache_b c : SecureWebSocket.this.sendCache)
-											SecureWebSocket.this.send(c.chunk, c.options, c.cb);
-										SecureWebSocket.this.sendCache.clear();
+											// Flush sendCache
+											for (send_cache_b c : SecureWebSocket.this.sendCache)
+												SecureWebSocket.this.send(c.chunk, c.options, c.cb);
+											SecureWebSocket.this.sendCache.clear();
 
-										// emit Secure event
-										SecureWebSocket.this.emit("secure");
-									} else {
-										SecureWebSocket.this.emit("warn", "invalid handshake client-ready message:"+event.getData().toString());
-									}
+											// emit Secure event
+											SecureWebSocket.this.emit("secure");
+										} else {
+											SecureWebSocket.this.emit("warn", "invalid handshake client-ready message:"+event.getData().toString());
+										}
+									} else 
+										// V2	
+										if (PROTO_VERSION == 2) {
+											client_ready_b_v2 crm = new client_ready_b_v2(event.getData().toString());
+
+											if (crm.opc == sws_opc_t.SWS_OPC_CLIENT_READY.opc() &&
+												crm.version == PROTO_VERSION) {
+												debug(TAG, "ClientReady message V2:"+event.getData().toString());
+
+												// clear hand shake timeout
+												SecureWebSocket.this.hs_tmo.close();
+
+												// check client's PublicKey Cert /////////////////////////////////
+												if (SecureWebSocket.this.requireCert) {
+													// check cert V2
+													if (!(NaclCert.validate(crm.cert, SecureWebSocket.this.caCert) && 
+														  SecureWebSocket.this.theirPublicKey.equals(crm.cert.desc.reqdesc.publickey))) {
+														debug(TAG, "Invalid client cert");
+														SecureWebSocket.this.emit("error", "Invalid client cert");
+														SecureWebSocket.this.ws.close(0, null);
+														return;
+													}
+													// check ip
+													String clnIP = SecureWebSocket.this.ws.remoteAddress();
+													debug(TAG, "expected client ip:"+clnIP);
+													if (!NaclCert.checkIP(crm.cert, clnIP)) {
+														error(TAG, "Invalid client endpoing");
+														SecureWebSocket.this.emit("error", "Invalid client endpoing");
+														SecureWebSocket.this.ws.close(0, null);
+														return;
+													}
+													// record client's cert
+													SecureWebSocket.this.peerCert = crm.cert;
+												}
+												/////////////////////////////////////////////////////////////////////
+												
+												// update secure info
+												SecureWebSocket.this.rxSharekey = crm.share_key;
+												SecureWebSocket.this.theirNonce = crm.nonce; 
+
+												// Construct NACL rx box
+												SecureWebSocket.this.rxBox = new TweetNaclFast.Box(
+														SecureWebSocket.this.theirPublicKey, 
+														SecureWebSocket.this.mySecretKey, 
+														toLong(SecureWebSocket.this.theirNonce));
+
+												SecureWebSocket.this.rxSecretBox = new TweetNaclFast.SecretBox(
+														SecureWebSocket.this.rxSharekey, 
+														toLong(SecureWebSocket.this.theirNonce));
+
+												// set hand shake done
+												SecureWebSocket.this.state = sws_state_t.SWS_STATE_HANDSHAKE_DONE;
+
+												// Flush sendCache
+												for (send_cache_b c : SecureWebSocket.this.sendCache)
+													SecureWebSocket.this.send(c.chunk, c.options, c.cb);
+												SecureWebSocket.this.sendCache.clear();
+
+												// emit Secure event
+												SecureWebSocket.this.emit("secure");
+											} else {
+												SecureWebSocket.this.emit("warn", "invalid handshake client-ready message:"+event.getData().toString());
+											}
+										} else {
+											SecureWebSocket.this.emit("error", "Invalid protocol version");
+											// close ws
+											SecureWebSocket.this.ws.close(0, null);
+										}
 								} catch (Exception e) {
 									SecureWebSocket.this.emit("warn", e.toString()+"parse handshake message failed, skip it:"+event.getData().toString());
 								} 
@@ -999,6 +1623,20 @@ extends EventEmitter2 {
 		this.ws.close(code, data);	
 	}
 
+	// Address info
+	public String remoteAddress() {
+		return this.ws.remoteAddress();
+	}
+	public int remotePort() {
+		return this.ws.remotePort();
+	}
+	public String localAddress() {
+		return this.ws.localAddress();
+	}
+	public int localPort() {
+		return this.ws.localPort();
+	}
+	
 	/* 
 	 * @description override send method
 	 * */
@@ -1077,7 +1715,7 @@ extends EventEmitter2 {
 	// my security info
 	private byte[] mySecretKey;
 	private byte[] myPublicKey;
-	private String myCert;
+	private NaclCert.Cert myCert;
 	
 	private byte[] mySignSecretKey;
 	private byte[] mySignPublicKey;
@@ -1091,10 +1729,11 @@ extends EventEmitter2 {
 	private TweetNaclFast.Signature theirSignature;
 
 	// CA security info
-	private String caCert;
+	private NaclCert.SelfCert caCert;
 	private byte[] caSignPublicKey;
 	private TweetNaclFast.Signature caSignature;
-
+	private boolean requireCert;
+	
 	// authenticated encryption info
 	private byte[] myNonce;
 	private byte[] theirNonce;

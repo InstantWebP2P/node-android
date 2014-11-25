@@ -166,7 +166,21 @@ extends EventEmitter2 {
 	public String getUrl() {
 		return url;
 	}
-
+	
+	// Address info
+	public String remoteAddress() {
+		return this._socket.remoteAddress();
+	}
+	public int remotePort() {
+		return this._socket.remotePort();
+	}
+	public String localAddress() {
+		return this._socket.localAddress();
+	}
+	public int localPort() {
+		return this._socket.localPort();
+	}
+	
 	private TimerHandle _closeTimer;
 
 	public WebSocket(NodeContext ctx, String address, List<String> protocols, Options options) throws Exception {
