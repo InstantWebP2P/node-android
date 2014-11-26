@@ -313,8 +313,8 @@ public final class NaclCert extends SimpleDebug {
 
 		public static SelfCert parse(JSONObject json) throws JSONException {
 			SelfCert cert = new SelfCert();
-			cert.desc = DescSignBySelf.parse((JSONObject)(json.get("desc")));
-			cert.sign = Signature.parse((JSONObject)(json.get("sign")));
+			cert.desc = DescSignBySelf.parse(json.getJSONObject("desc"));
+			cert.sign = Signature.parse(json.getJSONObject("sign"));
 
 			return cert;
 		}
@@ -356,8 +356,8 @@ public final class NaclCert extends SimpleDebug {
 
 		public static Cert parse(JSONObject json) throws JSONException {
 			Cert cert = new Cert();
-			cert.desc = DescSignByCa.parse((JSONObject)(json.get("desc")));
-			cert.sign = Signature.parse((JSONObject)(json.get("sign")));
+			cert.desc = DescSignByCa.parse(json.getJSONObject("desc"));
+			cert.sign = Signature.parse(json.getJSONObject("sign"));
 
 			return cert;
 		}
@@ -543,7 +543,12 @@ public final class NaclCert extends SimpleDebug {
 
 		// extract signature
 		byte[] signature = cert.sign.signature;
-
+		// check signature length
+		if (!(signature!=null && signature.length==TweetNaclFast.Signature.signatureLength)) {
+			w(TAG, "Invalid signature length");
+			return false;
+		}
+				
 		// verify signature
 		TweetNaclFast.Signature sig = new TweetNaclFast.Signature(signPublicKey, null);
 
@@ -604,19 +609,24 @@ public final class NaclCert extends SimpleDebug {
 			return false;
 		}
 
-		// nacl sign public key
-		byte[] signPublicKey = cert.desc.reqdesc.publickey;
+		// extract nacl sign publicKey
+		byte[] casignPublicKey = ca.desc.reqdesc.publickey;
 
 		// stringify desc
 		String descstr = cert.desc.stringify();
-		d(TAG, "\nvalidate for self-signed:"+descstr);
+		d(TAG, "\nvalidate for CA-signed:"+descstr);
 		byte[] descbuf = descstr.getBytes("utf-8");
 
 		// extract signature
 		byte[] signature = cert.sign.signature;
+		// check signature length
+		if (!(signature!=null && signature.length==TweetNaclFast.Signature.signatureLength)) {
+			w(TAG, "Invalid signature length");
+			return false;
+		}
 
 		// verify signature
-		TweetNaclFast.Signature sig = new TweetNaclFast.Signature(signPublicKey, null);
+		TweetNaclFast.Signature sig = new TweetNaclFast.Signature(casignPublicKey, null);
 
 		byte[] sm = new byte[signature.length + descbuf.length];
 		for (int i = 0; i < signature.length; i ++)

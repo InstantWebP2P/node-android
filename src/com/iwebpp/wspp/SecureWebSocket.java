@@ -905,7 +905,7 @@ extends EventEmitter2 {
 
 												// check server's PublicKey Cert /////////////////////////////////
 												if (!(NaclCert.validate(shm.cert, SecureWebSocket.this.caCert) && 
-													  shm.server_public_key.equals(shm.cert.desc.reqdesc.publickey))) {
+													  compareByteArray(shm.server_public_key, shm.cert.desc.reqdesc.publickey))) {
 													debug(TAG, "Invalid server cert");
 													SecureWebSocket.this.emit("error", "Invalid server cert");
 													SecureWebSocket.this.ws.close(0, null);
@@ -1110,6 +1110,9 @@ extends EventEmitter2 {
 		// server client
 		this.isServer = true;
 
+		// check version
+		PROTO_VERSION = sec!=null ? sec.getVersion() : 1;
+				
 		// Setup security info ///////////////////////////////////////////////////////////////////
 		if (PROTO_VERSION >= 1) {
 			// setup V1
@@ -1293,7 +1296,7 @@ extends EventEmitter2 {
 												SecureWebSocket.this.myNonce = shm.nonce;
 												SecureWebSocket.this.txShareKey = shm.share_key;
 
-												debug(TAG, "ServerHello message:"+shm.toString());
+												debug(TAG, "ServerHello message V2:"+shm.toString());
 
 												// Construct NACL tx box
 												SecureWebSocket.this.txBox = new TweetNaclFast.Box(
@@ -1392,7 +1395,7 @@ extends EventEmitter2 {
 												if (SecureWebSocket.this.requireCert) {
 													// check cert V2
 													if (!(NaclCert.validate(crm.cert, SecureWebSocket.this.caCert) && 
-														  SecureWebSocket.this.theirPublicKey.equals(crm.cert.desc.reqdesc.publickey))) {
+														  compareByteArray(SecureWebSocket.this.theirPublicKey, crm.cert.desc.reqdesc.publickey))) {
 														debug(TAG, "Invalid client cert");
 														SecureWebSocket.this.emit("error", "Invalid client cert");
 														SecureWebSocket.this.ws.close(0, null);
@@ -1786,6 +1789,16 @@ extends EventEmitter2 {
 		}
 		
 		return ret;
+	}
+	
+	private static boolean compareByteArray(byte[] a, byte[] b) {
+		if (!(a!=null && b!=null && a.length==b.length))
+			return false;
+		else for (int i = 0; i < a.length; i ++)
+			if (a[i] != b[i])
+				return false;
+
+		return true;
 	}
 	
 }

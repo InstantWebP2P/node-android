@@ -74,6 +74,22 @@ public final class NaclCertTest {
 		} else
 			Log.d(TAG, "\n\ttestCaCert/cert verify success\n");
 
+		// expect fail
+		NaclCert.CAInfo info2 = new NaclCert.CAInfo();
+
+		info2.ca = "iwebpp.com";
+		info2.tte = System.currentTimeMillis() + 3600000L*24*365000;
+		NaclCert.CAInfo ca2 = NaclCert.generateCA(info2);
+        Log.d(TAG, "\nCA1.cert:"+ca.cert.toJSON().toString());
+        Log.d(TAG, "\nCA2.cert:"+ca2.cert.toJSON().toString());
+
+		// validate cert
+		if (NaclCert.validate(cert, ca2.cert)) {
+			Log.e(TAG, "\n\ttestCaCert/cert verify faked\n");
+			return false;
+		} else
+			Log.d(TAG, "\n\ttestCaCert/cert verify success\n");
+
 		return true;
 	}
 	
