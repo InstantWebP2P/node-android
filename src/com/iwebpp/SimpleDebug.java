@@ -23,7 +23,7 @@ public class SimpleDebug {
 	}
 	
 	/* default debug level as warn */
-	private static DebugLevel DEBUG_LEVEL = DebugLevel.DEBUG;
+	private static DebugLevel DEBUG_LEVEL = DebugLevel.WARN;
 	
 	public SimpleDebug() {}
 	
