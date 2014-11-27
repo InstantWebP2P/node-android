@@ -21,21 +21,38 @@ public final class NaclCert extends SimpleDebug {
 	private final static String CERT_VERSION = "1.0";
 
 
-	// Root CA, CA name to Cert map
-	public final static Map<String, SelfCert> rootCA; 
+	// Root CA cert, CA name to Cert map
+	public final static Map<String, SelfCert> rootCACert; 
 	static {
-		rootCA = new Hashtable<String, SelfCert>();
+		rootCACert = new Hashtable<String, SelfCert>();
 
-		// default CA by iwebpp.com
 		try {
+			// default CA cert by iwebpp.com
 			SelfCert ca_iwebpp = SelfCert.parse("{\"desc\":{\"version\":\"1.0\",\"type\":\"self\",\"ca\":\"iwebpp.com\",\"tte\":4570381246341,\"publickey\":[237,135,86,100,145,128,37,184,250,64,66,132,116,123,207,51,182,199,59,95,17,186,93,249,220,212,109,77,200,222,157,67],\"signtime\":1416781246454,\"gid\":\"d2f971fc-98ad-4dea-ada2-74ebc129ed99\"},\"sign\":{\"signature\":[214,154,215,247,146,167,144,7,25,170,129,182,224,231,13,239,250,159,139,23,184,249,151,12,153,188,61,76,32,215,218,31,185,251,224,222,15,3,17,53,121,125,166,143,167,52,148,146,85,94,234,202,196,157,211,142,134,74,109,78,7,123,177,2]}}");
-			rootCA.put("iwebpp.com", ca_iwebpp);
+			rootCACert.put("iwebpp.com", ca_iwebpp);
+
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
+	// Test CA info, including cert and secretkey, CA name to CA info map
+	public final static Map<String, CAInfo> testCA; 
+	static {
+		testCA = new Hashtable<String, CAInfo>();
+
+		try {
+			// test CA by iwebpp.com
+			CAInfo ca_iwebpp = CAInfo.parse("{\"cert\":{\"desc\":{\"version\":\"1.0\",\"type\":\"self\",\"ca\":\"iwebpp.com\",\"tte\":1732375104475,\"publickey\":[16,239,203,168,67,4,190,200,68,163,63,140,27,142,10,25,65,227,92,199,166,33,30,92,73,221,145,174,220,55,82,34],\"signtime\":1417015104534,\"gid\":\"8d0fdd95-566c-4917-b158-36bace3254c7\"},\"sign\":{\"signature\":[84,224,227,61,149,247,74,147,167,225,148,123,103,7,168,101,136,193,121,64,93,37,82,154,3,116,119,206,5,56,96,74,87,195,58,110,233,117,52,57,237,80,91,39,25,223,50,114,201,72,159,158,75,0,230,13,33,34,134,167,171,129,52,0]}},\"secretkey\":[146,248,181,166,252,192,146,133,46,43,69,244,31,182,120,173,115,43,14,89,157,78,77,216,13,240,28,84,186,40,174,232,16,239,203,168,67,4,190,200,68,163,63,140,27,142,10,25,65,227,92,199,166,33,30,92,73,221,145,174,220,55,82,34]}");
+			testCA.put("iwebpp.com", ca_iwebpp);
+
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+		
 	// Beans
 	public static class ReqDescSignBySelf {
 		public String version;
@@ -677,7 +694,8 @@ public final class NaclCert extends SimpleDebug {
 
 		public SelfCert cert;    // self-signed cert
 		public byte[] secretkey; // Nacl sign secret key
-
+		
+		
 		public String toString() {
 			String str = "ca:"+ca+"\n";
 			str += "tte:"+tte+"\n";
@@ -692,6 +710,55 @@ public final class NaclCert extends SimpleDebug {
 
 			return str;
 		}
+		
+		public JSONObject toJSON() throws JSONException {
+			JSONObject json = new JSONObject();
+
+			// cert
+			json.put("cert", cert.toJSON());
+
+			// secretkey
+			JSONArray ska = new JSONArray();
+			for (int i = 0; i < secretkey.length; i ++)
+				ska.put(i, secretkey[i]&0xff);
+			json.put("secretkey", ska);
+
+			return json;
+		}
+
+		public String stringify() throws JSONException {
+			String jstr = toJSON().toString();
+
+			debug(TAG, "CAInfo->:" + jstr);
+
+			return jstr;
+		}
+
+		public static CAInfo parse(JSONObject json) throws JSONException {
+			CAInfo ca = new CAInfo();
+			
+			// self-cert
+			ca.cert = SelfCert.parse(json.getJSONObject("cert"));
+			ca.ca = ca.cert.desc.reqdesc.ca;
+			ca.tte = ca.cert.desc.reqdesc.tte;
+
+			// secretkey
+			JSONArray ska = json.getJSONArray("secretkey");
+			ca.secretkey = new byte[ska.length()];
+			for (int i = 0; i < ska.length(); i ++)
+				ca.secretkey[i] = (byte) (ska.getInt(i) & 0xff);
+
+			return ca;
+		}
+
+		public static CAInfo parse(String jstr) throws JSONException {
+			debug(TAG, "CAInfo<-:" + jstr);
+
+			JSONObject json = new JSONObject(jstr);
+
+			return parse(json);
+		}
+		
 	}
 	public static CAInfo generateCA(CAInfo info) throws Exception {
 		// prepare self-sign reqdesc

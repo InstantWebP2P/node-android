@@ -700,7 +700,7 @@ extends EventEmitter2 {
 			if (this.ca != null)
 				return this.ca;
 			else 
-				return NaclCert.rootCA.get("iwebpp.com");
+				return NaclCert.rootCACert.get("iwebpp.com");
 		}
 		public boolean requireCert() {
 			return requireCert;
@@ -904,10 +904,15 @@ extends EventEmitter2 {
 												debug(TAG, "ServerHello message V2:"+event.getData().toString());
 
 												// check server's PublicKey Cert /////////////////////////////////
-												if (!(NaclCert.validate(shm.cert, SecureWebSocket.this.caCert) && 
-													  compareByteArray(shm.server_public_key, shm.cert.desc.reqdesc.publickey))) {
+												if (!NaclCert.validate(shm.cert, SecureWebSocket.this.caCert)) {
 													debug(TAG, "Invalid server cert");
 													SecureWebSocket.this.emit("error", "Invalid server cert");
+													SecureWebSocket.this.ws.close(0, null);
+													return;
+												}
+												if (!compareByteArray(shm.server_public_key, shm.cert.desc.reqdesc.publickey)) {
+													debug(TAG, "Unexpected server cert");
+													SecureWebSocket.this.emit("error", "Unexpected server cert");
 													SecureWebSocket.this.ws.close(0, null);
 													return;
 												}
@@ -1394,10 +1399,15 @@ extends EventEmitter2 {
 												// check client's PublicKey Cert /////////////////////////////////
 												if (SecureWebSocket.this.requireCert) {
 													// check cert V2
-													if (!(NaclCert.validate(crm.cert, SecureWebSocket.this.caCert) && 
-														  compareByteArray(SecureWebSocket.this.theirPublicKey, crm.cert.desc.reqdesc.publickey))) {
+													if (!NaclCert.validate(crm.cert, SecureWebSocket.this.caCert)) {
 														debug(TAG, "Invalid client cert");
 														SecureWebSocket.this.emit("error", "Invalid client cert");
+														SecureWebSocket.this.ws.close(0, null);
+														return;
+													}
+													if (!compareByteArray(SecureWebSocket.this.theirPublicKey, crm.cert.desc.reqdesc.publickey)) {
+														debug(TAG, "Unexpected client cert");
+														SecureWebSocket.this.emit("error", "Unexpected client cert");
 														SecureWebSocket.this.ws.close(0, null);
 														return;
 													}
