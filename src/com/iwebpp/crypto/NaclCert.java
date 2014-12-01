@@ -71,6 +71,7 @@ public final class NaclCert extends SimpleDebug {
 
 		public List<String> names;
 		public List<String> ips;
+		public List<String> macs;
 	}
 
 	public static class AppendDesc {
@@ -191,7 +192,15 @@ public final class NaclCert extends SimpleDebug {
 					ipa.put(ip);
 
 			json.put("ips", ipa);
+			
+			// macs
+			JSONArray maca = new JSONArray(); 
+			if (reqdesc.macs!=null)
+				for (String mac : reqdesc.macs)
+					maca.put(mac);
 
+			json.put("macs", maca);
+			
 			// put append
 			json.put("gid", append.gid);
 			json.put("signtime", append.signtime);
@@ -243,11 +252,21 @@ public final class NaclCert extends SimpleDebug {
 			// ips
 			JSONArray ipa = json.getJSONArray("ips");
 			List<String> ips = new ArrayList<String>();
-			for (int i = 0; i < ipa.length(); i ++)
-				ips.add(ipa.getString(i));
+			if (ipa != null)
+				for (int i = 0; i < ipa.length(); i ++)
+					ips.add(ipa.getString(i));
 
 			desc.reqdesc.ips = ips;
+			
+			// macs
+			JSONArray maca = json.getJSONArray("macs");
+			List<String> macs = new ArrayList<String>();
+			if (maca != null)
+				for (int i = 0; i < maca.length(); i ++)
+					macs.add(maca.getString(i));
 
+			desc.reqdesc.macs = macs;
+			
 			// parse append
 			desc.append.gid      = json.getString("gid");
 			desc.append.signtime = json.getLong("signtime");
@@ -673,7 +692,7 @@ public final class NaclCert extends SimpleDebug {
 		return ret;
 	}
 
-	// @description Check ip
+	// @description Check IP
 	public static boolean checkIP(Cert cert, String expectIP) {
 		boolean ret = false;
 
@@ -686,7 +705,21 @@ public final class NaclCert extends SimpleDebug {
 
 		return ret;
 	}
+	
+	// @description Check MAC
+	public static boolean checkMAC(Cert cert, String expectMAC) {
+		boolean ret = false;
 
+		if (cert.desc.reqdesc.macs!=null)
+			for (String mac : cert.desc.reqdesc.macs)
+				if (mac.equalsIgnoreCase(expectMAC)) {
+					ret = true;
+					break;
+				}
+
+		return ret;
+	}
+	
 	// @description Generate self-sign CA
 	public static class CAInfo {
 		public String ca;        // CA name
