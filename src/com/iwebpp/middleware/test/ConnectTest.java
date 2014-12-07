@@ -126,19 +126,6 @@ public final class ConnectTest {
 		final Connect stack1 = new Connect();
 
 		// append timestamp header
-		stack.use(new requestListener(){
-
-			@Override
-			public void onRequest(IncomingMessage req, ServerResponse res)
-					throws Exception {
-				res.setHeader("timestamp1", ""+System.currentTimeMillis());	
-				res.setHeader("ppath", stack.getParent());
-				res.end("flat", "utf-8", null);
-			}
-
-		});
-
-		// append timestamp header
 		stack1.use("/nest", new requestListener(){
 
 			@Override
@@ -150,11 +137,11 @@ public final class ConnectTest {
 			}
 
 		});
-		stack1.use("/nest", stack1);
 		
-		stack.use(stack1);
+		stack.use("/nest/nest", stack1);
 		stack.use("/nest", stack1);
-		
+		stack.use(stack1);
+
 		HttpServer srv = http.createServer(ctx, stack);
 		HttppServer srvpp = httpp.createServer(ctx, stack);
 
@@ -227,6 +214,23 @@ public final class ConnectTest {
 
 				});
 				httpp.get(ctx, "http://localhost:5189/nest/nest/nest", new responseListener(){
+
+					@Override
+					public void onResponse(IncomingMessage res) throws Exception {
+						Log.d(TAG, "got httpp response on " + res.getPath()  +", headers:"+res.headers());		
+					}
+
+				});
+				
+				http.get(ctx, "http://localhost:5189/nest/nest/nest/nest", new responseListener(){
+
+					@Override
+					public void onResponse(IncomingMessage res) throws Exception {
+						Log.d(TAG, "got http response on " + res.getPath()  +", headers:"+res.headers());	
+					}
+
+				});
+				httpp.get(ctx, "http://localhost:5189/nest/nest/nest/nest", new responseListener(){
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {

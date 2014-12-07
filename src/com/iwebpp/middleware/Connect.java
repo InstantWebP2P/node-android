@@ -10,7 +10,7 @@ import com.iwebpp.node.http.ServerResponse;
 
 public class Connect 
 extends EventEmitter2 
-implements requestListener{
+implements requestListener {
 
 	private static final String TAG = "Connect";
 
@@ -152,43 +152,49 @@ implements requestListener{
 
 		// check if embedded stack
 		if (parent != null && !parent.equals("/")) {
-			path = path.substring(parent.length());
-			debug(TAG, "child path: "+path);
+			if (path.startsWith(parent)) {
+				path = path.substring(parent.length());
+				debug(TAG, "child path: "+path);
+			} else 
+				return;
 		}
 
 		// run stack until response header sent out
 		for (stack_b b : stack) {
-			// check absolute path
-			if (b.path.equalsIgnoreCase(path)) {
-				debug(TAG, "absolute path handle");
-				b.cb.onRequest(req, res);
-			}
-			
-			// check if res.sent
-			if (res.headersSent()) {
-				debug(TAG, "absolute response sent done, stop stack");
-				break;
-			}
-			
-			
 			// check embedded path
 			if (b.cb instanceof Connect) {
 				debug(TAG, "embedded path handle");
-				
+
 				Connect embedded = (Connect)b.cb;
 				// set parent path
 				String ppath = null;
 				if (!b.path.equals("/")) ppath = b.path;
 				if (parent!=null && !parent.equals("/")) ppath = ppath!=null ? parent+ppath : parent;
 				embedded.setParent(ppath);
-				
-				embedded.onRequest(req, res);
-			}
 
-			// check if res.sent
-			if (res.headersSent()) {
-				debug(TAG, "embedded response sent done, stop stack");
-				break;
+				embedded.onRequest(req, res);
+
+				// check if res.sent
+				if (res.headersSent()) {
+					debug(TAG, "embedded response sent done, stop stack");
+					break;
+				}
+			} else {
+				// check absolute path
+				if (path.startsWith(b.path)) {
+					debug(TAG, "absolute path handle");
+					// override req.url ???
+					String temp = req.url(); req.url(path);
+					b.cb.onRequest(req, res);
+					// restore req.url ???
+					req.url(temp);
+					
+					// check if res.sent
+					if (res.headersSent()) {
+						debug(TAG, "absolute response sent done, stop stack");
+						break;
+					}
+				}
 			}
 		}
 	}
