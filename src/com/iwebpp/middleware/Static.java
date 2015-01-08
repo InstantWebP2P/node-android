@@ -29,7 +29,10 @@ implements requestListener {
 		// TODO Auto-generated method stub
 		String filePath = rootPath + req.url();
 
-		// check content type
+		// check file existence
+		
+		
+		// check file type
 
 
 		// get file from assert

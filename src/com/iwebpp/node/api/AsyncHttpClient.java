@@ -43,6 +43,8 @@ public final class AsyncHttpClient {
 		
 		private http_content_b data;
 
+		// connect timeout TBD...
+		
 		// response content
 		private IncomingMessage response;
 
