@@ -19,10 +19,10 @@ implements NodeApi {
 
 	private NodeContext context;
 
-	private boolean runOnce;
+	private int runTimes;
 
 	public SimpleApi() {
-		this.runOnce = false;
+		this.runTimes = 0;
 		this.context = new NodeContext();
 	}
 
@@ -36,9 +36,9 @@ implements NodeApi {
 	public void execute() throws Exception {
 		debug(TAG, "execute");
 
-		if (!runOnce) {
-			runOnce = true;
-			debug(TAG, "execute once");
+		{
+			runTimes ++;
+			debug(TAG, "execute times: " + runTimes);
 
 			// enter event loop in new thread
 			new Thread(new Runnable(){
