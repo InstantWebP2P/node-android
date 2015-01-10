@@ -1,1 +1,0 @@
-node-android Cordova plugin, move to https://github.com/InstantWebP2P/node-android-cordova
