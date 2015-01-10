@@ -18,7 +18,8 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 LOCAL_MODULE := uvpp-prebuilt
 LOCAL_SRC_FILES := libuvpp/libuvpp.a
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/libuvpp
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/libuvpp \
+                     $(LOCAL_PATH)/libuvpp/uv-private
 include $(PREBUILT_STATIC_LIBRARY)
 
 ### libuvpp-jni.so

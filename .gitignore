@@ -32,4 +32,6 @@ proguard-project.txt
 .gradle
 
 #app/build
-app/build
+app/build/**
+app/src/main/obj/**
+build/intermediates/**

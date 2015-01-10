@@ -4,14 +4,25 @@ android {
     compileSdkVersion 21
     buildToolsVersion "21.1.2"
 
+    // prevent ndk from building automagically
+    android {
+        sourceSets {
+            main {
+                jniLibs.srcDirs = ['native-libs']
+                jni.srcDirs = [] //disable automatic ndk-build
+            }
+        }
+    }
+
     defaultConfig {
         applicationId "com.iwebpp.libuvpp"
         minSdkVersion 8
-        targetSdkVersion 19
+        targetSdkVersion 21
 
-        ndk {
-            moduleName "uvpp-prebuilt"
-        }
+        // Android Studio 1.0.* deprecated ndk support, do a manual command line build instead
+//        ndk {
+//            moduleName "uvpp-prebuilt"
+//        }
     }
 
     buildTypes {
