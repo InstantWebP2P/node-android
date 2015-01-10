@@ -1,4 +1,6 @@
+apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
+apply plugin: 'android-native-dependencies'
 
 android {
     compileSdkVersion 21
@@ -6,12 +8,11 @@ android {
 
     // prevent ndk from building automagically
     android {
-        sourceSets {
-            main {
-                jniLibs.srcDirs = ['native-libs']
-                jni.srcDirs = [] //disable automatic ndk-build
-            }
+        sourceSets.main {
+            jniLibs.srcDir 'src/main/libs'
+            jni.srcDirs = [] //disable automatic ndk-build
         }
+
     }
 
     defaultConfig {
@@ -34,5 +35,6 @@ android {
 }
 
 dependencies {
-    compile files('libs/js.jar')
+    compile 'com.android.support:appcompat-v7:21.0.3'
+    compile fileTree(dir: 'libs', include: ['*.jar'])
 }
