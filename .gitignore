@@ -1,0 +1,35 @@
+#OSX
+.DS_Store
+
+#Android generated
+bin
+gen
+target
+out
+
+#Eclipse
+.project
+.classpath
+.settings
+
+#IntelliJ IDEA
+.idea
+*.iml
+classes
+
+#Maven
+target
+release.properties
+pom.xml.*
+gen-external-apklibs
+
+#Command line
+local.properties
+build.xml
+proguard-project.txt
+
+#Gradle
+.gradle
+
+#app/build
+app/build
