@@ -3,18 +3,13 @@ node-android
 
 Node.js rewrite for Android with the compatible API.
 
-
-
 third-party: libuvpp, libuv-java JNI code by Oracle.
 
 
 ### Usage:
 
-  clone the code, open Android eclipse ADT and import the project.
+  Clone the code, open Android Studio (1.*) and import the project.
   
-  notes: to run node-android API from Rhino JS engine, add libs/js.jar in build path manually
-
-
 ### Features
 
 * Node.js 0.10.x compatible API
@@ -70,4 +65,4 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 
 (The MIT License)
 
-Copyright (c) 2014 Tom Zhou(iwebpp@gmail.com)
+Copyright (c) 2015 Tom Zhou(iwebpp@gmail.com)
