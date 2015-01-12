@@ -18,7 +18,6 @@ public final class EE2Test extends EventEmitter2 {
 				public void onEvent(Object data) {
 					String ss = (String) data;
 					
-					// TODO Auto-generated method stub
 					if (ss == "ok") 
 						Log.d(TAG, "pass@"+ss);
 					else 
@@ -31,7 +30,6 @@ public final class EE2Test extends EventEmitter2 {
 				public void onEvent(Object data) {
 					String ss = (String)data;
 					
-					// TODO Auto-generated method stub
 					if (ss == "no") 
 						Log.d(TAG, "pass@"+ss);
 					else 

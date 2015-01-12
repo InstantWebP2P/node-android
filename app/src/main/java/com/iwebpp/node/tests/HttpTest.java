@@ -87,7 +87,6 @@ public final class HttpTest {
 
 				@Override
 				public void onClientError(String exception, AbstractSocket socket) throws Exception {
-					// TODO Auto-generated method stub
 					Log.e(TAG, "client error: "+exception + "@"+socket);
 				}
 				

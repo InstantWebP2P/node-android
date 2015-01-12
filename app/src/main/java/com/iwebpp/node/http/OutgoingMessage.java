@@ -652,7 +652,6 @@ this.socket.setTimeout(msecs);
 
 			@Override
 			public void writeDone(String error) throws Exception {
-				// TODO Auto-generated method stub
 				self.emit("finish");
 			}
 

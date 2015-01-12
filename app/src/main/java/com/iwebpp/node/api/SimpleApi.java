@@ -28,7 +28,6 @@ implements NodeApi {
 
 	@Override
 	public NodeContext getNodeContext() {
-		// TODO Auto-generated method stub
 		return context;
 	}
 

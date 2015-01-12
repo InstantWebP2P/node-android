@@ -414,7 +414,6 @@ extends EventEmitter2 {
 				String address, int port, 
 				String localAddress, int localPort,
 				ConnectListener cb) throws Exception {
-			// TODO Auto-generated method stub
 			return TCP.createConnection(ctx, address, port, localAddress, localPort, cb);
 		}
 		
@@ -436,7 +435,6 @@ extends EventEmitter2 {
 				String address, int port, 
 				String localAddress, int localPort,
 				ConnectListener cb) throws Exception {
-			// TODO Auto-generated method stub
 			return UDT.createConnection(ctx, address, port, localAddress, localPort, cb);
 		}
 		

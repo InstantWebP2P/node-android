@@ -91,35 +91,30 @@ public final class WrapReadable2 extends Readable2 {
 		stream.on("error", new EventEmitter.Listener() {
 			@Override
 			public void onEvent(Object data) throws Exception {
-				// TODO Auto-generated method stub
 				self.emit("error", data);
 			}
 		});
 		stream.on("close", new EventEmitter.Listener() {
 			@Override
 			public void onEvent(Object data) throws Exception {
-				// TODO Auto-generated method stub
 				self.emit("close", data);
 			}
 		});
 		stream.on("destroy", new EventEmitter.Listener() {
 			@Override
 			public void onEvent(Object data) throws Exception {
-				// TODO Auto-generated method stub
 				self.emit("destroy", data);
 			}
 		});
 		stream.on("pause", new EventEmitter.Listener() {
 			@Override
 			public void onEvent(Object data) throws Exception {
-				// TODO Auto-generated method stub
 				self.emit("pause", data);
 			}
 		});
 		stream.on("resume", new EventEmitter.Listener() {
 			@Override
 			public void onEvent(Object data) throws Exception {
-				// TODO Auto-generated method stub
 				self.emit("resume", data);
 			}
 		});

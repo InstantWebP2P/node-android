@@ -14,7 +14,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			return "Log.d('RhinoTest', 'Helloworld, js');";
 		}
 		
@@ -42,7 +41,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'TcpTest, js');";
 			
 			// tcp server
@@ -105,7 +103,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'UdtTest, js');";
 			
 			// tcp server
@@ -168,7 +165,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'HttpTest, js');";
 			
 			// http server
@@ -239,7 +235,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'HttppTest, js');";
 			
 			// http server
@@ -310,7 +305,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'WebSocketTest, js');";
 			
 			// websocket server
@@ -397,7 +391,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'RequireTest, js');";
 			
 			// require module
@@ -432,7 +425,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'EventEmitterTest, js');";
 			
 			// extends JS obj from java EventEmitter2 class
@@ -481,7 +473,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'StreamTest, js');";
 			
 			// extends JS obj from java EventEmitter2 class
@@ -538,7 +529,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'ExtensionTest, js');";
 
 			/*

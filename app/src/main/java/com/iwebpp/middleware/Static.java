@@ -26,7 +26,6 @@ implements requestListener {
 	@Override
 	public void onRequest(IncomingMessage req, ServerResponse res)
 			throws Exception {
-		// TODO Auto-generated method stub
 		String filePath = rootPath + req.url();
 
 		// check file existence

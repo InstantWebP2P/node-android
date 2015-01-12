@@ -86,7 +86,6 @@ implements EventEmitter {
 
 	@Override
 	public boolean emit(String event) throws Exception {
-		// TODO Auto-generated method stub
 		return emit(event, null);
 	}
 	
@@ -101,7 +100,6 @@ implements EventEmitter {
 
 			@Override
 			public void onEvent(final Object data) throws Exception {
-				// TODO Auto-generated method stub
 				ocb.onEvent(data);
 
 				// remove listener

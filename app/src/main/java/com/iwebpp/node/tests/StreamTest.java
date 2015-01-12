@@ -50,7 +50,6 @@ public final class StreamTest {
 
 		@Override
 		public void _read(int size) throws Exception {
-			// TODO Auto-generated method stub
 			int i = this._index++;
 			if (i > this._max)
 				this.push(null, null);
@@ -76,7 +75,6 @@ public final class StreamTest {
 
 		@Override
 		public void _write(Object chunk, String encoding, WriteCB cb) throws Exception {
-			// TODO Auto-generated method stub
 			if (Util.isString(chunk)) {
 				Log.d(TAG, "DummyWritable: encdoing "+encoding+":"+chunk.toString());
 
@@ -112,7 +110,6 @@ public final class StreamTest {
 
 		@Override
 		public void _read(int size) throws Exception {
-			// TODO Auto-generated method stub
 			int i = this._index++;
 			if (i > this._max)
 				this.push(null, null);
@@ -131,7 +128,6 @@ public final class StreamTest {
 
 		@Override
 		public void _write(Object chunk, String encoding, WriteCB cb) throws Exception {
-			// TODO Auto-generated method stub
 			if (Util.isString(chunk)) {
 				Log.d(TAG, "DummyDuplex: encdoing "+encoding+":"+chunk.toString());
 
@@ -164,7 +160,6 @@ public final class StreamTest {
 		@Override
 		protected void _transform(Object chunk, String encoding,
 				afterTransformCallback cb) throws Exception {
-			// TODO Auto-generated method stub
 			if (Util.isBuffer(chunk)) {
 				ByteBuffer ori = (ByteBuffer)chunk;
 				ByteBuffer dbl = ByteBuffer.allocate(ori.capacity()*2);
@@ -186,7 +181,6 @@ public final class StreamTest {
 
 		@Override
 		protected void _flush(flushCallback cb) throws Exception {
-			// TODO Auto-generated method stub
             cb.onFlush(null);
 		}
 
@@ -214,7 +208,6 @@ public final class StreamTest {
 
 				@Override
 				public void onInterval() throws Exception {
-					// TODO Auto-generated method stub
 					ts.write("double string", "utf-8", null);
 				}
 				
@@ -376,7 +369,6 @@ public final class StreamTest {
 
 					@Override
 					public void writeDone(String error) throws Exception {
-						// TODO Auto-generated method stub
 						Log.d(TAG, "testFinish: write done");
 					}
 
