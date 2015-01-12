@@ -6,9 +6,15 @@ Node.js rewrite for Android with the compatible API.
 third-party: libuvpp, libuv-java JNI code by Oracle.
 
 
-### Usage:
+### Build
 
   Clone the code, open Android Studio (1.*) and import the project.
+
+### Javascript code injection
+
+```bash
+> adb shell am start -a android.intent.action.VIEW -n com.iwebpp.nodeandroid/.MainActivity -e js "var run = function () { return 'hello world'; } run();"
+```
   
 ### Features
 

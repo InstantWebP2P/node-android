@@ -16,7 +16,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.iwebpp.libuvpp"
+        applicationId "com.iwebpp.nodeandroid"
         minSdkVersion 8
         targetSdkVersion 21
 
