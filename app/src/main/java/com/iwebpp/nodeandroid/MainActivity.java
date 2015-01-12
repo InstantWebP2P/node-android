@@ -159,14 +159,14 @@ public class MainActivity extends ActionBarActivity {
             case R.id.run_script:
                 if (editText != null)
                 {
-                    runJavascript(editText.getText().toString());
+                    runScript(editText.getText().toString());
                 }
             default: return super.onOptionsItemSelected(item);
         }
 
     }
 
-    private void runJavascript(final String js) {
+    private void runScript(final String js) {
         new Thread(new Runnable() {
             public void run() {
                 Log.d(TAG, "start test");
