@@ -154,7 +154,6 @@ public class TTYHandleTest extends TestBase {
         try {
 			test.testWrite();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         test.testStdOutErrWindowSize();
@@ -162,7 +161,6 @@ public class TTYHandleTest extends TestBase {
         try {
 			test.testRead();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         test.testStdinWindowSize();

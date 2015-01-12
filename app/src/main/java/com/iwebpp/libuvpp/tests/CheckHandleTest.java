@@ -91,7 +91,6 @@ public class CheckHandleTest extends TestBase {
         try {
 			test.testCheck();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }

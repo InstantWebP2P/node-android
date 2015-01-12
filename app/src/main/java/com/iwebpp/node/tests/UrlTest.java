@@ -37,7 +37,6 @@ public final class UrlTest {
 				try {
 					testParse();
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}			    
 			}

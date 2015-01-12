@@ -28,7 +28,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -90,7 +89,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -152,7 +150,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -222,7 +219,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -292,7 +288,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -378,7 +373,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -412,7 +406,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -460,7 +453,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -516,7 +508,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -557,7 +548,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -589,7 +579,6 @@ public final class RhinoTest {
 			testStream();
 			testExtension();*/
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

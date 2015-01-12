@@ -214,7 +214,6 @@ public final class StreamTest {
 			}, 2000);
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -243,7 +242,6 @@ public final class StreamTest {
 
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -272,7 +270,6 @@ public final class StreamTest {
 
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -300,7 +297,6 @@ public final class StreamTest {
 
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -333,7 +329,6 @@ public final class StreamTest {
 			rs.pipe(ws, true);
 			rs.unpipe(ws);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -346,7 +341,6 @@ public final class StreamTest {
 		try {
 			du.pipe(du, true);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -377,7 +371,6 @@ public final class StreamTest {
 
 			ws.end("this is the end\n", null, null);    		
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -401,7 +394,6 @@ public final class StreamTest {
 				try {
 					context.getLoop().run();
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

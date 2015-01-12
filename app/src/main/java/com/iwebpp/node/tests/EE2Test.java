@@ -37,7 +37,6 @@ public final class EE2Test extends EventEmitter2 {
 				}
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -54,7 +53,6 @@ public final class EE2Test extends EventEmitter2 {
 			emit("unknown", "ok"); 
 			emit("unknown", "no");
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
 

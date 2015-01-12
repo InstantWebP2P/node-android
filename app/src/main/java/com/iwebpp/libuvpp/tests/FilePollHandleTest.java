@@ -123,7 +123,6 @@ public class FilePollHandleTest extends TestBase {
         try {
 			test.testFilePoll();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }

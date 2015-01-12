@@ -921,7 +921,6 @@ public final class TweetNacl {
 		try {
 			sigma = "expand 32-byte k".getBytes("utf-8");
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}*/

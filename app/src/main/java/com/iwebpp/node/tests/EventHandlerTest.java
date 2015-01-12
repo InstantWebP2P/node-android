@@ -34,7 +34,6 @@ public final class EventHandlerTest extends EventHandler {
 				}
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -51,7 +50,6 @@ public final class EventHandlerTest extends EventHandler {
 			emit("unknown", "ok"); 
 			emit("unknown", "no");
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
 

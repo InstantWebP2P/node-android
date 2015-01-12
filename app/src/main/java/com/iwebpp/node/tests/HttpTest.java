@@ -43,7 +43,6 @@ public final class HttpTest {
 				}
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -100,7 +99,6 @@ public final class HttpTest {
 				}
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -182,7 +180,6 @@ public final class HttpTest {
 			req.end(null, null, null);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -241,7 +238,6 @@ public final class HttpTest {
 			req.end(null, null, null);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -343,7 +339,6 @@ public final class HttpTest {
 			}, 2000);
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -371,7 +366,6 @@ public final class HttpTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

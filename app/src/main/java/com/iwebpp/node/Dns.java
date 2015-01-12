@@ -56,7 +56,6 @@ extends EventEmitter2 {
 			
 			return ip;
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			///e.printStackTrace();
 		}
 
@@ -86,7 +85,6 @@ extends EventEmitter2 {
 
 			return ip;
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			///e.printStackTrace();
 		}
 
@@ -112,7 +110,6 @@ extends EventEmitter2 {
 			
 			return domains;
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			///e.printStackTrace();
 		}
 

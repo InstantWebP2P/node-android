@@ -37,7 +37,6 @@ public final class UdtTest {
 
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -108,7 +107,6 @@ public final class UdtTest {
 
 			}, 6000);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -129,7 +127,6 @@ public final class UdtTest {
 
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -219,7 +216,6 @@ public final class UdtTest {
 			});
 						
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -309,7 +305,6 @@ public final class UdtTest {
 			});
 						
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -337,7 +332,6 @@ public final class UdtTest {
 				try {
 					ctx.getLoop().run();
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

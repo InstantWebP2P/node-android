@@ -110,7 +110,6 @@ extends EventEmitter2 {
         		return false;
         	}
         } catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -138,7 +137,6 @@ extends EventEmitter2 {
         		return false;
         	}
         } catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -614,7 +612,6 @@ extends EventEmitter2 {
 					}
 					
 				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}	
 			}

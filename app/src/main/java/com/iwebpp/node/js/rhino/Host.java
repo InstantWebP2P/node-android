@@ -186,7 +186,6 @@ implements JS {
 		    // Retrieve exports variable
 		    ret = subscope.get("exports", subscope);
 		} catch (Throwable e) {			
-			// TODO Auto-generated catch block
 			///e.printStackTrace();
 			
 			error(TAG, e.toString());
@@ -300,7 +299,6 @@ implements JS {
 			// Run node-android loop
 			nodectx.execute();
 		} catch (Throwable e) {			
-			// TODO Auto-generated catch block
 			///e.printStackTrace();
 			
 			error(TAG, e.toString());

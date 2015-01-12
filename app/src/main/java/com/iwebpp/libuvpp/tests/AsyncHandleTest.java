@@ -156,13 +156,11 @@ public class AsyncHandleTest extends TestBase {
         try {
 			test.testAsync();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         try {
 			test.testAsyncMulti();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }

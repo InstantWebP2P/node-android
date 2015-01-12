@@ -69,7 +69,6 @@ public final class SimpleApiTest {
 			});
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -80,7 +79,6 @@ public final class SimpleApiTest {
 		try {
 			new HttpServerDemo(6188).execute();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
 		

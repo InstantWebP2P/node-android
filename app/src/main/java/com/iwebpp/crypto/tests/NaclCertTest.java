@@ -102,7 +102,6 @@ public final class NaclCertTest {
 					testSelfCert();
 					testCaCert();	
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

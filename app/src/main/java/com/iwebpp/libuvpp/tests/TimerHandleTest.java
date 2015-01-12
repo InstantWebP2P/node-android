@@ -134,13 +134,11 @@ public class TimerHandleTest extends TestBase {
         try {
 			test.testOnce();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         /*try {
 			test.testRepeat();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}*/
     }

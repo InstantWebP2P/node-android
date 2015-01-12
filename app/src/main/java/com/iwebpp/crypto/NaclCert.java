@@ -32,7 +32,6 @@ public final class NaclCert extends SimpleDebug {
 			rootCACert.put("iwebpp.com", ca_iwebpp);
 
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -48,7 +47,6 @@ public final class NaclCert extends SimpleDebug {
 			testCA.put("iwebpp.com", ca_iwebpp);
 
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -736,7 +734,6 @@ public final class NaclCert extends SimpleDebug {
 				try {
 					str += cert.stringify();
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					///e.printStackTrace();
 				}
 			if (secretkey!=null) str += "secretkey:"+secretkey.toString();

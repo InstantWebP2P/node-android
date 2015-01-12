@@ -52,7 +52,6 @@ implements EventEmitter {
     					} else 
     						cb.onEvent(data);
     				} catch (Exception e) {
-    					// TODO Auto-generated catch block
     					e.printStackTrace();
     					error(TAG, "Exception event "+event+","+e);
     				}

@@ -135,7 +135,6 @@ public final class DnsTest {
 				try {
 					testLookup();
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}			    
 			}
