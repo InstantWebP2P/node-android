@@ -8,17 +8,15 @@ import android.util.Log;
 import com.iwebpp.node.js.rhino.Host;
 import com.iwebpp.nodeandroid.MainActivity;
 
+import org.mozilla.javascript.tools.debugger.Main;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Created by jasm on 1/12/15.
+ * Created by Jasm Sison on 1/12/15.
  */
 public class MainActivityInstrumentationTestCase extends ActivityInstrumentationTestCase2<MainActivity> {
-
-    private Intent intent;
-    private MainActivity activity;
-    private Instrumentation instrumentation;
 
     public MainActivityInstrumentationTestCase() {
         super(MainActivity.class);
@@ -26,29 +24,16 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
 
     /**
      *
-     * TODO figure out how to run Activity#onOptionsMenuSelected
-     * from the unit test
+     * Reflection hack to call the MainActivity#runScript method
      *
-     * @throws Exception
+     * @param js
      */
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-
-        this.instrumentation = super.getInstrumentation();
-        this.activity = (MainActivity) super.getActivity();
-
-        intent = new Intent();
-        intent.putExtra("js", "null"); // put something useful in the unit tests
-        setActivityIntent(intent);
-    }
-
     private void runScript(final String js) {
         Class<?> c = null;
         try {
             c = MainActivity.class;
             Method  method = c.getDeclaredMethod ("runScript", new Class[] { String.class });
-            method.invoke(activity, js);
+            method.invoke(getActivity(), js);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {

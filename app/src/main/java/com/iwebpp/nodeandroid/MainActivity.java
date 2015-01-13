@@ -90,6 +90,11 @@ public class MainActivity extends ActionBarActivity {
 
 	}
 
+    /**
+     *
+     * TODO refactor tests to unit tests
+     *
+     */
     @Deprecated
     private void runHardCodedTests()
     {
@@ -180,6 +185,8 @@ public class MainActivity extends ActionBarActivity {
                             return js;
                         }
                     };
+
+                    host.execute();
 
                     Log.d(TAG, "exit test");
                 } catch (Throwable e) {
