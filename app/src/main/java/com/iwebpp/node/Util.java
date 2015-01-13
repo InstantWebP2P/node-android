@@ -3,6 +3,8 @@
 
 package com.iwebpp.node;
 
+import android.text.TextUtils;
+
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -118,10 +120,7 @@ public final class Util {
     }
 
     public static boolean zeroString(String s) {
-    	if (s == null) 
-    		return true;
-    	else 
-    		return s == "";
+        return TextUtils.isEmpty(s);
     }
     
     public static ByteBuffer concatByteBuffer(List<Object> list, int length) throws Exception {

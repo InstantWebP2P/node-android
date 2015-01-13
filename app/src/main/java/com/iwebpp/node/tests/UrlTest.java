@@ -16,14 +16,14 @@ public final class UrlTest extends TestCase {
 
 		Url.UrlObj obj0 = Url.parse(link0, false, true);
 		Log.d(TAG, "link:"+link0+", parsed:"+obj0);
-		assert link0.equalsIgnoreCase(obj0.toString());
+		assertTrue(link0.equalsIgnoreCase(obj0.toString()));
 
 		// parse with query
 		String link1 = "https://user:pass@host.com:8888/p/a/t/h?query=string&i=love&love=u#hash";
 
 		Url.UrlObj obj1 = Url.parse(link1, true, true);
 		Log.d(TAG, "link:"+link1+", parsed:"+obj1);
-		assert link1.equalsIgnoreCase(obj1.toString());
+		assertTrue(link1.equalsIgnoreCase(obj1.toString()));
 		Log.d(TAG, "queryParams:"+obj1.queryParams);
 	}
 }

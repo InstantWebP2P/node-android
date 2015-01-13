@@ -11,56 +11,60 @@ import com.iwebpp.node.EventEmitter2;
 
 import junit.framework.TestCase;
 
-public final class EE2Test extends TestCase  {
-	private static final String TAG = "EE2TestTest";
+public final class EE2Test extends TestCase {
+    private static final String TAG = "EE2TestTest";
 
     private EventEmitter2 ee2 = new EventEmitter2();
 
+    /**
+     *
+     * TODO figure out how to test this
+     *
+     * @throws Exception
+     */
     @LargeTest
-	public void testEmit() {
-		try {
-			ee2.on("ok", new EventEmitter.Listener() {
-                @Override
-                public void onEvent(Object data) {
-                    String ss = (String) data;
+    public void testEmit() throws Exception {
+        ee2.on("ok", new EventEmitter.Listener() {
+            @Override
+            public void onEvent(Object data) {
+                String ss = (String) data;
 
-                    if (ss == "ok")
-                        Log.d(TAG, "pass@" + ss);
-                    else {
-                        Log.d(TAG, "fail@" + ss);
-                    }
+                if (ss == "ok")
+                    Log.d(TAG, "pass@" + ss);
+                else {
+                    Log.d(TAG, "fail@" + ss);
                 }
-            });
 
-            ee2.on("no", new EventEmitter.Listener() {
-				@Override
-				public void onEvent(Object data) {
-					String ss = (String)data;
-					
-					if (ss == "no") 
-						Log.d(TAG, "pass@"+ss);
-					else 
-						Log.d(TAG, "fail@"+ss);
-				}
-			});
-		} catch (Exception e) {
-			e.printStackTrace(); // FIXME, this prevents the test from breaking
-		}
-		
-		try {
-            ee2.emit("ok");
-            ee2.emit("ok", "ok");
-            ee2.emit("ok", "no");
+                assertSame("ok", ss);
+            }
+        });
 
-            ee2.emit("no");
-            ee2.emit("no", "no");
-            ee2.emit("no", "ok");
+        ee2.on("no", new EventEmitter.Listener() {
+            @Override
+            public void onEvent(Object data) {
+                String ss = (String) data;
 
-            ee2.emit("unknown");
-            ee2.emit("unknown", "ok");
-            ee2.emit("unknown", "no");
-		} catch (Exception e) {
-			e.printStackTrace(); // FIXME, this also gives a false sense of security
-		} 
-	}
+                if (ss == "no")
+                    Log.d(TAG, "pass@" + ss);
+                else
+                    Log.d(TAG, "fail@" + ss);
+
+                assertSame("no", ss);
+            }
+        });
+
+        assertTrue(ee2.emit("ok"));
+        assertTrue(ee2.emit("ok", "ok"));
+        assertTrue(ee2.emit("ok", "no"));
+
+        assertTrue(ee2.emit("no"));
+        assertTrue(ee2.emit("no", "no"));
+        assertTrue(ee2.emit("no", "ok"));
+
+        assertTrue(ee2.emit("unknown"));
+        assertTrue(ee2.emit("unknown", "ok"));
+        assertTrue(ee2.emit("unknown", "no"));
+
+        fail(); // FIXME these tests are not correct
+    }
 }
