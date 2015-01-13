@@ -116,36 +116,36 @@ public class MainActivity extends ActionBarActivity {
         ///new FileEventHandleTest().start();
 
         // Node Unit tests
-        new EE2Test().start();
-        new StreamTest().start();
-        new TcpTest().start();
-        new UdtTest().start();
+//        new EE2Test().start();
+//        new StreamTest().start();
+//        new TcpTest().start();
+//        new UdtTest().start();
 
-        new HttpParserTest().start();
-        new DnsTest().start();
-        new HttpTest().start();
-        new HttppTest().start();
-        new UrlTest().start();
+//        new HttpParserTest().start();
+//        new DnsTest().start();
+//        new HttpTest().start();
+//        new HttppTest().start();
+//        new UrlTest().start();
         ///new WebSocketTest().start();
-        new WebSocketServerTest().start();
+//        new WebSocketServerTest().start();
 
         // Connect middleware tests
-        new ConnectTest().start();
+//        new ConnectTest().start();
 
         // JS engine tests
-        new RhinoTest().start();
+//        new RhinoTest().start();
 
         // NodeApi tests
-        new EventHandlerTest().start();
-        new SimpleApiTest().start();
+//        new EventHandlerTest().start();
+//        new SimpleApiTest().start();
 
         // Crypto tests
         ///new TweetNaclTest().start();
-        new TweetNaclFastTest().start();
-        new NaclCertTest().start();
+//        new TweetNaclFastTest().start();
+//        new NaclCertTest().start();
 
         // SecureWebSocket tests
-        new SecureWebSocketServerTest().start();
+//        new SecureWebSocketServerTest().start();
     }
 
 	@Override

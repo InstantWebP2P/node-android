@@ -14,12 +14,14 @@ import com.iwebpp.wspp.WebSocket.onmessageListener;
 import com.iwebpp.wspp.WebSocket.onopenListener;
 import com.iwebpp.wspp.WebSocketServer;
 
-public final class WebSocketServerTest {
+import junit.framework.TestCase;
+
+public final class WebSocketServerTest extends TestCase {
 	private static final String TAG = "WebSocketServerTest";
 	
 	private NodeContext ctx;
 
-	private boolean testConnectPair() throws Exception {
+	public void testConnectPair() throws Exception {
 
 		WebSocketServer.Options wssopt = new WebSocketServer.Options();
 		wssopt.port = 6668;
@@ -108,11 +110,9 @@ public final class WebSocketServerTest {
 			}
 
 		});
-		
-		return true;
 	}
 
-	private boolean testConnectPairOverUDP() throws Exception {
+	public void testConnectPairOverUDP() throws Exception {
 
 		WebSocketServer.Options wssopt = new WebSocketServer.Options();
 		wssopt.port = 6668;
@@ -205,32 +205,10 @@ public final class WebSocketServerTest {
 			}
 
 		});
-		
-		return true;
 	}
 	
 	public WebSocketServerTest(){
 		this.ctx = new NodeContext(); 
 	}
-	
-	public void start() {		
-		(new Thread(new Runnable() {
-			public void run() {
-				Log.d(TAG, "start test");
-				
-				try {
-					testConnectPair();
-					testConnectPairOverUDP();
 
-					// run loop
-					ctx.getLoop().run();
-					
-					Log.d(TAG, "exit test");
-				} catch (Throwable e) {
-					e.printStackTrace();
-				}    
-			}
-		})).start();
-
-	}
 }

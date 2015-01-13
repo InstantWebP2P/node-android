@@ -6,10 +6,12 @@ import android.util.Log;
 
 import com.iwebpp.crypto.TweetNaclFast;
 
-public final class TweetNaclFastTest {
+import junit.framework.TestCase;
+
+public final class TweetNaclFastTest extends TestCase {
 	private static final String TAG = "TweetNaclFastTest";
 
-	private boolean testBox() throws UnsupportedEncodingException {
+	public void testBox() throws UnsupportedEncodingException {
 		// keypair A
 		byte [] ska = new byte[32]; for (int i = 0; i < 32; i ++) ska[i] = 0;
 		TweetNaclFast.Box.KeyPair ka = TweetNaclFast.Box.keyPair_fromSecretKey(ska);
@@ -79,11 +81,9 @@ public final class TweetNaclFastTest {
 				Log.e(TAG, "box/open string failed @" + m0 + " / " + nm0);
 			}
 		}
-        
-		return true;
 	}
 	
-	private boolean testSecretBox() throws UnsupportedEncodingException {
+	public void testSecretBox() throws UnsupportedEncodingException {
 		// shared key
 		byte [] shk = new byte[TweetNaclFast.SecretBox.keyLength];
 		for (int i = 0; i < shk.length; i ++)
@@ -132,18 +132,17 @@ public final class TweetNaclFastTest {
 */
 			
 			String nm0 = new String(mba, "utf-8");
+
+            assert nm0.equals(m0);
 			if (nm0.equals(m0)) {
 				Log.d(TAG, "\tsecret box/open succes");
 			} else {
 				Log.e(TAG, "\tsecret box/open failed @" + m0 + " / " + nm0);
-				return false;
 			}
 		}
-		
-		return true;
 	}
 	
-	private boolean testSign() throws UnsupportedEncodingException {
+	public void testSign() throws UnsupportedEncodingException {
 		// keypair A
 		TweetNaclFast.Signature.KeyPair ka = TweetNaclFast.Signature.keyPair();
 
@@ -219,20 +218,19 @@ public final class TweetNaclFastTest {
 			Log.e(TAG, "self-verify failed @" + m0);
 		} else {
 			String nm0 = new String(occ, "utf-8");
+            assert nm0.equals(m0);
 			if (nm0.equals(m0)) {
 				Log.d(TAG, "self-sign success @" + m0);
 			} else {
 				Log.e(TAG, "self-sign failed @" + m0 + " / " + nm0);
 			}
 		}
-		
-		return true;
 	}
 	
 	/*
 	 * SHA-512
 	 * */
-	private boolean testHash() throws UnsupportedEncodingException {
+	public void testHash() throws UnsupportedEncodingException {
 		String m0 = "Helloword, Am Tom ...";
 		byte [] b0 = m0.getBytes("utf-8");
 		
@@ -244,37 +242,12 @@ public final class TweetNaclFastTest {
 		for (int i = 0; i < hash.length; i ++)
 			hst += " "+hash[i];
 		Log.d(TAG, hst);
-		
-		return true;
 	}
 	
 	/*
 	 * bench test using tweetnacl.c, tweetnacl.js result
 	 * */
-	private boolean testBench() {
-		
-		return true;
+	public void testBench() {
 	}
 	
-	public void start() {		
-		(new Thread(new Runnable() {
-			public void run() {
-				Log.d(TAG, "start test");
-
-				try {
-					testSecretBox();
-					testBox();
-					
-					testHash();
-					testSign();
-					
-					///testBench();
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}			    
-			}
-		})).start();
-
-	}
-
 }

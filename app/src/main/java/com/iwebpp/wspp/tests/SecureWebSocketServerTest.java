@@ -20,12 +20,14 @@ import com.iwebpp.wspp.WebSocket.onmessageListener;
 import com.iwebpp.wspp.WebSocket.onopenListener;
 import com.iwebpp.wspp.WebSocketServer;
 
-public final class SecureWebSocketServerTest {
+import junit.framework.TestCase;
+
+public final class SecureWebSocketServerTest extends TestCase {
 	private static final String TAG = "SecureWebSocketServerTest";
 	
 	private NodeContext ctx;
 
-	private boolean testConnectPair() throws Exception {
+	public void testConnectPair() throws Exception {
 
 		WebSocketServer.Options wssopt = new WebSocketServer.Options();
 		wssopt.port = 6668;
@@ -128,11 +130,9 @@ public final class SecureWebSocketServerTest {
 			}
 
 		});
-		
-		return true;
 	}
 
-	private boolean testConnectPairOverUDP() throws Exception {
+	public void testConnectPairOverUDP() throws Exception {
 
 		WebSocketServer.Options wssopt = new WebSocketServer.Options();
 		wssopt.port = 6668;
@@ -237,12 +237,10 @@ public final class SecureWebSocketServerTest {
 			}
 
 		});
-		
-		return true;
 	}
 	
 	// V2 NACL CERT test
-	private boolean testConnectPairV2() throws Exception {
+	public void testConnectPairV2() throws Exception {
 
 		WebSocketServer.Options wssopt = new WebSocketServer.Options();
 		wssopt.port = 6688;
@@ -398,35 +396,10 @@ public final class SecureWebSocketServerTest {
 			}
 
 		});
-		
-		return true;
 	}
 	
 	public SecureWebSocketServerTest(){
 		this.ctx = new NodeContext(); 
 	}
-	
-	public void start() {		
-		(new Thread(new Runnable() {
-			public void run() {
-				Log.d(TAG, "start test");
-				
-				try {
-					///testConnectPair();
-					///testConnectPairOverUDP();
-					
-					testConnectPairV2();
-					///testConnectPairOverUDPV2();
-					
-					// run loop
-					ctx.getLoop().run();
-					
-					Log.d(TAG, "exit test");
-				} catch (Throwable e) {
-					e.printStackTrace();
-				}    
-			}
-		})).start();
 
-	}
 }

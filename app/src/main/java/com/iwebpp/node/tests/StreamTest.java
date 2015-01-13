@@ -20,7 +20,9 @@ import com.iwebpp.node.stream.Writable;
 import com.iwebpp.node.stream.Writable2;
 import com.iwebpp.node.stream.Writable.WriteCB;
 
-public final class StreamTest {
+import junit.framework.TestCase;
+
+public final class StreamTest extends TestCase {
 	private static final String TAG = "StreamTest";
 	private NodeContext context;
 	private static String burst;
@@ -185,8 +187,8 @@ public final class StreamTest {
 		}
 
 	}
-	
-	private boolean testTransform() {
+
+    public void testTransform() {
 		final DoubleTransform ts = new DoubleTransform();
 		
 		try {
@@ -216,11 +218,9 @@ public final class StreamTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		return true;
 	}
 
-	private boolean testRead_less() {    	
+    public void testRead_less() {
 		final Readable rs = new Counting();
 
 		try {
@@ -244,11 +244,9 @@ public final class StreamTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		return true;
 	}
 
-	private boolean testRead_more() {    	
+    public void testRead_more() {
 		final Readable rs = new Counting();
 
 		try {
@@ -272,11 +270,9 @@ public final class StreamTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		return true;
 	}
 
-	private boolean testRead_forever() {    	
+    public void testRead_forever() {
 		final Readable rs = new Counting();
 
 		try {
@@ -299,11 +295,9 @@ public final class StreamTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		return true;
 	}
 
-	private boolean testPipe() {    	
+	public void testPipe() {
 		final Readable rs = new Counting();
 
 		final Writable ws = new DummyWritable();
@@ -331,11 +325,9 @@ public final class StreamTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		return true;
 	}
 
-	private boolean testDuplex() {    	
+	public void testDuplex() {
 		final Duplex du = new DummyDuplex();
 
 		try {
@@ -343,11 +335,9 @@ public final class StreamTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		return true;
 	}
 
-	private boolean testFinish() {
+    public void testFinish() {
 		final Writable ws = new DummyWritable();
 
 		try {
@@ -373,32 +363,6 @@ public final class StreamTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		return true;
-	}
-
-	public void start() {		
-		(new Thread(new Runnable() {
-			public void run() {
-				Log.d(TAG, "start test");
-
-				testPipe();
-				testFinish();
-				testRead_less();
-				testRead_more();
-				testRead_forever();
-				testDuplex();
-				testTransform();
-
-				// run node context loop
-				try {
-					context.getLoop().run();
-				} catch (Throwable e) {
-					e.printStackTrace();
-				}
-			}
-		})).start();
-
 	}
 
 }

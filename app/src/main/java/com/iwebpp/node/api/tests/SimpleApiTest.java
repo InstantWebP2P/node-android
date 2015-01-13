@@ -15,11 +15,13 @@ import com.iwebpp.node.http.ServerResponse;
 import com.iwebpp.node.http.http;
 import com.iwebpp.node.net.AbstractServer;
 
-public final class SimpleApiTest {
+import junit.framework.TestCase;
+
+public final class SimpleApiTest extends TestCase {
 
 	private static final String TAG = "SimpleApiTest";
 
-	private boolean TestHttpClient() {
+	public void testHttpClient() {
 
 		// http get
 		try {
@@ -71,18 +73,14 @@ public final class SimpleApiTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		return true;
 	}
 	
-	private boolean TestHttpServer() {
+	public void testHttpServer() {
 		try {
 			new HttpServerDemo(6188).execute();
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
-		
-		return true;
 	}
 	private class HttpServerDemo extends SimpleApi {
 
@@ -131,9 +129,4 @@ public final class SimpleApiTest {
 
 	}
 	
-	public void start() {
-		TestHttpServer();
-		TestHttpClient();
-	}
-
 }
