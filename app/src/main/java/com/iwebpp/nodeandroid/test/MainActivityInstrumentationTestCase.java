@@ -58,10 +58,9 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
         }
     }
 
-
     public void testHelloWorld()
     {
-        runScript("Log.d('RhinoTest', 'Helloworld, js');");
+        runScript("Log.d('RhinoTest', 'Helloworld, js');" + "toast('沃草泥马');");
     }
 
     /** TODO use TextUtils#concat */
@@ -92,6 +91,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
                         "" +
                         "  cln.onData(function(data){" +
                         "    Log.d('RhinoTest', 'tcp:'+data.toString());" +
+                        "toast('testTcp' + data.toString());" +
                         "  });" +
                         "" +
                         "  NCC.setInterval(function(){" +

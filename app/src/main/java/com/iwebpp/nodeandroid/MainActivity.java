@@ -48,6 +48,7 @@ public class MainActivity extends ActionBarActivity {
 
 		super.onCreate(savedInstanceState);
 
+        Toaster.init(this);
 
 		setContentView(R.layout.activity_main);
 
