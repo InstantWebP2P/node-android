@@ -36,8 +36,9 @@ public abstract class ActivityInstrumentationTestCase extends ActivityInstrument
     public abstract void runScript(final String js) throws Exception;
 
     @SmallTest
-    public void testHelloWorld() throws Exception {
-        runScript("Log.d('RhinoTest', 'Helloworld, js');" + "toast('沃草泥马');");
+    public void testHelloWorld()
+    {
+        runScript("Log.d('RhinoTest', 'Helloworld, js');" + "toast('东北人都是活雷锋, 可是我不是东北人');");
     }
 
     /** TODO use TextUtils#concat */
