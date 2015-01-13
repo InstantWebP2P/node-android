@@ -59,7 +59,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
     @SmallTest
     public void testHelloWorld()
     {
-        runScript("Log.d('RhinoTest', 'Helloworld, js');" + "toast('沃草泥马');");
+        runScript("Log.d('RhinoTest', 'Helloworld, js');" + "toast('东北人都是活雷锋');");
     }
 
     /** TODO use TextUtils#concat */
