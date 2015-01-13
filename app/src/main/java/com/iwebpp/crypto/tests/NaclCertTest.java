@@ -27,7 +27,7 @@ public final class NaclCertTest extends TestCase {
 		} else
 			Log.d(TAG, "\n\ttestSelfCert/cert verify success\n");
 
-		assert NaclCert.validate(info.cert);
+		assertTrue (NaclCert.validate(info.cert));
 	}
 	
 	public void testCaCert() throws Exception {
@@ -75,7 +75,7 @@ public final class NaclCertTest extends TestCase {
 		} else
 			Log.d(TAG, "\n\ttestCaCert/cert verify success\n");
 
-        assert NaclCert.validate(cert, ca.cert);
+        assertTrue (NaclCert.validate(cert, ca.cert));
 
 		// expect fail
 		NaclCert.CAInfo info2 = new NaclCert.CAInfo();
@@ -92,6 +92,6 @@ public final class NaclCertTest extends TestCase {
 		} else
 			Log.d(TAG, "\n\ttestCaCert/cert verify success\n");
 
-        assert NaclCert.validate(cert, ca2.cert);
+        assertFalse (NaclCert.validate(cert, ca2.cert));
 	}
 }
