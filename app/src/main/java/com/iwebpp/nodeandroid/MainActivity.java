@@ -178,7 +178,6 @@ public class MainActivity extends ActionBarActivity {
             public void run() {
                 Log.d(TAG, "start test");
 
-                try {
                     Host host = new Host() {
                         @Override
                         public String content() {
@@ -186,12 +185,15 @@ public class MainActivity extends ActionBarActivity {
                         }
                     };
 
+                // This hides all the defects and problems during Runtime
+                // but it also gives false positives for the unit tests
+                try {
                     host.execute();
-
-                    Log.d(TAG, "exit test");
-                } catch (Throwable e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                Log.d(TAG, "exit test");
             }
         }).start();
     }

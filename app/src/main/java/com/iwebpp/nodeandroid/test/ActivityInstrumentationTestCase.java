@@ -18,54 +18,31 @@ import java.lang.reflect.Method;
 /**
  * Created by Jasm Sison on 1/12/15.
  */
-public class MainActivityInstrumentationTestCase extends ActivityInstrumentationTestCase2<MainActivity> {
+public abstract class ActivityInstrumentationTestCase extends ActivityInstrumentationTestCase2<MainActivity> {
 
     private MainActivity activity;
 
-    public MainActivityInstrumentationTestCase() {
+    public ActivityInstrumentationTestCase() {
         super(MainActivity.class);
     }
 
+    @Override
     protected void setUp() throws Exception {
         super.setUp();
-
-        setActivityInitialTouchMode(true);
-
-        activity = getActivity();
+        helpSetUp();
     }
 
-    /**
-     *
-     * Reflection hack to call the MainActivity#runScript method
-     *
-     * @param js
-     */
-    private void runScript(final String js) {
-        Class<?> c = null;
-        try {
-            c = MainActivity.class;
-            Method  method = c.getDeclaredMethod ("runScript", new Class[] { String.class });
-            method.setAccessible(true);
-            method.invoke(activity, js);
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
+    protected abstract void helpSetUp() throws Exception;
+    public abstract void runScript(final String js) throws Exception;
 
     @SmallTest
-    public void testHelloWorld()
-    {
+    public void testHelloWorld() throws Exception {
         runScript("Log.d('RhinoTest', 'Helloworld, js');" + "toast('沃草泥马');");
     }
 
     /** TODO use TextUtils#concat */
     @LargeTest
-    public void testTcp()
-    {
+    public void testTcp() throws Exception {
         String content = "Log.d('RhinoTest', 'TcpTest, js');";
 
         // tcp server
@@ -106,8 +83,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
     }
 
     @LargeTest
-    public void testUdt()
-    {
+    public void testUdt() throws Exception {
         String content = "Log.d('RhinoTest', 'UdtTest, js');";
 
         // tcp server
@@ -147,8 +123,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
     }
 
     @LargeTest
-    public void testHttp()
-    {
+    public void testHttp() throws Exception {
         String content = "Log.d('RhinoTest', 'HttpTest, js');";
 
         // http server
@@ -197,8 +172,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
     }
 
     @LargeTest
-    public void testHttpp()
-    {
+    public void testHttpp() throws Exception {
         String content = "Log.d('RhinoTest', 'HttppTest, js');";
 
         // http server
@@ -247,8 +221,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
     }
 
     @LargeTest
-    public void testWebSocket ()
-    {
+    public void testWebSocket () throws Exception {
         String content = "Log.d('RhinoTest', 'WebSocketTest, js');";
 
         // websocket server
@@ -311,8 +284,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
     }
 
     @SmallTest
-    public void testRequire()
-    {
+    public void testRequire() throws Exception {
         String content = "Log.d('RhinoTest', 'RequireTest, js');";
 
         // require module
@@ -323,8 +295,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
     }
 
     @LargeTest
-    public void testEmitter()
-    {
+    public void testEmitter() throws Exception {
         String content = "Log.d('RhinoTest', 'EventEmitterTest, js');";
 
         // extends JS obj from java EventEmitter2 class
@@ -349,8 +320,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
     }
 
     @LargeTest
-    public void testStream()
-    {
+    public void testStream() throws Exception {
         String content = "Log.d('RhinoTest', 'StreamTest, js');";
 
         // extends JS obj from java EventEmitter2 class
@@ -384,8 +354,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
     }
 
     @SmallTest
-    public void testExtension()
-    {
+    public void testExtension() throws Exception {
         String content = "Log.d('RhinoTest', 'ExtensionTest, js');";
 
 			/*
