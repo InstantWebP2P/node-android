@@ -55,6 +55,7 @@ public final class WebSocketServerTest extends TestCase {
 					@Override
 					public void onError(ErrorEvent event) throws Exception {
                         Log.d(TAG, "ws error:"+event.getCode()+",message:"+event.getError());						
+                        fail("ws error:"+event.getCode()+",message:"+event.getError());
 					}
 					
 				});
@@ -150,6 +151,7 @@ public final class WebSocketServerTest extends TestCase {
 					@Override
 					public void onError(ErrorEvent event) throws Exception {
                         Log.d(TAG, "httpp ws error:"+event.getCode()+",message:"+event.getError());						
+                        fail("httpp ws error:"+event.getCode()+",message:"+event.getError());
 					}
 					
 				});
@@ -206,9 +208,11 @@ public final class WebSocketServerTest extends TestCase {
 
 		});
 	}
-	
-	public WebSocketServerTest(){
-		this.ctx = new NodeContext(); 
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        this.ctx = new NodeContext();
 	}
 
 }
