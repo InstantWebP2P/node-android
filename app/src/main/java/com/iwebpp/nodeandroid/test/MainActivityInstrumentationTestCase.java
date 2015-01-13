@@ -44,16 +44,16 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
     }
 
     private void runScript(final String js) {
-        Method method = null;
+        Class<?> c = null;
         try {
-            method = activity.getClass().getDeclaredMethod("runScript");
-            method.setAccessible(true);
-            Object r = method.invoke(activity);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            c = MainActivity.class;
+            Method  method = c.getDeclaredMethod ("runScript", new Class[] { String.class });
+            method.invoke(activity, js);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
     }
