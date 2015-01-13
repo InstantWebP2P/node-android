@@ -89,6 +89,7 @@ public class MainActivity extends ActionBarActivity {
 
 	}
 
+    @Deprecated
     private void runHardCodedTests()
     {
         // UVPP Unit tests

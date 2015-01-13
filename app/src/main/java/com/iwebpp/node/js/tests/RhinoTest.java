@@ -6,7 +6,7 @@ package com.iwebpp.node.js.tests;
 import com.iwebpp.node.js.rhino.Host;
 import android.util.Log;
 
-
+@Deprecated
 public final class RhinoTest {
 	private static final String TAG = "RhinoTest";
 	
