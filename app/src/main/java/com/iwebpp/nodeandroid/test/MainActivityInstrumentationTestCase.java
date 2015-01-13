@@ -3,6 +3,8 @@ package com.iwebpp.nodeandroid.test;
 import android.app.Instrumentation;
 import android.content.Intent;
 import android.test.ActivityInstrumentationTestCase2;
+import android.test.suitebuilder.annotation.LargeTest;
+import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
 import com.iwebpp.node.js.rhino.Host;
@@ -18,8 +20,18 @@ import java.lang.reflect.Method;
  */
 public class MainActivityInstrumentationTestCase extends ActivityInstrumentationTestCase2<MainActivity> {
 
+    private MainActivity activity;
+
     public MainActivityInstrumentationTestCase() {
         super(MainActivity.class);
+    }
+
+    protected void setUp() throws Exception {
+        super.setUp();
+
+        setActivityInitialTouchMode(true);
+
+        activity = getActivity();
     }
 
     /**
@@ -33,7 +45,8 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
         try {
             c = MainActivity.class;
             Method  method = c.getDeclaredMethod ("runScript", new Class[] { String.class });
-            method.invoke(getActivity(), js);
+            method.setAccessible(true);
+            method.invoke(activity, js);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
@@ -43,12 +56,14 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
         }
     }
 
+    @SmallTest
     public void testHelloWorld()
     {
         runScript("Log.d('RhinoTest', 'Helloworld, js');" + "toast('沃草泥马');");
     }
 
     /** TODO use TextUtils#concat */
+    @LargeTest
     public void testTcp()
     {
         String content = "Log.d('RhinoTest', 'TcpTest, js');";
@@ -90,6 +105,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
         runScript(content);
     }
 
+    @LargeTest
     public void testUdt()
     {
         String content = "Log.d('RhinoTest', 'UdtTest, js');";
@@ -130,6 +146,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
         runScript(content);
     }
 
+    @LargeTest
     public void testHttp()
     {
         String content = "Log.d('RhinoTest', 'HttpTest, js');";
@@ -179,6 +196,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
         runScript(content);
     }
 
+    @LargeTest
     public void testHttpp()
     {
         String content = "Log.d('RhinoTest', 'HttppTest, js');";
@@ -228,6 +246,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
         runScript(content);
     }
 
+    @LargeTest
     public void testWebSocket ()
     {
         String content = "Log.d('RhinoTest', 'WebSocketTest, js');";
@@ -291,6 +310,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
         runScript(content);
     }
 
+    @SmallTest
     public void testRequire()
     {
         String content = "Log.d('RhinoTest', 'RequireTest, js');";
@@ -302,6 +322,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
         runScript(content);
     }
 
+    @LargeTest
     public void testEmitter()
     {
         String content = "Log.d('RhinoTest', 'EventEmitterTest, js');";
@@ -327,6 +348,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
         runScript(content);
     }
 
+    @LargeTest
     public void testStream()
     {
         String content = "Log.d('RhinoTest', 'StreamTest, js');";
@@ -361,6 +383,7 @@ public class MainActivityInstrumentationTestCase extends ActivityInstrumentation
         runScript(content);
     }
 
+    @SmallTest
     public void testExtension()
     {
         String content = "Log.d('RhinoTest', 'ExtensionTest, js');";
