@@ -39,7 +39,6 @@ extends EventEmitter2 {
 			try {
 				return Url.format(this);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return null;

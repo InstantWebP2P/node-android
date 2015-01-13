@@ -174,31 +174,25 @@ public class FileEventHandleTest extends TestBase {
         try {
 			test.startSession(test.getClass().getMethod("testFileChangeEvent"));
 		} catch (NoSuchMethodException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         try {
 			test.testFileChangeEvent();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         try {
 			test.startSession(test.getClass().getMethod("testFileRenameEvent"));
 		} catch (NoSuchMethodException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         try {
 			test.testFileRenameEvent();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }

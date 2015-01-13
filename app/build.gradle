@@ -16,7 +16,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.iwebpp.libuvpp"
+        applicationId "com.iwebpp.nodeandroid"
         minSdkVersion 8
         targetSdkVersion 21
 
@@ -27,6 +27,10 @@ android {
     }
 
     buildTypes {
+        debug {
+
+        }
+
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'

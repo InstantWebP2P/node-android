@@ -271,7 +271,6 @@ public final class TweetNaclTest {
 					
 					///testBench();
 				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}			    
 			}

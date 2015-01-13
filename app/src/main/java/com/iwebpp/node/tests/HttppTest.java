@@ -22,11 +22,13 @@ import com.iwebpp.node.net.AbstractServer.ListeningCallback;
 import com.iwebpp.node.net.AbstractSocket;
 import com.iwebpp.node.stream.Writable.WriteCB;
 
-public final class HttppTest {
+import junit.framework.TestCase;
+
+public final class HttppTest extends TestCase {
 	private static final String TAG = "HttppTest";
 	private NodeContext ctx;
 
-	private boolean testListening() {
+	public void testListening() {
 		HttppServer srv;
 		final int port = 6188;
 		try {
@@ -40,14 +42,11 @@ public final class HttppTest {
 				}
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return true;   
 	}
 	
-	private boolean testConnection() {
+	public void testConnection() {
 		HttppServer srv;
 		final int port = 6288;
 		try {
@@ -84,7 +83,6 @@ public final class HttppTest {
 
 				@Override
 				public void onClientError(String exception, AbstractSocket socket) throws Exception {
-					// TODO Auto-generated method stub
 					Log.e(TAG, "client error: "+exception + "@"+socket);
 				}
 				
@@ -98,14 +96,11 @@ public final class HttppTest {
 				}
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return true;   
 	}
 
-	private boolean testConnect() {
+	public void testConnect() {
 		final String host = "192.188.1.100";
 		final int port = 51680;
 
@@ -157,14 +152,11 @@ public final class HttppTest {
 			req.end(null, null, null);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return true;   
 	}
 	
-	private boolean testConnectPair() {
+	public void testConnectPair() {
 		final int port = 6688;
 
 		try {
@@ -259,38 +251,12 @@ public final class HttppTest {
 			}, 2000);
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return true;   
 	}
 	
 	public HttppTest(){
 		this.ctx = new NodeContext(); 
 	}
 
-	public void start() {		
-		(new Thread(new Runnable() {
-			public void run() {
-				Log.d(TAG, "start test");
-
-				testListening();
-				testConnection();
-				///testConnect();
-				testConnectPair();
-				
-				// run loop
-				try {
-					ctx.getLoop().run();
-					
-					Log.d(TAG, "exit test");
-				} catch (Throwable e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		})).start();
-	}
-	
 }

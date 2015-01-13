@@ -285,7 +285,6 @@ extends Duplex {
 
 				@Override
 				public void onEvent(Object data) throws Exception {
-					// TODO Auto-generated method stub
 					self.destroy(null);
 				}
 
@@ -464,7 +463,6 @@ extends Duplex {
 
 				@Override
 				public void onRead(ByteBuffer data) throws Exception {
-					// TODO Auto-generated method stub
 
 				}
 
@@ -710,7 +708,6 @@ extends Duplex {
 
 				@Override
 				public void onEvent(Object data) throws Exception {
-					// TODO Auto-generated method stub
 					self._read(n);
 				}
 
@@ -771,7 +768,6 @@ this._writeGeneric(true, chunks, '', cb);
 
 				@Override
 				public void onEvent(Object dummy) throws Exception {
-					// TODO Auto-generated method stub
 					self._writeGeneric(writev, data, encoding, cb);
 				}
 
@@ -790,7 +786,6 @@ this._writeGeneric(true, chunks, '', cb);
 
 				@Override
 				public void onEvent(Object data) throws Exception {
-					// TODO Auto-generated method stub
 					cb.writeDone("This socket is closed.");
 				}
 
@@ -887,7 +882,6 @@ this._writeGeneric(true, chunks, '', cb);
 
 				@Override
 				public void onEvent(Object data) throws Exception {
-					// TODO Auto-generated method stub
 					cb.writeDone("write invalid data");
 				}
 
@@ -901,7 +895,6 @@ this._writeGeneric(true, chunks, '', cb);
 
 				@Override
 				public void onEvent(Object data) throws Exception {
-					// TODO Auto-generated method stub
 					cb.writeDone("write invalid data");
 				}
 

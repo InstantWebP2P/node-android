@@ -110,7 +110,6 @@ implements EventEmitter {
 
 			@Override
 			public void onEvent(final Object data) throws Exception {
-				// TODO Auto-generated method stub
 				ocb.onEvent(data);
 
 				// remove listener
@@ -138,34 +137,29 @@ implements EventEmitter {
 
 	@Override
 	public EventEmitter removeListener() {
-		// TODO Auto-generated method stub
 		events.clear();
 		return this;
 	}
 
 	@Override
 	public EventEmitter removeAllListeners() {
-		// TODO Auto-generated method stub
 		events.clear();
 		return this;
 	}
 	
 	@Override
 	public EventEmitter setMaxListeners(final String event, final int n) {
-		// TODO Auto-generated method stub
 		this.maxEvents.put(event, n);
 		return this;
 	}
 
 	@Override
 	public List<Listener> listeners(final String event) {
-		// TODO Auto-generated method stub
 		return events.containsKey(event) ? events.get(event) : null;
 	}
 
 	@Override
 	public int listenerCount(final String event) {
-		// TODO Auto-generated method stub
 		return events.containsKey(event) ? events.get(event).size() : 0;
 	}
 }

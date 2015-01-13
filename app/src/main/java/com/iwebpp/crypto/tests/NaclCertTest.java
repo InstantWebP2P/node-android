@@ -7,10 +7,12 @@ import com.iwebpp.crypto.TweetNaclFast;
 
 import android.util.Log;
 
-public final class NaclCertTest {
+import junit.framework.TestCase;
+
+public final class NaclCertTest extends TestCase {
 	private static final String TAG = "NaclCertTest";
 
-	private boolean testSelfCert() throws Exception {
+	public void testSelfCert() throws Exception {
 
 		NaclCert.CAInfo info = new NaclCert.CAInfo();
 
@@ -22,14 +24,13 @@ public final class NaclCertTest {
 		// verify self-cert
 		if (!NaclCert.validate(info.cert)) {
 			Log.e(TAG, "\n\ttestSelfCert/ca verify failed\n");
-			return false;
 		} else
 			Log.d(TAG, "\n\ttestSelfCert/cert verify success\n");
 
-		return true;
+		assert NaclCert.validate(info.cert);
 	}
 	
-	private boolean testCaCert() throws Exception {
+	public void testCaCert() throws Exception {
 		NaclCert.CAInfo info = new NaclCert.CAInfo();
 
 		info.ca = "iwebpp.com";
@@ -64,15 +65,17 @@ public final class NaclCertTest {
 			Log.d(TAG, "\n\ttestCaCert/cert:"+cert.stringify());
 		else {
 			Log.d(TAG, "\n\ttestCaCert/cert generate failed");
-			return false;
 		}
+
+        assert cert != null;
 		
 		// validate cert
 		if (!NaclCert.validate(cert, ca.cert)) {
 			Log.e(TAG, "\n\ttestCaCert/cert verify failed\n");
-			return false;
 		} else
 			Log.d(TAG, "\n\ttestCaCert/cert verify success\n");
+
+        assert NaclCert.validate(cert, ca.cert);
 
 		// expect fail
 		NaclCert.CAInfo info2 = new NaclCert.CAInfo();
@@ -86,27 +89,9 @@ public final class NaclCertTest {
 		// validate cert
 		if (NaclCert.validate(cert, ca2.cert)) {
 			Log.e(TAG, "\n\ttestCaCert/cert verify faked\n");
-			return false;
 		} else
 			Log.d(TAG, "\n\ttestCaCert/cert verify success\n");
 
-		return true;
-	}
-	
-	public void start() {		
-		(new Thread(new Runnable() {
-			public void run() {
-				Log.d(TAG, "start test");
-
-				try {
-					testSelfCert();
-					testCaCert();	
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		})).start();
-
+        assert NaclCert.validate(cert, ca2.cert);
 	}
 }

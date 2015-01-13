@@ -68,7 +68,6 @@ extends EventEmitter2 {
 
 				@Override
 				public void onEvent(Object data) throws Exception {
-					// TODO Auto-generated method stub
 					AbstractSocket socket = (AbstractSocket)data;
 					listener.onConnection(socket);
 				}
@@ -130,7 +129,6 @@ configurable: true, enumerable: true
 
 				@Override
 				public void onEvent(Object data) throws Exception {
-					// TODO Auto-generated method stub
 					cb.onListening();
 				}
 
@@ -231,7 +229,6 @@ slave.getConnections(oncount);
 
 					@Override
 					public void onEvent(Object data) throws Exception {
-						// TODO Auto-generated method stub
 						cb.onClose("Not running");
 					}
 
@@ -242,7 +239,6 @@ slave.getConnections(oncount);
 
 					@Override
 					public void onEvent(Object data) throws Exception {
-						// TODO Auto-generated method stub
 						cb.onClose(data!=null? data.toString() : "");
 					}
 

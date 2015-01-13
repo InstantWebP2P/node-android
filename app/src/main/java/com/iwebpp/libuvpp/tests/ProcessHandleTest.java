@@ -143,7 +143,6 @@ public class ProcessHandleTest extends TestBase {
         try {
 			test.testExitCode();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }

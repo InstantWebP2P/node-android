@@ -279,13 +279,11 @@ public class TCPHandleTest extends TestBase {
         try {
 			testConnection();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         try {
 			testConnection6();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }

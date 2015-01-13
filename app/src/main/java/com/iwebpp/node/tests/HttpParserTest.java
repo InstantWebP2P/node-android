@@ -14,9 +14,12 @@ import com.iwebpp.node.EventEmitter2;
 import com.iwebpp.node.HttpParser;
 import com.iwebpp.node.HttpParser.http_parser_type;
 
-public final class HttpParserTest 
-extends EventEmitter2 {
+import junit.framework.TestCase;
+
+public final class HttpParserTest extends TestCase {
 	private static final String TAG = "HttpParserTest";
+
+    private EventEmitter2 ee2 = new EventEmitter2();
 
 	private class DummyParser extends HttpParser {
 		private CharsetDecoder decoder = Charset.forName("utf-8").newDecoder();
@@ -110,7 +113,6 @@ extends EventEmitter2 {
         		return false;
         	}
         } catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -138,16 +140,15 @@ extends EventEmitter2 {
         		return false;
         	}
         } catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 		return true;
 	}
 	
-	public void start() {		
-		(new Thread(new Runnable() {
-			public void run() {
+	public void testAll() {
+//		(new Thread(new Runnable() {
+//			public void run() {
 				Log.d(TAG, "start test");
 
 				// request messages
@@ -614,11 +615,10 @@ extends EventEmitter2 {
 					}
 					
 				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}	
-			}
-		})).start();
+//			}
+//		})).start();
 
 	}
 }

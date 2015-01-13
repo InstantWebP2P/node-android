@@ -28,7 +28,6 @@ implements NodeApi {
 
 	@Override
 	public NodeContext getNodeContext() {
-		// TODO Auto-generated method stub
 		return context;
 	}
 
@@ -52,7 +51,6 @@ implements NodeApi {
 						// enter event loop
 						context.execute();
 					} catch (Throwable e) {
-						// TODO Auto-generated catch block
 						///e.printStackTrace();
 						error(TAG, "node-android context execute failed: "+e.toString());
 					}			

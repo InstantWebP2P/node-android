@@ -20,7 +20,9 @@ import com.iwebpp.node.stream.Writable;
 import com.iwebpp.node.stream.Writable2;
 import com.iwebpp.node.stream.Writable.WriteCB;
 
-public final class StreamTest {
+import junit.framework.TestCase;
+
+public final class StreamTest extends TestCase {
 	private static final String TAG = "StreamTest";
 	private NodeContext context;
 	private static String burst;
@@ -50,7 +52,6 @@ public final class StreamTest {
 
 		@Override
 		public void _read(int size) throws Exception {
-			// TODO Auto-generated method stub
 			int i = this._index++;
 			if (i > this._max)
 				this.push(null, null);
@@ -76,7 +77,6 @@ public final class StreamTest {
 
 		@Override
 		public void _write(Object chunk, String encoding, WriteCB cb) throws Exception {
-			// TODO Auto-generated method stub
 			if (Util.isString(chunk)) {
 				Log.d(TAG, "DummyWritable: encdoing "+encoding+":"+chunk.toString());
 
@@ -112,7 +112,6 @@ public final class StreamTest {
 
 		@Override
 		public void _read(int size) throws Exception {
-			// TODO Auto-generated method stub
 			int i = this._index++;
 			if (i > this._max)
 				this.push(null, null);
@@ -131,7 +130,6 @@ public final class StreamTest {
 
 		@Override
 		public void _write(Object chunk, String encoding, WriteCB cb) throws Exception {
-			// TODO Auto-generated method stub
 			if (Util.isString(chunk)) {
 				Log.d(TAG, "DummyDuplex: encdoing "+encoding+":"+chunk.toString());
 
@@ -164,7 +162,6 @@ public final class StreamTest {
 		@Override
 		protected void _transform(Object chunk, String encoding,
 				afterTransformCallback cb) throws Exception {
-			// TODO Auto-generated method stub
 			if (Util.isBuffer(chunk)) {
 				ByteBuffer ori = (ByteBuffer)chunk;
 				ByteBuffer dbl = ByteBuffer.allocate(ori.capacity()*2);
@@ -186,13 +183,12 @@ public final class StreamTest {
 
 		@Override
 		protected void _flush(flushCallback cb) throws Exception {
-			// TODO Auto-generated method stub
             cb.onFlush(null);
 		}
 
 	}
-	
-	private boolean testTransform() {
+
+    public void testTransform() {
 		final DoubleTransform ts = new DoubleTransform();
 		
 		try {
@@ -214,21 +210,17 @@ public final class StreamTest {
 
 				@Override
 				public void onInterval() throws Exception {
-					// TODO Auto-generated method stub
 					ts.write("double string", "utf-8", null);
 				}
 				
 			}, 2000);
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		return true;
 	}
 
-	private boolean testRead_less() {    	
+    public void testRead_less() {
 		final Readable rs = new Counting();
 
 		try {
@@ -250,14 +242,11 @@ public final class StreamTest {
 
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return true;
 	}
 
-	private boolean testRead_more() {    	
+    public void testRead_more() {
 		final Readable rs = new Counting();
 
 		try {
@@ -279,14 +268,11 @@ public final class StreamTest {
 
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return true;
 	}
 
-	private boolean testRead_forever() {    	
+    public void testRead_forever() {
 		final Readable rs = new Counting();
 
 		try {
@@ -307,14 +293,11 @@ public final class StreamTest {
 
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return true;
 	}
 
-	private boolean testPipe() {    	
+	public void testPipe() {
 		final Readable rs = new Counting();
 
 		final Writable ws = new DummyWritable();
@@ -340,27 +323,21 @@ public final class StreamTest {
 			rs.pipe(ws, true);
 			rs.unpipe(ws);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return true;
 	}
 
-	private boolean testDuplex() {    	
+	public void testDuplex() {
 		final Duplex du = new DummyDuplex();
 
 		try {
 			du.pipe(du, true);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return true;
 	}
 
-	private boolean testFinish() {
+    public void testFinish() {
 		final Writable ws = new DummyWritable();
 
 		try {
@@ -376,7 +353,6 @@ public final class StreamTest {
 
 					@Override
 					public void writeDone(String error) throws Exception {
-						// TODO Auto-generated method stub
 						Log.d(TAG, "testFinish: write done");
 					}
 
@@ -385,36 +361,8 @@ public final class StreamTest {
 
 			ws.end("this is the end\n", null, null);    		
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return true;
-	}
-
-	public void start() {		
-		(new Thread(new Runnable() {
-			public void run() {
-				Log.d(TAG, "start test");
-
-				testPipe();
-				testFinish();
-				testRead_less();
-				testRead_more();
-				testRead_forever();
-				testDuplex();
-				testTransform();
-
-				// run node context loop
-				try {
-					context.getLoop().run();
-				} catch (Throwable e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		})).start();
-
 	}
 
 }

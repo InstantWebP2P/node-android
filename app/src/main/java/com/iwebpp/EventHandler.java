@@ -52,7 +52,6 @@ implements EventEmitter {
     					} else 
     						cb.onEvent(data);
     				} catch (Exception e) {
-    					// TODO Auto-generated catch block
     					e.printStackTrace();
     					error(TAG, "Exception event "+event+","+e);
     				}
@@ -86,7 +85,6 @@ implements EventEmitter {
 
 	@Override
 	public boolean emit(String event) throws Exception {
-		// TODO Auto-generated method stub
 		return emit(event, null);
 	}
 	
@@ -101,7 +99,6 @@ implements EventEmitter {
 
 			@Override
 			public void onEvent(final Object data) throws Exception {
-				// TODO Auto-generated method stub
 				ocb.onEvent(data);
 
 				// remove listener

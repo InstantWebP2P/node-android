@@ -10,6 +10,7 @@ import org.mozilla.javascript.ScriptableObject;
 import com.iwebpp.SimpleDebug;
 import com.iwebpp.node.NodeContext;
 import com.iwebpp.node.js.JS;
+import com.iwebpp.nodeandroid.Toaster;
 
 /*
  * @description
@@ -186,7 +187,6 @@ implements JS {
 		    // Retrieve exports variable
 		    ret = subscope.get("exports", subscope);
 		} catch (Throwable e) {			
-			// TODO Auto-generated catch block
 			///e.printStackTrace();
 			
 			error(TAG, e.toString());
@@ -234,8 +234,13 @@ implements JS {
 		try {
 			// Initializing standard objects
 			jsscope = jsctx.initStandardObjects();
-			
-		    // Expose host env in js as NodeHostEnv alias as NHE
+
+            // Add Toaster
+            jsscope.defineProperty("toast",
+                     Toaster.getInstance(),
+                     ScriptableObject.DONTENUM);
+
+            // Expose host env in js as NodeHostEnv alias as NHE
 		    ScriptableObject.putProperty(jsscope, "NodeHostEnv", Context.javaToJS(this, jsscope));
 
 			// Expose node-android context in js as NodeCurrentContext alias as NCC
@@ -300,7 +305,6 @@ implements JS {
 			// Run node-android loop
 			nodectx.execute();
 		} catch (Throwable e) {			
-			// TODO Auto-generated catch block
 			///e.printStackTrace();
 			
 			error(TAG, e.toString());

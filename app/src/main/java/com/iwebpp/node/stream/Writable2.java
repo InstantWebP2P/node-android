@@ -439,7 +439,6 @@ implements Writable {
     	{
     		@Override
     		public void writeDone(String error) {
-    			// TODO Auto-generated method stub
     		}
     	};
 
@@ -519,7 +518,6 @@ implements Writable {
     			stream.once("finish", new EventEmitter.Listener() {
     				@Override
     				public void onEvent(Object data) throws Exception {
-    					// TODO Auto-generated method stub
     					cb.writeDone(null);
     				}
     			});

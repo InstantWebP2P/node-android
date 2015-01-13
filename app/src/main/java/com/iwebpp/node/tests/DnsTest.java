@@ -7,10 +7,12 @@ import android.util.Log;
 import com.iwebpp.node.Dns;
 import com.iwebpp.node.Util;
 
-public final class DnsTest {
+import junit.framework.TestCase;
+
+public final class DnsTest extends TestCase {
 	private static final String TAG = "DnsTest";
 
-	private boolean testLookup() throws Exception {	
+	public void testLookup() throws Exception {	
 		// Lookup
 		String host0 = "localhost";
         String ip0 = Dns.lookup(host0);
@@ -123,23 +125,5 @@ public final class DnsTest {
 		
 		if (Util.isIP(ipt4)) 
 			Log.d(TAG, "isIP test failed on "+ipt4);
-		
-		return true;
-	}
-
-	public void start() {		
-		(new Thread(new Runnable() {
-			public void run() {
-				Log.d(TAG, "start test");
-
-				try {
-					testLookup();
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}			    
-			}
-		})).start();
-
 	}
 }

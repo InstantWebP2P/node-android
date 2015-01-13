@@ -6,7 +6,7 @@ package com.iwebpp.node.js.tests;
 import com.iwebpp.node.js.rhino.Host;
 import android.util.Log;
 
-
+@Deprecated
 public final class RhinoTest {
 	private static final String TAG = "RhinoTest";
 	
@@ -14,7 +14,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			return "Log.d('RhinoTest', 'Helloworld, js');";
 		}
 		
@@ -29,7 +28,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -42,7 +40,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'TcpTest, js');";
 			
 			// tcp server
@@ -92,7 +89,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -105,7 +101,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'UdtTest, js');";
 			
 			// tcp server
@@ -155,7 +150,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -168,7 +162,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'HttpTest, js');";
 			
 			// http server
@@ -226,7 +219,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -239,7 +231,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'HttppTest, js');";
 			
 			// http server
@@ -297,7 +288,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -310,7 +300,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'WebSocketTest, js');";
 			
 			// websocket server
@@ -384,7 +373,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -397,7 +385,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'RequireTest, js');";
 			
 			// require module
@@ -419,7 +406,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -432,7 +418,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'EventEmitterTest, js');";
 			
 			// extends JS obj from java EventEmitter2 class
@@ -468,7 +453,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -481,7 +465,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'StreamTest, js');";
 			
 			// extends JS obj from java EventEmitter2 class
@@ -525,7 +508,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -538,7 +520,6 @@ public final class RhinoTest {
 
 		@Override
 		public String content() {
-			// TODO Auto-generated method stub
 			String content = "Log.d('RhinoTest', 'ExtensionTest, js');";
 
 			/*
@@ -567,7 +548,6 @@ public final class RhinoTest {
 					
 					Log.d(TAG, "exit test");
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}    
 			}
@@ -599,7 +579,6 @@ public final class RhinoTest {
 			testStream();
 			testExtension();*/
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

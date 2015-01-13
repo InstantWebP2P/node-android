@@ -19,11 +19,13 @@ import com.iwebpp.node.net.TCP.Server;
 import com.iwebpp.node.net.TCP.Socket;
 import com.iwebpp.node.stream.Writable.WriteCB;
 
-public final class TcpTest {
+import junit.framework.TestCase;
+
+public final class TcpTest extends TestCase {
 	private static final String TAG = "TcpTest";
 	private NodeContext ctx;
 
-	private boolean testListening() {
+	public void testListening() {
 		Server srv;
 		try {
 			srv = new TCP.Server(ctx, new Server.Options(false), null);
@@ -37,14 +39,11 @@ public final class TcpTest {
 
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return true;   
 	}
 	
-	private boolean testClousure() {
+	public void testClosure() {
 		final int port = 52688;
 
 		final Server srv;
@@ -108,14 +107,11 @@ public final class TcpTest {
 
 			}, 6000);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return true;   
 	}
 	
-	private boolean testListening6() {
+	public void testListening6() {
 		Server srv;
 		try {
 			srv = new TCP.Server(ctx, new Server.Options(false), null);
@@ -129,14 +125,11 @@ public final class TcpTest {
 
 			});
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return true;   
 	}
 	
-	private boolean testConnect6() {
+	public void testConnect6() {
 		Server srv;
 		final Socket cln;
 		int port = 51868;
@@ -219,14 +212,11 @@ public final class TcpTest {
 			});
 						
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		return true;
 	}
 	
-	private boolean testConnect() {
+	public void testConnect() {
 		Server srv;
 		final Socket cln;
 		int port = 51686;
@@ -309,38 +299,11 @@ public final class TcpTest {
 			});
 						
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		return true;
 	}
 	
 	public TcpTest(){
 		this.ctx = new NodeContext(); 
-	}
-
-	public void start() {		
-		(new Thread(new Runnable() {
-			public void run() {
-				Log.d(TAG, "start test");
-
-				testListening();
-				testConnect();
-				
-				testListening6();
-				testConnect6();
-				
-				testClousure();
-				
-				// run loop
-				try {
-					ctx.getLoop().run();
-				} catch (Throwable e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		})).start();
 	}
 }

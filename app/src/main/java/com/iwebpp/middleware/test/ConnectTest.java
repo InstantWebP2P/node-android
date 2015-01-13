@@ -15,12 +15,14 @@ import com.iwebpp.node.http.ServerResponse;
 import com.iwebpp.node.http.http;
 import com.iwebpp.node.http.httpp;
 
-public final class ConnectTest {
+import junit.framework.TestCase;
+
+public final class ConnectTest extends TestCase {
 	private static final String TAG = "ConnectTest";
 	
 	private NodeContext ctx;
 
-	private boolean testStack() throws Exception {
+	public void testStack() throws Exception {
 		Connect stack = new Connect();
 
 		// append timestamp header
@@ -117,11 +119,9 @@ public final class ConnectTest {
 			}
 			
 		}, 2000);
-		
-		return true;
 	}
 
-	private boolean testNest() throws Exception {
+	public void testNest() throws Exception {
 		final Connect stack = new Connect();
 		final Connect stack1 = new Connect();
 
@@ -241,33 +241,10 @@ public final class ConnectTest {
 			}
 			
 		}, 2000);
-		
-		return true;
 	}
 	
 	public ConnectTest(){
 		this.ctx = new NodeContext(); 
 	}
-	
-	public void start() {		
-		(new Thread(new Runnable() {
-			public void run() {
-				Log.d(TAG, "start test");
-				
-				try {
-					testStack();
-					testNest();
-					
-					// run loop
-					ctx.getLoop().run();
-					
-					Log.d(TAG, "exit test");
-				} catch (Throwable e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}    
-			}
-		})).start();
 
-	}
 }

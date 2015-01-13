@@ -169,7 +169,6 @@ public class PipeHandleTest extends TestBase {
         try {
 			new PipeHandleTest().testConnection();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }

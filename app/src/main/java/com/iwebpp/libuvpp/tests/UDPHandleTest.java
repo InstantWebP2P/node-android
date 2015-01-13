@@ -169,13 +169,11 @@ public class UDPHandleTest extends TestBase {
         try {
 			test.testConnection();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         try {
 			test.testConnection6();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }

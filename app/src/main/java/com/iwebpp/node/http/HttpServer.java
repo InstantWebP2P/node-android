@@ -104,7 +104,6 @@ extends TCP.Server {
 
 				@Override
 				public void onEvent(Object e) throws Exception {
-					// TODO Auto-generated method stub
 					self.emit("clientError", new exception_socket_b(e!=null? e.toString() : null, socket));
 				}
 				
@@ -246,7 +245,6 @@ extends TCP.Server {
 			@Override
 			public void onClientError(String err, AbstractSocket conn)
 					throws Exception {
-				// TODO Auto-generated method stub
 				conn.destroy(err);
 			}
 			
@@ -274,7 +272,6 @@ extends TCP.Server {
 			@Override
 			public void onClientError(String err, AbstractSocket conn)
 					throws Exception {
-				// TODO Auto-generated method stub
 				conn.destroy(err);
 			}
 			
