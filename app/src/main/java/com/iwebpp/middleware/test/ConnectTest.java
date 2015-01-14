@@ -22,6 +22,7 @@ public final class ConnectTest extends TestCase {
 	
 	private NodeContext ctx;
 
+    // TODO are these supposed to communicate with each other?
 	public void testStack() throws Exception {
 		Connect stack = new Connect();
 
@@ -31,7 +32,7 @@ public final class ConnectTest extends TestCase {
 			@Override
 			public void onRequest(IncomingMessage req, ServerResponse res)
 					throws Exception {
-				res.setHeader("timestamp", ""+System.currentTimeMillis());				
+				res.setHeader("timestamp", String.valueOf(System.currentTimeMillis()));
 			}
 
 		});
@@ -158,7 +159,7 @@ public final class ConnectTest extends TestCase {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getPath() +", headers:"+res.headers());			
+						Log.d(TAG, String.format("got http response on %s, headers: %s", res.getPath(), res.headers()));
 					}
 
 				});
@@ -166,7 +167,7 @@ public final class ConnectTest extends TestCase {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getPath()  +", headers:"+res.headers());		
+						Log.d(TAG, String.format("got httpp response on %s, headers: %s", res.getPath(), res.headers()));
 					}
 
 				});
@@ -175,7 +176,7 @@ public final class ConnectTest extends TestCase {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getPath()  +", headers:"+res.headers());		
+						Log.d(TAG, String.format("got http response on %s, headers: %s", res.getPath(), res.headers()));
 					}
 
 				});
@@ -183,7 +184,7 @@ public final class ConnectTest extends TestCase {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getPath()  +", headers:"+res.headers());			
+						Log.d(TAG, String.format("got httpp response on %s, headers: %s", res.getPath(), res.headers()));
 					}
 
 				});
@@ -192,7 +193,7 @@ public final class ConnectTest extends TestCase {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getPath()  +", headers:"+res.headers());	
+						Log.d(TAG, String.format("got http response on %s, headers: %s", res.getPath(), res.headers()));
 					}
 
 				});
@@ -200,7 +201,7 @@ public final class ConnectTest extends TestCase {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getPath()  +", headers:"+res.headers());		
+						Log.d(TAG, String.format("got httpp response on %s, headers: %s", res.getPath(), res.headers()));
 					}
 
 				});
@@ -209,7 +210,7 @@ public final class ConnectTest extends TestCase {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getPath()  +", headers:"+res.headers());	
+						Log.d(TAG, String.format("got http response on %s, headers: %s", res.getPath(), res.headers()));
 					}
 
 				});
@@ -217,7 +218,7 @@ public final class ConnectTest extends TestCase {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getPath()  +", headers:"+res.headers());		
+						Log.d(TAG, String.format("got httpp response on %s, headers: %s", res.getPath(), res.headers()));
 					}
 
 				});
@@ -226,7 +227,7 @@ public final class ConnectTest extends TestCase {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got http response on " + res.getPath()  +", headers:"+res.headers());	
+						Log.d(TAG, String.format("got http response on %s, headers: %s", res.getPath(), res.headers()));
 					}
 
 				});
@@ -234,7 +235,7 @@ public final class ConnectTest extends TestCase {
 
 					@Override
 					public void onResponse(IncomingMessage res) throws Exception {
-						Log.d(TAG, "got httpp response on " + res.getPath()  +", headers:"+res.headers());		
+						Log.d(TAG, String.format("got httpp response on %s, headers: %s", res.getPath(), res.headers()));
 					}
 
 				});
@@ -242,9 +243,11 @@ public final class ConnectTest extends TestCase {
 			
 		}, 2000);
 	}
-	
-	public ConnectTest(){
-		this.ctx = new NodeContext(); 
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        this.ctx = new NodeContext();
 	}
 
 }

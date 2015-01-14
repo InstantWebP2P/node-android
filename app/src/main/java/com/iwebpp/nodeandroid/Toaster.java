@@ -32,7 +32,7 @@ public class Toaster extends BaseFunction {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                toast((String) args[0]);
+                toast(((org.mozilla.javascript.ConsString) args[0]).toString());
             }
         });
         return null;
@@ -52,7 +52,7 @@ public class Toaster extends BaseFunction {
         return mInstance;
     }
 
-    public static void toast(String message){
+    public static void toast(final String message){
         if (mInstance.currentToast != null){
             mInstance.currentToast.cancel();
         }

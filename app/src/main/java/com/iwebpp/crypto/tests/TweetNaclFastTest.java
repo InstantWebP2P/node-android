@@ -80,6 +80,7 @@ public final class TweetNaclFastTest extends TestCase {
 			} else {
 				Log.e(TAG, "box/open string failed @" + m0 + " / " + nm0);
 			}
+            assertEquals(nm0, m0);
 		}
 	}
 	
@@ -133,12 +134,14 @@ public final class TweetNaclFastTest extends TestCase {
 			
 			String nm0 = new String(mba, "utf-8");
 
-            assert nm0.equals(m0);
+
 			if (nm0.equals(m0)) {
 				Log.d(TAG, "\tsecret box/open succes");
 			} else {
 				Log.e(TAG, "\tsecret box/open failed @" + m0 + " / " + nm0);
 			}
+
+            assertEquals (String.format("t=%d", t), nm0, m0);
 		}
 	}
 	
@@ -179,8 +182,9 @@ public final class TweetNaclFastTest extends TestCase {
 			if (nm0.equals(m0)) {
 				Log.d(TAG, "sign success @" + m0);
 			} else {
-				Log.e(TAG, "sign failed @" + m0 + " / " + nm0);
-			}
+                Log.e(TAG, "sign failed @" + m0 + " / " + nm0);
+            }
+            assertEquals (nm0, m0);
 		}
 		
 		// keypair C
@@ -218,12 +222,12 @@ public final class TweetNaclFastTest extends TestCase {
 			Log.e(TAG, "self-verify failed @" + m0);
 		} else {
 			String nm0 = new String(occ, "utf-8");
-            assert nm0.equals(m0);
 			if (nm0.equals(m0)) {
 				Log.d(TAG, "self-sign success @" + m0);
 			} else {
 				Log.e(TAG, "self-sign failed @" + m0 + " / " + nm0);
 			}
+            assertEquals (nm0, m0);
 		}
 	}
 	

@@ -25,238 +25,226 @@ import com.iwebpp.node.stream.Writable.WriteCB;
 import junit.framework.TestCase;
 
 public final class HttppTest extends TestCase {
-	private static final String TAG = "HttppTest";
-	private NodeContext ctx;
+    private static final String TAG = "HttppTest";
+    private NodeContext ctx;
 
-	public void testListening() {
-		HttppServer srv;
-		final int port = 6188;
-		try {
-			srv = new HttppServer(ctx);
+    public void testListening() throws Exception {
+        HttppServer srv;
+        final int port = 6188;
+        srv = new HttppServer(ctx);
 
-			srv.listen(port, "0.0.0.0", 10, new HttppServer.ListeningCallback() {
-				
-				@Override
-				public void onListening() throws Exception {
-                    Log.d(TAG, "httpp server listening on "+port);					
-				}
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void testConnection() {
-		HttppServer srv;
-		final int port = 6288;
-		try {
-			srv = new HttppServer(ctx, new HttpServer.requestListener(){
+        srv.listen(port, "0.0.0.0", 10, new HttppServer.ListeningCallback() {
 
-				@Override
-				public void onRequest(IncomingMessage req, ServerResponse res)
-						throws Exception {
-					Log.d(TAG, "got reqeust, headers: "+req.headers());
+            @Override
+            public void onListening() throws Exception {
+                Log.d(TAG, "httpp server listening on " + port);
+            }
+        });
+    }
 
-					Map<String, List<String>> headers = new Hashtable<String, List<String>>();
-					headers.put("content-type", new ArrayList<String>());
-					headers.get("content-type").add("text/plain");
-					///headers.put("te", new LinkedList<String>());
-					///headers.get("te").add("chunk");
-					
-					res.writeHead(200, headers);
-					///for (int i = 0; i < 10; i ++)
-						res.write("Hello Tom", "utf-8", new WriteCB(){
+    public void testConnection() throws Exception {
+        HttppServer srv;
+        final int port = 6288;
+        srv = new HttppServer(ctx, new HttpServer.requestListener() {
 
-						@Override
-						public void writeDone(String error) throws Exception {
-							Log.d(TAG, "httpp res.write done");							
-						}
+            @Override
+            public void onRequest(IncomingMessage req, ServerResponse res)
+                    throws Exception {
+                Log.d(TAG, "got reqeust, headers: " + req.headers());
 
-					});
+                Map<String, List<String>> headers = new Hashtable<String, List<String>>();
+                headers.put("content-type", new ArrayList<String>());
+                headers.get("content-type").add("text/plain");
+                ///headers.put("te", new LinkedList<String>());
+                ///headers.get("te").add("chunk");
 
-					res.end(null, null, null);
-				}
+                res.writeHead(200, headers);
+                ///for (int i = 0; i < 10; i ++)
+                res.write("Hello Tom", "utf-8", new WriteCB() {
 
-			});
-			
-			srv.onClientError(new HttpServer.clientErrorListener(){
+                    @Override
+                    public void writeDone(String error) throws Exception {
+                        Log.d(TAG, "httpp res.write done");
+                    }
 
-				@Override
-				public void onClientError(String exception, AbstractSocket socket) throws Exception {
-					Log.e(TAG, "client error: "+exception + "@"+socket);
-				}
-				
-			});
+                });
 
-			srv.listen(port, "0.0.0.0", 10, new HttppServer.ListeningCallback() {
+                res.end(null, null, null);
+            }
 
-				@Override
-				public void onListening() throws Exception {
-					Log.d(TAG, "httpp server listening on "+port);					
-				}
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+        });
 
-	public void testConnect() {
-		final String host = "192.188.1.100";
-		final int port = 51680;
+        srv.onClientError(new HttpServer.clientErrorListener() {
 
-		try {
+            @Override
+            public void onClientError(String exception, AbstractSocket socket) throws Exception {
+                Log.e(TAG, "client error: " + exception + "@" + socket);
+                fail("client error: " + exception + "@" + socket);
+            }
 
-			// client
-			ReqOptions ropt = new ReqOptions();
-			ropt.hostname = host;
-			ropt.port = port;
-			ropt.method = "PUT";
-			ropt.path = "/";
-			///ropt.keepAlive = true;
-			///ropt.keepAliveMsecs = 10000;
+        });
 
-			ClientRequest req = httpp.request(ctx, ropt, new ClientRequest.responseListener() {
+        srv.listen(port, "0.0.0.0", 10, new HttppServer.ListeningCallback() {
 
-				@Override
-				public void onResponse(IncomingMessage res) throws Exception {
-					Log.d(TAG, "STATUS: " + res.statusCode());
-					Log.d(TAG, "HEADERS: " + res.getHeaders());
+            @Override
+            public void onListening() throws Exception {
+                Log.d(TAG, "httpp server listening on " + port);
+            }
+        });
+    }
 
-					res.setEncoding("utf-8");
-					res.on("data", new Listener(){
+    public void testConnect() throws Exception {
+        final String host = "192.188.1.100";
+        final int port = 51680;
 
-						@Override
-						public void onEvent(Object chunk) throws Exception {
-							Log.d(TAG, "BODY: " + chunk);
+        // client
+        ReqOptions ropt = new ReqOptions();
+        ropt.hostname = host;
+        ropt.port = port;
+        ropt.method = "PUT";
+        ropt.path = "/";
+        ///ropt.keepAlive = true;
+        ///ropt.keepAliveMsecs = 10000;
 
-						}
+        ClientRequest req = httpp.request(ctx, ropt, new ClientRequest.responseListener() {
 
-					});
-				}
+            @Override
+            public void onResponse(IncomingMessage res) throws Exception {
+                Log.d(TAG, "STATUS: " + res.statusCode());
+                Log.d(TAG, "HEADERS: " + res.getHeaders());
 
-			});
-			
-			req.on("error", new Listener(){
+                res.setEncoding("utf-8");
+                res.on("data", new Listener() {
 
-				@Override
-				public void onEvent(Object e) throws Exception {
-					Log.d(TAG, "problem with request: " + e);					
-				}
+                    @Override
+                    public void onEvent(Object chunk) throws Exception {
+                        Log.d(TAG, "BODY: " + chunk);
 
-			});
+                    }
 
-			// write data to request body
-			for (int i = 0; i < 8; i ++)
-			    req.write("data"+i+"\n", "utf-8", null);
-			
-			req.end(null, null, null);
+                });
+            }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void testConnectPair() {
-		final int port = 6688;
+        });
 
-		try {
-			final HttppServer srv = httpp.createServer(ctx, new requestListener(){
+        req.on("error", new Listener() {
 
-				@Override
-				public void onRequest(IncomingMessage req, ServerResponse res)
-						throws Exception {
-					Log.d(TAG, "got reqeust, headers: "+req.headers());
+            @Override
+            public void onEvent(Object e) throws Exception {
+                Log.d(TAG, "problem with request: " + e);
+                fail("problem with request: " + e);
+            }
 
-					Map<String, List<String>> headers = new Hashtable<String, List<String>>();
-					headers.put("content-type", new ArrayList<String>());
-					headers.get("content-type").add("text/plain");
-					///headers.put("te", new ArrayList<String>());
-					///headers.get("te").add("chunk");
+        });
 
-					res.writeHead(200, headers);
-					res.write("Hello Tom", "utf-8", new WriteCB(){
+        // write data to request body
+        for (int i = 0; i < 8; i++)
+            req.write("data" + i + "\n", "utf-8", null);
 
-						@Override
-						public void writeDone(String error) throws Exception {
-							Log.d(TAG, "httpp res.write done");							
-						}
+        req.end(null, null, null);
 
-					});
+    }
 
-					res.end(null, null, null);
-					
-				}
+    public void testConnectPair() throws Exception {
+        final int port = 6688;
 
-			});
+        final HttppServer srv = httpp.createServer(ctx, new requestListener() {
 
-			srv.listen(port, "0.0.0.0", 1, new ListeningCallback() {
+            @Override
+            public void onRequest(IncomingMessage req, ServerResponse res)
+                    throws Exception {
+                Log.d(TAG, "got request, headers: " + req.headers());
 
-				@Override
-				public void onListening() throws Exception {
-					Log.d(TAG, "httpp server listening on "+port);		
-				}
-				
-			});
-			
-			// client
-			final ReqOptions ropt = new ReqOptions();
-			ropt.hostname = "localhost"; // IP address instead localhost
-			ropt.port = port;
-			ropt.method = "GET";
-			ropt.path = "/";
+                Map<String, List<String>> headers = new Hashtable<String, List<String>>();
+                headers.put("content-type", new ArrayList<String>());
+                headers.get("content-type").add("text/plain");
+                ///headers.put("te", new ArrayList<String>());
+                ///headers.get("te").add("chunk");
 
-			// defer 2s to connect
-			ctx.setTimeout(new TimeoutListener(){
+                res.writeHead(200, headers);
+                res.write("Hello Tom", "utf-8", new WriteCB() {
 
-				@Override
-				public void onTimeout() throws Exception {
-					
-					ClientRequest req = httpp.request(ctx, ropt, new ClientRequest.responseListener() {
+                    @Override
+                    public void writeDone(String error) throws Exception {
+                        Log.d(TAG, "httpp res.write done");
+                        fail("httpp res.write done");
+                    }
 
-						@Override
-						public void onResponse(IncomingMessage res) throws Exception {
-							Log.d(TAG, "STATUS: " + res.statusCode());
-							Log.d(TAG, "HEADERS: " + res.getHeaders());
+                });
 
-							res.setEncoding("utf-8");
+                res.end(null, null, null);
 
-							res.on("data", new Listener(){
+            }
 
-								@Override
-								public void onEvent(Object chunk) throws Exception {
-									Log.d(TAG, "BODY: " + chunk);
+        });
 
-								}
+        srv.listen(port, "0.0.0.0", 1, new ListeningCallback() {
 
-							});
-						}
+            @Override
+            public void onListening() throws Exception {
+                Log.d(TAG, "httpp server listening on " + port);
+            }
 
-					});
+        });
 
-					req.on("error", new Listener(){
+        // client
+        final ReqOptions ropt = new ReqOptions();
+        ropt.hostname = "localhost"; // IP address instead localhost
+        ropt.port = port;
+        ropt.method = "GET";
+        ropt.path = "/";
 
-						@Override
-						public void onEvent(Object e) throws Exception {
-							Log.d(TAG, "problem with request: " + e);					
-						}
+        // defer 2s to connect
+        ctx.setTimeout(new TimeoutListener() {
 
-					});
+            @Override
+            public void onTimeout() throws Exception {
 
-					// write data to request body
-					///req.write("data\n", "utf-8", null);
-					///req.write("data\n", "utf-8", null);
-					req.end(null, null, null);
-				}
+                ClientRequest req = httpp.request(ctx, ropt, new ClientRequest.responseListener() {
 
-			}, 2000);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public HttppTest(){
-		this.ctx = new NodeContext(); 
-	}
+                    @Override
+                    public void onResponse(IncomingMessage res) throws Exception {
+                        Log.d(TAG, "STATUS: " + res.statusCode());
+                        Log.d(TAG, "HEADERS: " + res.getHeaders());
+
+                        res.setEncoding("utf-8");
+
+                        res.on("data", new Listener() {
+
+                            @Override
+                            public void onEvent(Object chunk) throws Exception {
+                                Log.d(TAG, "BODY: " + chunk);
+
+                            }
+
+                        });
+                    }
+
+                });
+
+                req.on("error", new Listener() {
+
+                    @Override
+                    public void onEvent(Object e) throws Exception {
+                        Log.d(TAG, "problem with request: " + e);
+                        fail("problem with request: " + e);
+                    }
+
+                });
+
+                // write data to request body
+                ///req.write("data\n", "utf-8", null);
+                ///req.write("data\n", "utf-8", null);
+                req.end(null, null, null);
+            }
+
+        }, 2000);
+    }
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        this.ctx = new NodeContext();
+    }
 
 }
