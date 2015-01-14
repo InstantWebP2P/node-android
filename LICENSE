@@ -73,3 +73,4 @@ maintained libraries. The externally maintained libraries used by Node-android a
      - UDT4, copyright yunhong gu, and under BSD license.
   """
   
+- libuv JNI code, Oracle libuv JNI code under GPL V2
