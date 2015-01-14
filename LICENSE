@@ -23,8 +23,8 @@ IN THE SOFTWARE.
 
 ====
 
-This license applies to all parts of Node that are not externally
-maintained libraries. The externally maintained libraries used by Node are:
+This license applies to all parts of Node-android that are not externally
+maintained libraries. The externally maintained libraries used by Node-android are:
 
 - libuvpp, libuvpp's license follows:
   """
