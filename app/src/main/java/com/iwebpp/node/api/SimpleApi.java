@@ -3,6 +3,9 @@
 
 package com.iwebpp.node.api;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import com.iwebpp.EventHandler;
 import com.iwebpp.node.NodeContext;
 
@@ -17,18 +20,22 @@ implements NodeApi {
 
 	private final static String TAG = "SimpleApi";
 
-	private NodeContext context;
+	private List<NodeContext> contextQueue;
+	private NodeContext current;
 
 	private int runTimes;
 
 	public SimpleApi() {
 		this.runTimes = 0;
-		this.context = new NodeContext();
+		this.contextQueue = new LinkedList<NodeContext>();
+		this.current = null;
 	}
 
 	@Override
+	// @description return current node context
 	public NodeContext getNodeContext() {
-		return context;
+		// TODO Auto-generated method stub
+		return current;
 	}
 
 	@Override
@@ -36,6 +43,10 @@ implements NodeApi {
 		debug(TAG, "execute");
 
 		{
+			// create new context
+			if (current != null) contextQueue.add(current);
+			current = new NodeContext();
+
 			runTimes ++;
 			debug(TAG, "execute times: " + runTimes);
 
@@ -49,8 +60,9 @@ implements NodeApi {
 						content();
 
 						// enter event loop
-						context.execute();
+						current.execute();
 					} catch (Throwable e) {
+						// TODO Auto-generated catch block
 						///e.printStackTrace();
 						error(TAG, "node-android context execute failed: "+e.toString());
 					}			
