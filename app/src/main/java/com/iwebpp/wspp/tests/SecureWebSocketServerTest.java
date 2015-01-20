@@ -71,6 +71,7 @@ public final class SecureWebSocketServerTest extends TestCase {
 					@Override
 					public void onError(ErrorEvent event) throws Exception {
                         Log.d(TAG, "ws error:"+event.getCode()+",message:"+event.getError());						
+                        fail("ws error:"+event.getCode()+",message:"+event.getError());
 					}
 					
 				});
@@ -178,6 +179,7 @@ public final class SecureWebSocketServerTest extends TestCase {
 					@Override
 					public void onError(ErrorEvent event) throws Exception {
                         Log.d(TAG, "httpp ws error:"+event.getCode()+",message:"+event.getError());						
+                        fail("httpp ws error:"+event.getCode()+",message:"+event.getError());
 					}
 					
 				});
@@ -337,6 +339,7 @@ public final class SecureWebSocketServerTest extends TestCase {
 					@Override
 					public void onError(ErrorEvent event) throws Exception {
                         Log.d(TAG, "V2 ws error:"+event.getCode()+",message:"+event.getError());						
+                        fail("V2 ws error:"+event.getCode()+",message:"+event.getError());
 					}
 					
 				});
@@ -397,9 +400,11 @@ public final class SecureWebSocketServerTest extends TestCase {
 
 		});
 	}
-	
-	public SecureWebSocketServerTest(){
-		this.ctx = new NodeContext(); 
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        this.ctx = new NodeContext();
 	}
 
 }

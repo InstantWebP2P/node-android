@@ -22,288 +22,273 @@ import com.iwebpp.node.stream.Writable.WriteCB;
 import junit.framework.TestCase;
 
 public final class UdtTest extends TestCase {
-	private static final String TAG = "UdtTest";
-	private NodeContext ctx;
+    private static final String TAG = "UdtTest";
+    private NodeContext ctx;
 
-	public void testListening() {
-		Server srv;
-		try {
-			srv = new UDT.Server(ctx, new Server.Options(false), null);
+    public void testListening() throws Exception {
+        Server srv;
+        srv = new UDT.Server(ctx, new Server.Options(false), null);
 
-			srv.listen("0.0.0.0", 51688, new ListeningCallback(){
+        srv.listen("0.0.0.0", 51688, new ListeningCallback() {
 
-				@Override
-				public void onListening() {
-					Log.d(TAG, "UDT server listening on 0.0.0.0:51688");
-				}
+            @Override
+            public void onListening() {
+                Log.d(TAG, "UDT server listening on 0.0.0.0:51688");
+            }
 
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void testClosure() {
-		final int port = 52688;
+        });
+    }
 
-		final Server srv;
-		final Socket cln;
-		try {
-			srv = new UDT.Server(ctx, new Server.Options(false), null);
+    public void testClosure() throws Exception {
+        final int port = 52688;
 
-			srv.listen("0.0.0.0", port, new ListeningCallback(){
+        final Server srv;
+        final Socket cln;
+        srv = new UDT.Server(ctx, new Server.Options(false), null);
 
-				@Override
-				public void onListening() {
-					Log.d(TAG, "UDT server listening on 0.0.0.0:"+port);
-				}
+        srv.listen("0.0.0.0", port, new ListeningCallback() {
 
-			});
+            @Override
+            public void onListening() {
+                Log.d(TAG, "UDT server listening on 0.0.0.0:" + port);
+            }
 
-			cln = new UDT.Socket(ctx, new Socket.Options(null, false, false, true));
+        });
 
-			///cln.setEncoding("utf8");
+        cln = new UDT.Socket(ctx, new Socket.Options(null, false, false, true));
 
-			cln.connect(port, new ConnectListener(){
+        ///cln.setEncoding("utf8");
 
-				@Override
-				public void onConnect() throws Exception {
+        cln.connect(port, new ConnectListener() {
 
-					Log.d(TAG, "got connected");
+            @Override
+            public void onConnect() throws Exception {
 
-					cln.on("close", new Listener(){
+                Log.d(TAG, "got connected");
 
-						@Override
-						public void onEvent(Object data) throws Exception {
-							Log.d(TAG, "client closed");							
-						}
+                cln.on("close", new Listener() {
 
-					});
+                    @Override
+                    public void onEvent(Object data) throws Exception {
+                        Log.d(TAG, "client closed");
+                    }
 
-					// close client
-					cln.end(null, null, null);
+                });
 
-				}
-			});
+                // close client
+                cln.end(null, null, null);
 
-			// close server after 6s
-			ctx.setTimeout(new TimeoutListener(){
+            }
+        });
 
-				@Override
-				public void onTimeout() throws Exception {
-					srv.close(new CloseListener(){
+        // close server after 6s
+        ctx.setTimeout(new TimeoutListener() {
 
-						@Override
-						public void onClose(String error) {
-							if (Util.zeroString(error)) 
-								Log.d(TAG, "server closed ok");			
-							else 
-								Log.d(TAG, "server closed failed "+error);			
-						}
+            @Override
+            public void onTimeout() throws Exception {
+                srv.close(new CloseListener() {
 
-					});		
+                    @Override
+                    public void onClose(String error) {
+                        if (Util.zeroString(error))
+                            Log.d(TAG, "server closed ok");
+                        else {
+                            Log.d(TAG, "server closed failed " + error);
+                            fail("server closed failed " + error);
+                        }
 
-				}
+                    }
 
-			}, 6000);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void testListening6() {
-		Server srv;
-		try {
-			srv = new UDT.Server(ctx, new Server.Options(false), null);
+                });
 
-			srv.listen("::", 51866, new ListeningCallback(){
+            }
 
-				@Override
-				public void onListening() {
-					Log.d(TAG, "UDT server listening on IPv6 :::51866");
-				}
+        }, 6000);
+    }
 
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void testConnect6() {
-		Server srv;
-		final Socket cln;
-		int port = 51868;
-		
-		try {
-			srv = new UDT.Server(ctx, new Server.Options(false), null);
+    public void testListening6() throws Exception {
+        Server srv;
+        srv = new UDT.Server(ctx, new Server.Options(false), null);
 
-			srv.on("connection", new Listener(){
+        srv.listen("::", 51866, new ListeningCallback() {
 
-				@Override
-				public void onEvent(Object data) throws Exception {
-					Socket peer = (Socket)data;
-					
-					peer.pipe(peer, true);
-					
-					Log.d(TAG, "got connection 6 then echo it");
-				}
-				
-			});
-			srv.listen("::", port, null);
-			
-			cln = new UDT.Socket(ctx, new Socket.Options(null, false, false, true));
-			
-			cln.setEncoding("utf8");
-			
-			cln.connect(6, "::1", port, new ConnectListener(){
+            @Override
+            public void onListening() {
+                Log.d(TAG, "UDT server listening on IPv6 :::51866");
+            }
 
-				@Override
-				public void onConnect() throws Exception {
+        });
+    }
 
-					Log.d(TAG, "got connected 6");
-					
-					cln.on("readable", new Listener(){
+    public void testConnect6() throws Exception {
+        Server srv;
+        final Socket cln;
+        int port = 51868;
 
-						@Override
-						public void onEvent(Object data) throws Exception {
-		    				Object chunk;
+        srv = new UDT.Server(ctx, new Server.Options(false), null);
 
-		    				while (null != (chunk = cln.read(68))) {
-		    					Log.d(TAG, "client read: "+Util.chunkToString(chunk, "utf8"));
-		    				}
+        srv.on("connection", new Listener() {
 
-		    			}
-						
-					});
-					
-					///while (cln.write("hello word", "utf-8", new WriteCB(){
-					cln.write("hello word", "utf-8", new WriteCB(){
+            @Override
+            public void onEvent(Object data) throws Exception {
+                Socket peer = (Socket) data;
 
-						@Override
-						public void writeDone(String error) throws Exception {
-							Log.d(TAG, "client write done @"+System.currentTimeMillis());
-						}
-						
-					});
-					
-					cln.on("drain", new Listener(){
+                peer.pipe(peer, true);
 
-						@Override
-						public void onEvent(Object data) throws Exception {
-							Log.d(TAG, "client write drained");
+                Log.d(TAG, "got connection 6 then echo it");
+            }
 
-                            ///while (cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null));
-						}
-						
-					});
-					
-					// write after 2s
-					TimerHandle interval = ctx.setInterval(new IntervalListener(){
+        });
+        srv.listen("::", port, null);
 
-						@Override
-						public void onInterval() throws Exception {
-							cln.write("hello word IPv6: "+System.currentTimeMillis(), "utf-8", null);							
-						}
-						
-					}, 2000);
-					///ctx.clearInterval(interval);
-				}
-				
-			});
-						
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void testConnect() {
-		Server srv;
-		final Socket cln;
-		int port = 51686;
-		
-		try {
-			srv = new UDT.Server(ctx, new Server.Options(false), null);
+        cln = new UDT.Socket(ctx, new Socket.Options(null, false, false, true));
 
-			srv.on("connection", new Listener(){
+        cln.setEncoding("utf8");
 
-				@Override
-				public void onEvent(Object data) throws Exception {
-					Socket peer = (Socket)data;
-					
-					peer.pipe(peer, true);
-					
-					Log.d(TAG, "got connection then echo it");
-				}
-				
-			});
-			srv.listen("0.0.0.0", port, null);
-			
-			cln = new UDT.Socket(ctx, new Socket.Options(null, false, false, true));
-			
-			cln.setEncoding("utf8");
-			
-			cln.connect(port, new ConnectListener(){
+        cln.connect(6, "::1", port, new ConnectListener() {
 
-				@Override
-				public void onConnect() throws Exception {
+            @Override
+            public void onConnect() throws Exception {
 
-					Log.d(TAG, "got connected");
-					
-					cln.on("readable", new Listener(){
+                Log.d(TAG, "got connected 6");
 
-						@Override
-						public void onEvent(Object data) throws Exception {
-		    				Object chunk;
+                cln.on("readable", new Listener() {
 
-		    				while (null != (chunk = cln.read(68))) {
-		    					Log.d(TAG, "client read: "+Util.chunkToString(chunk, "utf8"));
-		    				}
+                    @Override
+                    public void onEvent(Object data) throws Exception {
+                        Object chunk;
 
-		    			}
-						
-					});
-					
-					///while (cln.write("hello word", "utf-8", new WriteCB(){
-					cln.write("hello word", "utf-8", new WriteCB(){
+                        while (null != (chunk = cln.read(68))) {
+                            Log.d(TAG, "client read: " + Util.chunkToString(chunk, "utf8"));
+                        }
 
-						@Override
-						public void writeDone(String error) throws Exception {
-							Log.d(TAG, "client write done @"+System.currentTimeMillis());
-						}
-						
-					});
-					
-					cln.on("drain", new Listener(){
+                    }
 
-						@Override
-						public void onEvent(Object data) throws Exception {
-							Log.d(TAG, "client write drained");
+                });
 
-                            ///while (cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null));
-						}
-						
-					});
-					
-					// write after 2s
-					TimerHandle interval = ctx.setInterval(new IntervalListener(){
+                ///while (cln.write("hello word", "utf-8", new WriteCB(){
+                cln.write("hello word", "utf-8", new WriteCB() {
 
-						@Override
-						public void onInterval() throws Exception {
-							cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null);							
-						}
-						
-					}, 2000);
-					///ctx.clearInterval(interval);
-				}
-				
-			});
-						
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public UdtTest(){
-		this.ctx = new NodeContext(); 
-	}
+                    @Override
+                    public void writeDone(String error) throws Exception {
+                        Log.d(TAG, "client write done @" + System.currentTimeMillis());
+                        fail("client write done @" + System.currentTimeMillis());
+                    }
+
+                });
+
+                cln.on("drain", new Listener() {
+
+                    @Override
+                    public void onEvent(Object data) throws Exception {
+                        Log.d(TAG, "client write drained");
+
+                        ///while (cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null));
+                    }
+
+                });
+
+                // write after 2s
+                TimerHandle interval = ctx.setInterval(new IntervalListener() {
+
+                    @Override
+                    public void onInterval() throws Exception {
+                        cln.write("hello word IPv6: " + System.currentTimeMillis(), "utf-8", null);
+                    }
+
+                }, 2000);
+                ///ctx.clearInterval(interval);
+            }
+
+        });
+    }
+
+    public void testConnect() throws Exception {
+        Server srv;
+        final Socket cln;
+        int port = 51686;
+
+        srv = new UDT.Server(ctx, new Server.Options(false), null);
+
+        srv.on("connection", new Listener() {
+
+            @Override
+            public void onEvent(Object data) throws Exception {
+                Socket peer = (Socket) data;
+
+                peer.pipe(peer, true);
+
+                Log.d(TAG, "got connection then echo it");
+            }
+
+        });
+        srv.listen("0.0.0.0", port, null);
+
+        cln = new UDT.Socket(ctx, new Socket.Options(null, false, false, true));
+
+        cln.setEncoding("utf8");
+
+        cln.connect(port, new ConnectListener() {
+
+            @Override
+            public void onConnect() throws Exception {
+
+                Log.d(TAG, "got connected");
+
+                cln.on("readable", new Listener() {
+
+                    @Override
+                    public void onEvent(Object data) throws Exception {
+                        Object chunk;
+
+                        while (null != (chunk = cln.read(68))) {
+                            Log.d(TAG, "client read: " + Util.chunkToString(chunk, "utf8"));
+                        }
+
+                    }
+
+                });
+
+                ///while (cln.write("hello word", "utf-8", new WriteCB(){
+                cln.write("hello word", "utf-8", new WriteCB() {
+
+                    @Override
+                    public void writeDone(String error) throws Exception {
+                        Log.d(TAG, "client write done @" + System.currentTimeMillis());
+                        fail("client write done @" + System.currentTimeMillis());
+                    }
+
+                });
+
+                cln.on("drain", new Listener() {
+
+                    @Override
+                    public void onEvent(Object data) throws Exception {
+                        Log.d(TAG, "client write drained");
+
+                        ///while (cln.write("hello word: "+System.currentTimeMillis(), "utf-8", null));
+                    }
+
+                });
+
+                // write after 2s
+                TimerHandle interval = ctx.setInterval(new IntervalListener() {
+
+                    @Override
+                    public void onInterval() throws Exception {
+                        cln.write("hello word: " + System.currentTimeMillis(), "utf-8", null);
+                    }
+
+                }, 2000);
+                ///ctx.clearInterval(interval);
+            }
+
+        });
+    }
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        this.ctx = new NodeContext();
+    }
 }

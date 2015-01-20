@@ -11,13 +11,15 @@ import com.iwebpp.wspp.WebSocket.onopenListener;
 
 import android.util.Log;
 
+import junit.framework.TestCase;
 
-public final class WebSocketTest {
+
+public final class WebSocketTest extends TestCase {
 	private static final String TAG = "WebSocketTest";
 	
 	private NodeContext ctx;
 
-	private boolean testConnect() throws Exception {
+	public void testConnect() throws Exception {
 
 		final WebSocket ws = new WebSocket(ctx, "ws://192.188.1.100:6668", null, new WebSocket.Options());
 
@@ -37,7 +39,8 @@ public final class WebSocketTest {
 
 							@Override
 							public void writeDone(String error) throws Exception {
-								Log.d(TAG, "send done");						
+								Log.d(TAG, "send done");
+                                fail("send done:" + error);
 							}
 
 						});
@@ -45,7 +48,7 @@ public final class WebSocketTest {
 					}
 					
 				}, 2000);
-				ws.send("Hello, node-andord", new WebSocket.SendOptions(false, true), new WriteCB(){
+				ws.send("Hello, node-andoid", new WebSocket.SendOptions(false, true), new WriteCB(){
 
 					@Override
 					public void writeDone(String error) throws Exception {
@@ -71,31 +74,12 @@ public final class WebSocketTest {
 			}
 
 		});
-
-		return true;
 	}
 
-	public WebSocketTest(){
-		this.ctx = new NodeContext(); 
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        this.ctx = new NodeContext();
 	}
-	
-	public void start() {		
-		(new Thread(new Runnable() {
-			public void run() {
-				Log.d(TAG, "start test");
-				
-				try {
-					testConnect();
-					
-					// run loop
-					ctx.getLoop().run();
-					
-					Log.d(TAG, "exit test");
-				} catch (Throwable e) {
-					e.printStackTrace();
-				}    
-			}
-		})).start();
 
-	}
 }
