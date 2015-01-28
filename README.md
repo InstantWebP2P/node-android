@@ -9,6 +9,9 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 ### Build
 
   Clone the code, open Android Studio (1.*) and import the project.
+  
+  For Eclipse ADT user, refer to https://github.com/InstantWebP2P/node-android/tree/master
+
 
 ### Javascript code injection
 
