@@ -8,7 +8,7 @@ Node.js rewrite for Android with the compatible API.
 third-party: libuvpp, libuv-java JNI code by Oracle.
 
 
-### Usage:
+### Build
 
   clone the code, open Android eclipse ADT and import the project.
   
