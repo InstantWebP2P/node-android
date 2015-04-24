@@ -1,7 +1,7 @@
 node-android
 ===============
 
-Node.js rewrite for Android with the compatible API.
+Run Node.js on Android by rewrite Node.js in  Java with the compatible API.
 
 
 
