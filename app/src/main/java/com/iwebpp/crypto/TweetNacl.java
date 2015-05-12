@@ -4,7 +4,7 @@
 package com.iwebpp.crypto;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Random;
+import java.security.SecureRandom;
 import java.util.concurrent.atomic.AtomicLong;
 
 
@@ -1881,9 +1881,9 @@ public final class TweetNacl {
 
 	/*
 	 * @description
-	 *   Java Random generator
+	 *   Java SecureRandom generator
 	 * */
-	private static final Random jrandom = new Random();
+	private static final SecureRandom jrandom = new SecureRandom();
 
 	private static void randombytes(byte [] x, int len) {
 		int ret = len % 8;
