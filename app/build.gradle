@@ -1,0 +1,44 @@
+apply plugin: 'android-sdk-manager'
+apply plugin: 'com.android.application'
+apply plugin: 'android-native-dependencies'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    // prevent ndk from building automagically
+    android {
+        sourceSets.main {
+            jniLibs.srcDir 'src/main/libs'
+            jni.srcDirs = [] //disable automatic ndk-build
+        }
+
+    }
+
+    defaultConfig {
+        applicationId "com.iwebpp.nodeandroid"
+        minSdkVersion 8
+        targetSdkVersion 21
+
+        // Android Studio 1.0.* deprecated ndk support, do a manual command line build instead
+//        ndk {
+//            moduleName "uvpp-prebuilt"
+//        }
+    }
+
+    buildTypes {
+        debug {
+
+        }
+
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    compile 'com.android.support:appcompat-v7:21.0.3'
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}

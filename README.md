@@ -4,18 +4,22 @@ node-android
 Run Node.js on Android by rewrite Node.js in  Java with the compatible API.
 
 
-
 third-party: libuvpp, libuv-java JNI code by Oracle.
 
 
 ### Build
 
-  clone the code, open Android eclipse ADT and import the project.
+  Clone the code, open Android Studio (1.*) and import the project.
   
-  notes: to run node-android API from Rhino JS engine, add libs/js.jar in build path manually
+  For Eclipse ADT user, refer to https://github.com/InstantWebP2P/node-android/tree/adt
 
-  for Android studio user, refer to https://github.com/InstantWebP2P/node-android/tree/android_studio
 
+### Javascript code injection
+
+```bash
+> adb shell am start -a android.intent.action.VIEW -n com.iwebpp.nodeandroid/.MainActivity -e js "var run = function () { return 'hello world'; } run();"
+```
+  
 ### Features
 
 * Node.js 0.10.x compatible API
