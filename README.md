@@ -64,7 +64,7 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 ### TODO
 
 * API doc, more demos
-* JS runtime CommonJS compliance
+* JS runtime CommonJS/AMD compliance
 
 
 <br/>
