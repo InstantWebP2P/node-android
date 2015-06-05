@@ -14,7 +14,7 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
   
   notes: to run node-android API from Rhino JS engine, add libs/js.jar in build path manually
 
-  for Android studio user, refer to https://github.com/InstantWebP2P/node-android/tree/android_studio
+  for Android studio user, refer to https://github.com/InstantWebP2P/node-android/tree/master
 
 ### Features
 
