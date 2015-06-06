@@ -7,8 +7,6 @@ import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.util.concurrent.atomic.AtomicLong;
 
-import android.util.Log;
-
 
 /*
  * @description 
@@ -85,20 +83,14 @@ public final class TweetNaclFast {
 		 * */
 		public byte [] box(byte [] message) {
 			if (message==null) return null;
-
-			// prepare shared key
-			if (this.sharedKey == null) before();
-
-			return after(message, 0, message.length);
+		  return box(message, 0, message.length);
 		}
+
 		public byte [] box(byte [] message, final int moff) {
 			if (!(message!=null && message.length>moff)) return null;
-
-			// prepare shared key
-			if (this.sharedKey == null) before();
-
-			return after(message, moff, message.length-moff);
+		  return box(message, moff, message.length-moff);
 		}
+	
 		public byte [] box(byte [] message, final int moff, final int mlen) {
 			if (!(message!=null && message.length>=(moff+mlen))) return null;
 
@@ -106,6 +98,38 @@ public final class TweetNaclFast {
 			if (this.sharedKey == null) before();
 
 			return after(message, moff, mlen);
+		}
+
+		/*
+		 * @description 
+		 *   Encrypt and authenticates message using peer's public key, 
+		 *   our secret key, and the given nonce, which must be unique 
+		 *   for each distinct message for a key pair.
+		 *
+		 *   Explicitly pass the nonce
+		 *   
+		 *   Returns an encrypted and authenticated message, 
+		 *   which is nacl.box.overheadLength longer than the original message.
+		 * */
+		public byte [] box(byte [] message, byte [] theNonce) {
+			if (message==null) return null;
+		  return box(message, 0, message.length, theNonce);
+		}
+
+		public byte [] box(byte [] message, final int moff, byte [] theNonce) {
+			if (!(message!=null && message.length>moff)) return null;
+		  return box(message, moff, message.length-moff, theNonce);
+		}
+	
+		public byte [] box(byte [] message, final int moff, final int mlen, byte [] theNonce) {
+			if (!(message!=null && message.length>=(moff+mlen) &&
+			      theNonce!=null && theNonce.length==nonceLength)) 
+			  return null;
+
+			// prepare shared key
+			if (this.sharedKey == null) before();
+
+			return after(message, moff, mlen, theNonce);
 		}
 
 		/*
@@ -140,6 +164,46 @@ public final class TweetNaclFast {
 			return open_after(box, boxoff, boxlen);
 		}
 
+
+		/*
+		 * @description 
+		 *   Authenticates and decrypts the given box with peer's public key, 
+		 *   our secret key, and the given nonce.
+		 *   Explicit passing of nonce
+		 *   Returns the original message, or null if authentication fails.
+		 * */
+		public byte [] open(byte [] box, byte [] theNonce) {
+			if (!(box!=null &&
+			      theNonce!=null && theNonce.length==nonceLength))
+			  return null;
+
+			// prepare shared key
+			if (this.sharedKey == null) before();
+
+			return open_after(box, 0, box.length, theNonce);
+		}
+		public byte [] open(byte [] box, final int boxoff, byte [] theNonce) {
+			if (!(box!=null && box.length>boxoff &&
+			      theNonce!=null && theNonce.length==nonceLength))
+			  return null;
+
+			// prepare shared key
+			if (this.sharedKey == null) before();
+
+			return open_after(box, boxoff, box.length-boxoff, theNonce);
+		}
+		public byte [] open(byte [] box, final int boxoff, final int boxlen, byte [] theNonce) {
+			if (!(box!=null && box.length>=(boxoff+boxlen) &&
+			      theNonce!=null && theNonce.length==nonceLength))
+			  return null;
+
+			// prepare shared key
+			if (this.sharedKey == null) before();
+
+			return open_after(box, boxoff, boxlen, theNonce);
+		}
+
+
 		/*
 		 * @description 
 		 *   Returns a precomputed shared key 
@@ -159,12 +223,19 @@ public final class TweetNaclFast {
 		 *   Same as nacl.box, but uses a shared key precomputed with nacl.box.before.
 		 * */
 		public byte [] after(byte [] message, final int moff, final int mlen) {
-			// check message
-			if (!(message!=null && message.length>=(moff+mlen)))
-				return null;
+		  return after(message, moff, mlen, generateNonce());
+		}
 
-			// generate nonce
-			byte [] n = generateNonce();
+		/*
+		 * @description 
+		 *   Same as nacl.box, but uses a shared key precomputed with nacl.box.before,
+		 *   and passes a nonce explicitly.
+		 * */
+		public byte [] after(byte [] message, final int moff, final int mlen, byte [] theNonce) {
+			// check message
+			if (!(message!=null && message.length>=(moff+mlen) &&
+			      theNonce!=null && theNonce.length==nonceLength))
+				return null;
 
 			// message buffer
 			byte [] m = new byte[mlen + zerobytesLength];
@@ -175,7 +246,7 @@ public final class TweetNaclFast {
 			for (int i = 0; i < mlen; i ++)
 				m[i+zerobytesLength] = message[i+moff];
 
-			if (0 != crypto_box_afternm(c, m, m.length, n, sharedKey))
+			if (0 != crypto_box_afternm(c, m, m.length, theNonce, sharedKey))
 				return null;
 
 			// wrap byte_buf_t on c offset@boxzerobytesLength
@@ -194,12 +265,13 @@ public final class TweetNaclFast {
 		 *   but uses a shared key pre-computed with nacl.box.before.
 		 * */
 		public byte [] open_after(byte [] box, final int boxoff, final int boxlen) {
+		  return open_after(box, boxoff, boxlen, generateNonce());
+		}
+		
+		public byte [] open_after(byte [] box, final int boxoff, final int boxlen, byte [] theNonce) {
 			// check message
 			if (!(box!=null && box.length>=(boxoff+boxlen) && boxlen>=boxzerobytesLength))
 				return null;
-
-			// generate nonce
-			byte [] n = generateNonce();
 
 			// cipher buffer
 			byte [] c = new byte[boxlen + boxzerobytesLength];
@@ -210,7 +282,7 @@ public final class TweetNaclFast {
 			for (int i = 0; i < boxlen; i++) 
 				c[i+boxzerobytesLength] = box[i+boxoff];
 
-			if (crypto_box_open_afternm(m, c, c.length, n, sharedKey) != 0) 
+			if (crypto_box_open_afternm(m, c, c.length, theNonce, sharedKey) != 0) 
 				return null;
 
 			// wrap byte_buf_t on m offset@zerobytesLength
@@ -369,21 +441,36 @@ public final class TweetNaclFast {
 		 * */
 		public byte [] box(byte [] message) {
 			if (message==null) return null;
-
 			return box(message, 0, message.length);
 		}
+		
 		public byte [] box(byte [] message, final int moff) {
 			if (!(message!=null && message.length>moff)) return null;
-
 			return box(message, moff, message.length-moff);
 		}
+		
 		public byte [] box(byte [] message, final int moff, final int mlen) {
 			// check message
 			if (!(message!=null && message.length>=(moff+mlen)))
 				return null;
+			return box(message, moff, message.length-moff, generateNonce());
+		}
 
-			// generate nonce
-			byte [] n = generateNonce();
+		public byte [] box(byte [] message, byte [] theNonce) {
+			if (message==null) return null;
+			return box(message, 0, message.length, theNonce);
+		}
+		
+		public byte [] box(byte [] message, final int moff, byte [] theNonce) {
+			if (!(message!=null && message.length>moff)) return null;
+			return box(message, moff, message.length-moff, theNonce);
+		}
+		
+		public byte [] box(byte [] message, final int moff, final int mlen, byte [] theNonce) {
+			// check message
+			if (!(message!=null && message.length>=(moff+mlen) &&
+			      theNonce!=null && theNonce.length==nonceLength))
+				return null;
 
 			// message buffer
 			byte [] m = new byte[mlen + zerobytesLength];
@@ -394,7 +481,7 @@ public final class TweetNaclFast {
 			for (int i = 0; i < mlen; i ++)
 				m[i+zerobytesLength] = message[i+moff];
 
-			if (0 != crypto_secretbox(c, m, m.length, n, key))
+			if (0 != crypto_secretbox(c, m, m.length, theNonce, key))
 				return null;
 
 			// TBD optimizing ...
@@ -417,21 +504,36 @@ public final class TweetNaclFast {
 		 * */
 		public byte [] open(byte [] box) {
 			if (box==null) return null;
-
 			return open(box, 0, box.length);
 		}
+		
 		public byte [] open(byte [] box, final int boxoff) {
 			if (!(box!=null && box.length>boxoff)) return null;
-
 			return open(box, boxoff, box.length-boxoff);
 		}	
+		
 		public byte [] open(byte [] box, final int boxoff, final int boxlen) {
 			// check message
 			if (!(box!=null && box.length>=(boxoff+boxlen) && boxlen>=boxzerobytesLength))
 				return null;
-
-			// generate nonce
-			byte [] n = generateNonce();
+			return open(box, boxoff, box.length-boxoff, generateNonce());
+    }
+    
+		public byte [] open(byte [] box, byte [] theNonce) {
+			if (box==null) return null;
+			return open(box, 0, box.length, theNonce);
+		}
+		
+		public byte [] open(byte [] box, final int boxoff, byte [] theNonce) {
+			if (!(box!=null && box.length>boxoff)) return null;
+			return open(box, boxoff, box.length-boxoff, theNonce);
+		}	
+		
+		public byte [] open(byte [] box, final int boxoff, final int boxlen, byte [] theNonce) {
+			// check message
+			if (!(box!=null && box.length>=(boxoff+boxlen) && boxlen>=boxzerobytesLength &&
+			      theNonce!=null && theNonce.length==nonceLength))
+				return null;
 
 			// cipher buffer
 			byte [] c = new byte[boxlen + boxzerobytesLength];
@@ -442,7 +544,7 @@ public final class TweetNaclFast {
 			for (int i = 0; i < boxlen; i++) 
 				c[i+boxzerobytesLength] = box[i+boxoff];
 
-			if (0 != crypto_secretbox_open(m, c, c.length, n, key))
+			if (0 != crypto_secretbox_open(m, c, c.length, theNonce, key))
 				return null;
 
 			// wrap byte_buf_t on m offset@zerobytesLength
@@ -3211,7 +3313,7 @@ public final class TweetNaclFast {
 	 * */
 	private static final SecureRandom jrandom = new SecureRandom();
 
-	private static void randombytes(byte [] x, int len) {
+	public static void randombytes(byte [] x, int len) {
 		int ret = len % 8;
 		long rnd;
 
