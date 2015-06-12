@@ -5,6 +5,8 @@ package com.iwebpp.crypto;
 
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
+import android.util.Base64;
+import java.lang.System;
 import java.util.concurrent.atomic.AtomicLong;
 
 
@@ -3313,7 +3315,23 @@ public final class TweetNaclFast {
 	 * */
 	private static final SecureRandom jrandom = new SecureRandom();
 
-	public static void randombytes(byte [] x, int len) {
+	public static byte[] randombytes(byte [] x) {
+	  jrandom.nextBytes(x);
+	  return x;
+	}
+	
+	public static byte[] randombytes(int len) {
+	  return randombytes(new byte[len]);
+	}
+	
+	public static byte[] randombytes(byte [] x, int len) {
+    byte [] b = randombytes(len);
+    System.arraycopy(b, 0, x, 0, len);
+    return x;
+	}
+	
+/*
+  public static byte[] randombytes(byte [] x, int len) {
 		int ret = len % 8;
 		long rnd;
 
@@ -3335,6 +3353,47 @@ public final class TweetNaclFast {
 			for (int i = len-ret; i < len; i ++)
 				x[i] = (byte) (rnd >>> 8*i);
 		}
+		return x;
 	}
+*/
 
+	public static byte[] makeBoxNonce() {
+	  return randombytes(Box.nonceLength);
+	}
+	
+	public static byte[] makeSecretBoxNonce() {
+	  return randombytes(SecretBox.nonceLength);
+	}
+	
+	public static String base64EncodeToString(byte [] b) {
+	  return Base64.encodeToString(b, Base64.NO_PADDING);
+	}
+	// byte[] Base64.getUrlEncoder().withoutPadding().encode(b);
+	
+	public static byte[] base64Decode(String s) {
+	  return Base64.decode(s, Base64.NO_PADDING);
+	}
+	// byte[] Base64.getUrlDecoder().decode(byte[] b)
+	
+  public static String hexEncodeToString( byte [] raw ) {
+    String HEXES = "0123456789ABCDEF";
+    final StringBuilder hex = new StringBuilder( 2 * raw.length );
+    for ( final byte b : raw ) {
+      hex.append(HEXES.charAt((b & 0xF0) >> 4))
+         .append(HEXES.charAt((b & 0x0F)));
+    }
+    return hex.toString();
+  }
+
+  public static byte[] hexDecode(String s) {
+    byte[] b = new byte[s.length() / 2];
+    for (int i = 0; i < s.length(); i += 2) {
+      b[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                           + Character.digit(s.charAt(i+1), 16));
+    }
+    return b;
+  }
+
+	// public static boolean java.util.Arrays.equals(array1, array2);
+		
 }
