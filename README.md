@@ -36,8 +36,8 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 * DNS
 * URL
 * IPv6
-* for API usage, check https://github.com/InstantWebP2P/node-android/tree/master/src/com/iwebpp/node/tests
-* WebSocket/WebSocketServer supported, check https://github.com/InstantWebP2P/node-android/tree/master/src/com/iwebpp/wspp/tests
+* for API usage, check https://github.com/InstantWebP2P/node-android/tree/master/app/src/main/java/com/iwebpp/node/tests
+* WebSocket/WebSocketServer supported, check https://github.com/InstantWebP2P/node-android/tree/master/app/src/main/java/com/iwebpp/wspp/tests
 * Connect middleware
 * Crypto: NACL support, public box,secret box,signature/verify
 * SecureWebSocket over NACL
@@ -59,7 +59,7 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 * Implement 'public String content()' in 'MyScript' to return user script
 * Execute JS engine in a separate Java Thread with 'MyScript.execute()'
 * When authoring script, please use NodeCurrentContext(alias NCC) in node-android API
-* For details, check https://github.com/InstantWebP2P/node-android/tree/master/src/com/iwebpp/node/js/tests
+* For details, check https://github.com/InstantWebP2P/node-android/tree/master/app/src/main/java/com/iwebpp/node/js/tests
 
 
 ### TODO
