@@ -3371,7 +3371,7 @@ public final class TweetNaclFast {
 	// byte[] Base64.getUrlEncoder().withoutPadding().encode(b);
 	
 	public static byte[] base64Decode(String s) {
-	  return Base64.decode(s, Base64.NO_PADDING);
+		return Base64.decode(s, Base64.NO_PADDING);
 	}
 	// byte[] Base64.getUrlDecoder().decode(byte[] b)
 	
