@@ -73,4 +73,4 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 
 (see LICENSE file)
 
-Copyright (c) 2014 Tom Zhou(iwebpp@gmail.com)
+Copyright (c) 2014-2015 Tom Zhou(iwebpp@gmail.com)
