@@ -1730,7 +1730,22 @@ public final class TweetNaclFast {
 			}
 			g[9] -= (1 << 13); g[9] &= 0xffff;
 
-			mask = (g[9] >>> ((2 * 8) - 1)) - 1; mask &= 0xffff;
+
+                         /*
+                         backport from tweetnacl-fast.js https://github.com/dchest/tweetnacl-js/releases/tag/v0.14.3
+                         <<<
+                         "The issue was not properly detecting if st->h was >= 2^130 - 5, 
+                         coupled with [testing mistake] not catching the failure.
+                         The chance of the bug affecting anything in the real world is essentially zero luckily, 
+                         but it's good to have it fixed."
+                         >>>
+                         */
+ 			            ///change mask = (g[9] >>> ((2 * 8) - 1)) - 1; to as 
+ 			            mask = (c ^ 1) - 1;
+ 			            mask &= 0xffff;
+ 			            ///////////////////////////////////////
+ 
+			
 			for (i = 0; i < 10; i++) g[i] &= mask;
 			mask = ~mask;
 			for (i = 0; i < 10; i++) this.h[i] = (this.h[i] & mask) | g[i];
