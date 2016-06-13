@@ -1,54 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-us">
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-
+    <meta charset="UTF-8">
     <title>Node-android by InstantWebP2P</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
   </head>
-
   <body>
+    <section class="page-header">
+      <h1 class="project-name">Node-android</h1>
+      <h2 class="project-tagline">Run Node.js on Android</h2>
+      <a href="https://github.com/InstantWebP2P/node-android" class="btn">View on GitHub</a>
+      <a href="https://github.com/InstantWebP2P/node-android/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/InstantWebP2P/node-android/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
 
-    <header>
-      <div class="container">
-        <h1>Node-android</h1>
-        <h2>Run Node.js on Android</h2>
-
-        <section id="downloads">
-          <a href="https://github.com/InstantWebP2P/node-android/zipball/master" class="btn">Download as .zip</a>
-          <a href="https://github.com/InstantWebP2P/node-android/tarball/master" class="btn">Download as .tar.gz</a>
-          <a href="https://github.com/InstantWebP2P/node-android" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
-        </section>
-      </div>
-    </header>
-
-    <div class="container">
-      <section id="main_content">
-        <h1>
-<a id="node-android" class="anchor" href="#node-android" aria-hidden="true"><span class="octicon octicon-link"></span></a>node-android</h1>
+    <section class="main-content">
+      <h1>
+<a id="node-android" class="anchor" href="#node-android" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>node-android</h1>
 
 <p>Run Node.js on Android by rewrite Node.js in  Java with the compatible API.</p>
 
 <p>third-party: libuvpp, libuv-java JNI code by Oracle.</p>
 
 <h3>
-<a id="build" class="anchor" href="#build" aria-hidden="true"><span class="octicon octicon-link"></span></a>Build</h3>
+<a id="build" class="anchor" href="#build" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Build</h3>
 
 <p>Clone the code, open Android Studio (1.*) and import the project.</p>
 
 <p>For Eclipse ADT user, refer to <a href="https://github.com/InstantWebP2P/node-android/tree/adt">https://github.com/InstantWebP2P/node-android/tree/adt</a></p>
 
 <h3>
-<a id="javascript-code-injection" class="anchor" href="#javascript-code-injection" aria-hidden="true"><span class="octicon octicon-link"></span></a>Javascript code injection</h3>
+<a id="javascript-code-injection" class="anchor" href="#javascript-code-injection" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Javascript code injection</h3>
 
-<div class="highlight highlight-bash"><pre><span class="pl-k">&gt;</span> adb shell am start -a android.intent.action.VIEW -n com.iwebpp.nodeandroid/.MainActivity -e js <span class="pl-s"><span class="pl-pds">"</span>var run = function () { return 'hello world'; } run();<span class="pl-pds">"</span></span></pre></div>
+<div class="highlight highlight-source-shell"><pre><span class="pl-k">&gt;</span> adb shell am start -a android.intent.action.VIEW -n com.iwebpp.nodeandroid/.MainActivity -e js <span class="pl-s"><span class="pl-pds">"</span>var run = function () { return 'hello world'; } run();<span class="pl-pds">"</span></span></pre></div>
 
 <h3>
-<a id="features" class="anchor" href="#features" aria-hidden="true"><span class="octicon octicon-link"></span></a>Features</h3>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features</h3>
 
 <ul>
 <li>Node.js 0.10.x compatible API</li>
@@ -75,7 +66,7 @@
 </ul>
 
 <h3>
-<a id="js-runtime" class="anchor" href="#js-runtime" aria-hidden="true"><span class="octicon octicon-link"></span></a>JS runtime</h3>
+<a id="js-runtime" class="anchor" href="#js-runtime" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>JS runtime</h3>
 
 <ul>
 <li>Rhino supported</li>
@@ -88,7 +79,7 @@
 </ul>
 
 <h3>
-<a id="js-usage" class="anchor" href="#js-usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>JS usage</h3>
+<a id="js-usage" class="anchor" href="#js-usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>JS usage</h3>
 
 <ul>
 <li>In case Rhino, create class 'MyScript' extends from com.iwebpp.node.js.rhino.Host</li>
@@ -100,7 +91,7 @@
 </ul>
 
 <h3>
-<a id="todo" class="anchor" href="#todo" aria-hidden="true"><span class="octicon octicon-link"></span></a>TODO</h3>
+<a id="todo" class="anchor" href="#todo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO</h3>
 
 <ul>
 <li>API doc, more demos</li>
@@ -110,14 +101,20 @@
 <p><br></p>
 
 <h3>
-<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h3>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h3>
 
 <p>(see LICENSE file)</p>
 
 <p>Copyright (c) 2014 Tom Zhou(<a href="mailto:iwebpp@gmail.com">iwebpp@gmail.com</a>)</p>
-      </section>
-    </div>
 
-    
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/InstantWebP2P/node-android">Node-android</a> is maintained by <a href="https://github.com/InstantWebP2P">InstantWebP2P</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
   </body>
 </html>
