@@ -70,8 +70,8 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 
 ### Support us
 
-* scan QRcode to follow our WeChat 
-* ![云瓜云](https://avatars2.githubusercontent.com/u/225268?v=3&u=619fd9c604818ce67e4684a853a5dfb996360750&s=400)
+* scan QRcode to follow our WeChat(云瓜桌面)
+* ![云瓜云](https://github.com/InstantWebP2P/peer-vnc/blob/master/cloudgua.jpg)
 * 远程工作云办公联盟 QQ 群号: 463651269
 
 <br/>
