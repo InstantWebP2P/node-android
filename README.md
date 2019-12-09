@@ -11,7 +11,7 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 
   Clone the code, open Android Studio (1.*) and import the project.
   
-  For Eclipse ADT user, refer to https://github.com/InstantWebP2P/node-android/tree/adt
+  For Eclipse ADT user, refer to [ADT branch](https://github.com/InstantWebP2P/node-android/tree/adt)
 
 
 ### Javascript code injection
@@ -36,12 +36,12 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 * DNS
 * URL
 * IPv6
-* for API usage, check https://github.com/InstantWebP2P/node-android/tree/master/app/src/main/java/com/iwebpp/node/tests
-* WebSocket/WebSocketServer supported, check https://github.com/InstantWebP2P/node-android/tree/master/app/src/main/java/com/iwebpp/wspp/tests
+* [NodeJS alike API](https://github.com/InstantWebP2P/node-android/tree/master/app/src/main/java/com/iwebpp/node)
+* [WebSocket, WebSocketServer](https://github.com/InstantWebP2P/node-android/tree/master/app/src/main/java/com/iwebpp/wspp)
 * Connect middleware
-* Crypto: NACL support, public box,secret box,signature/verify https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/crypto/TweetNaclFast.java
-* SecureWebSocket over NACL: https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/wspp/SecureWebSocket.java
-* NaCL cert: https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/crypto/NaclCert.java
+* [Crypto: NaCL support, public box,secret box,signature/verify](https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/crypto/TweetNaclFast.java)
+* [SecureWebSocket over NaCL](https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/wspp/SecureWebSocket.java)
+* [NaCL Cert](https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/crypto/NaclCert.java)
 
 
 ### JS runtime
@@ -60,7 +60,7 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 * Implement 'public String content()' in 'MyScript' to return user script
 * Execute JS engine in a separate Java Thread with 'MyScript.execute()'
 * When authoring script, please use NodeCurrentContext(alias NCC) in node-android API
-* For details, check https://github.com/InstantWebP2P/node-android/tree/master/app/src/main/java/com/iwebpp/node/js/tests
+* [JS API usages details](https://github.com/InstantWebP2P/node-android/tree/master/app/src/main/java/com/iwebpp/node/js)
 
 
 ### TODO
