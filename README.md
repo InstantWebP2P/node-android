@@ -22,7 +22,7 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
   
 ### Features
 
-* Node.js 0.10.x compatible API
+* Node.js 0.10.x compatible API by rewrite NodeJS in Java
 * Multi-threading: run separate node context in Java thread
 * libUV native support
 * Timer, set/clear Timeout/Interval
