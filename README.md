@@ -24,15 +24,15 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 
 * Node.js 0.10.x compatible API by rewrite NodeJS in Java
 * Multi-threading: run separate node context in Java thread
-* libUV native support
+* [libUV native support](https://github.com/InstantWebP2P/node-android/tree/master/app/src/main/java/com/iwebpp/libuvpp)
 * Timer, set/clear Timeout/Interval
 * EventEmitter
 * Stream
-* HttpParser(rewrite http-parser.c in java)
+* [HttpParser - rewrite http-parser.c in java](https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/node/HttpParser.java)
 * HTTP
-* HTTPP(run http over udp)
+* [HTTPP - run http over udp](https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/node/http/httpp.java)
 * TCP
-* UDT(udp transport)
+* [UDT - udp transport](https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/node/net/UDT.java)
 * DNS
 * URL
 * IPv6
