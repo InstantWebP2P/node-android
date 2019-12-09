@@ -39,8 +39,9 @@ third-party: libuvpp, libuv-java JNI code by Oracle.
 * for API usage, check https://github.com/InstantWebP2P/node-android/tree/master/app/src/main/java/com/iwebpp/node/tests
 * WebSocket/WebSocketServer supported, check https://github.com/InstantWebP2P/node-android/tree/master/app/src/main/java/com/iwebpp/wspp/tests
 * Connect middleware
-* Crypto: NACL support, public box,secret box,signature/verify
+* Crypto: NACL support, public box,secret box,signature/verify https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/crypto/TweetNaclFast.java
 * SecureWebSocket over NACL: https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/wspp/SecureWebSocket.java
+* NaCL cert: https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/crypto/NaclCert.java
 
 
 ### JS runtime
