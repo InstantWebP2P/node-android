@@ -1,6 +1,8 @@
 node-android
 ===============
 
+![Android CI](https://github.com/InstantWebP2P/node-android/workflows/Android%20CI/badge.svg)
+
 Run Node.js on Android by rewrite Node.js in  Java with the compatible API.
 
 
