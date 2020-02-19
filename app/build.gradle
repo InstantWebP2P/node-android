@@ -17,7 +17,7 @@ android {
     defaultConfig {
         applicationId "com.iwebpp.nodeandroid"
         minSdkVersion 8
-        targetSdkVersion 29
+        targetSdkVersion 21
 
         // Android Studio 1.0.* deprecated ndk support, do a manual command line build instead
 //        ndk {
@@ -33,6 +33,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+
+    android {
+        lintOptions {
+            abortOnError false
         }
     }
 }
