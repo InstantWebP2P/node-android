@@ -1,4 +1,4 @@
-rewrite tweetnacl.c in pure Java
+### Java port of [tweetnacl-js](https://github.com/dchest/tweetnacl-js)
 
 
 ### API/Usage
