@@ -1,10 +1,9 @@
-apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 apply plugin: 'android-native-dependencies'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    buildToolsVersion '28.0.3'
 
     // prevent ndk from building automagically
     android {
@@ -18,7 +17,7 @@ android {
     defaultConfig {
         applicationId "com.iwebpp.nodeandroid"
         minSdkVersion 8
-        targetSdkVersion 21
+        targetSdkVersion 29
 
         // Android Studio 1.0.* deprecated ndk support, do a manual command line build instead
 //        ndk {
@@ -39,6 +38,6 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:21.0.3'
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:21.0.3'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
