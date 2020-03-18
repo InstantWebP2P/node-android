@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Tom Zhou<iwebpp@gmail.com>
+// Copyright (c) 2014-present Tom Zhou<iwebpp@gmail.com>
 
 
 package com.iwebpp.crypto;
