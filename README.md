@@ -6,7 +6,7 @@ node-android
 Run Node.js on Android by rewrite Node.js in  Java with the compatible API.
 
 
-third-party: libuvpp, libuv-java JNI code by Oracle.
+third-party: [libuvpp](https://github.com/InstantWebP2P/libuvpp), libuv-java JNI code by Oracle.
 
 
 ### Build
