@@ -30,11 +30,11 @@ third-party: [libuvpp](https://github.com/InstantWebP2P/libuvpp), libuv-java JNI
 * Timer, set/clear Timeout/Interval
 * EventEmitter
 * Stream
-* [HttpParser - rewrite http-parser.c in java](https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/node/HttpParser.java)
+* [HttpParser - Rewrite Http-parser.c in java](https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/node/HttpParser.java)
 * HTTP
-* [HTTPP - run http over udp](https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/node/http/httpp.java)
+* [HTTPP - Run Http over Udp](https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/node/http/httpp.java)
 * TCP
-* [UDT - udp transport](https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/node/net/UDT.java)
+* [UDT - Udp Transport](https://github.com/InstantWebP2P/node-android/blob/master/app/src/main/java/com/iwebpp/node/net/UDT.java)
 * DNS
 * URL
 * IPv6
